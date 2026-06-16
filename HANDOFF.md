@@ -15,7 +15,10 @@
 - [x] Supabase client wired from `.env` credentials
 - [x] Placeholder home screen (app name + one-line description) styled with Tailwind
 - [x] `npm install` clean, `npm run build` clean, `npm run dev` runs at localhost:5173
-- [x] Scaffold committed (`08126b8`) and pushed — Vercel auto-deploy confirmed live
+- [x] Scaffold committed and pushed — Vercel auto-deploy confirmed live
+- [x] **Database schema:** `entries` table created with shared fields + JSONB `properties`
+- [x] **Indexes:** full-text search (name+description), GIN on tags, GIN on properties, B-tree on type, campaign, dm_only, created_at
+- [x] **RLS:** public read, authenticated write — grants and policies set
 
 ## Next task
 
