@@ -11,7 +11,12 @@
 - [x] Supabase credentials stored in local `.env` and Vercel environment variables (all three scopes)
 - [x] Vercel project created — placeholder deployed and live at https://homebrew-libram.vercel.app
 - [x] Vercel Git integration connected — every push to main auto-deploys
+- [x] React + TypeScript + Vite + Tailwind CSS v4 + Supabase scaffold created
+- [x] Supabase client wired from `.env` credentials
+- [x] Placeholder home screen (app name + one-line description) styled with Tailwind
+- [x] `npm install` clean, `npm run build` clean, `npm run dev` runs at localhost:5173
+- [x] Scaffold committed (`08126b8`) and pushed — Vercel auto-deploy confirmed live
 
 ## Next task
 
-React scaffold — to be detailed in the next session.
+First feature — to be detailed in the next session.
