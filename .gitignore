@@ -21,6 +21,10 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Build output
+dist/
+*.tsbuildinfo
+
 # Logs
 *.log
 npm-debug.log*
