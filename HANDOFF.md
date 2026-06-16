@@ -10,15 +10,8 @@
 - [x] Deploy placeholder page to **https://homebrew-libram.vercel.app** (200 OK)
 - [x] **Supabase:** project created, credentials stored in `.env` and Vercel env vars, connection confirmed
 - [x] **Vercel env vars:** VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY set for production, preview, and development
-- [ ] **Vercel Git integration** — `vercel git connect` failed (Vercel needs GitHub app installed on the repo). Manual step required.
+- [x] **Vercel Git integration** — manually connected in dashboard (auto-deploy on push active)
 
 ## Next steps
 
-### Vercel Git integration (auto-deploy on push)
-Link the repo in the Vercel dashboard:
-1. Go to https://vercel.com/jon-mg-ee-s-projects/homebrew-libram/settings
-2. Click "Connect Git Repository" → select `jonmgee/homebrew-libram`
-3. Done — every push will auto-deploy
-
-### App code
-Awaiting brief from Jon.
+Awaiting app brief from Jon.
