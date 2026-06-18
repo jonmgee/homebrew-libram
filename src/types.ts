@@ -149,6 +149,30 @@ export interface SpellProperties {
   casting_time?: string;
 }
 
+export interface ArmourProperties {
+  armour_type: "light" | "medium" | "heavy" | "shield";
+  base_ac: number;
+  bonus: "+0" | "+1" | "+2" | "+3";
+  stealth_disadvantage: boolean;
+  cost: string;
+  weight: number;
+}
+
+export interface PotionProperties {
+  effect: string;
+  duration: string;
+  rarity: string;
+  charges: number;
+}
+
+export interface AdventuringGearProperties {
+  gear_category: string;
+  quantity: number;
+  properties: string;
+  cost: string;
+  weight: number;
+}
+
 export const RARITY_OPTIONS = [
   "common",
   "uncommon",
@@ -165,3 +189,20 @@ export const DAMAGE_TYPE_OPTIONS = [
 ] as const;
 
 export const BONUS_OPTIONS = ["+0", "+1", "+2", "+3"] as const;
+
+export const ARMOUR_TYPE_OPTIONS = [
+  "light",
+  "medium",
+  "heavy",
+  "shield",
+] as const;
+
+export const GEAR_CATEGORY_OPTIONS = [
+  "tool",
+  "kit",
+  "container",
+  "consumable",
+  "focus",
+  "instrument",
+  "other",
+] as const;
