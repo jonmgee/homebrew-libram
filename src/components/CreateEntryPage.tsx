@@ -74,7 +74,7 @@ const EMPTY_FORM: FormState = {
   quantity: "",
 };
 
-type SaveStatus = "idle" | "saving" | "saved" | "error";
+type SaveStatus = "idle" | "saving" | "saved" | "error" | "duplicate";
 
 const ENTRY_TYPES: { value: EntryType; label: string }[] = [
   { value: "magic_item", label: "Magic Item" },
@@ -89,6 +89,7 @@ export default function CreateEntryPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -183,6 +184,21 @@ export default function CreateEntryPage() {
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
+
+    // Check for duplicate
+    if (status !== "duplicate") {
+      const { data: existing } = await supabase
+        .from("entries")
+        .select("id")
+        .eq("name", form.name.trim())
+        .eq("type", form.type)
+        .maybeSingle();
+
+      if (existing) {
+        setStatus("duplicate");
+        return;
+      }
+    }
 
     const payload = {
       name: form.name,
@@ -411,6 +427,29 @@ export default function CreateEntryPage() {
             >
               Create another
             </button>
+          </div>
+        )}
+
+        {status === "duplicate" && (
+          <div className="rounded-lg border border-amber-700 bg-amber-900/50 px-4 py-3 text-sm text-amber-300">
+            An entry with this name and type already exists.
+            <div className="mt-3 flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setStatus("idle");
+                }}
+                className="rounded-lg border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700"
+              >
+                Go back
+              </button>
+              <button
+                type="submit"
+                className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-500"
+              >
+                Save anyway
+              </button>
+            </div>
           </div>
         )}
 
