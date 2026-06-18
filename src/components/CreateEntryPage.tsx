@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useRef } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import type {
@@ -124,6 +124,7 @@ export default function CreateEntryPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const allowDuplicate = useRef(false);
 
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -195,6 +196,11 @@ export default function CreateEntryPage() {
     }
 
     if (form.type === "potion") {
+      if (!form.effect) {
+        setErrorMsg("Effect is required for potions.");
+        setStatus("idle");
+        return;
+      }
       const pp: PotionProperties = {
         effect: form.effect,
         duration: form.duration,
@@ -204,6 +210,31 @@ export default function CreateEntryPage() {
     }
 
     if (form.type === "spell") {
+      if (!form.spell_level) {
+        setErrorMsg("Level is required for spells.");
+        setStatus("idle");
+        return;
+      }
+      if (!form.school) {
+        setErrorMsg("School is required for spells.");
+        setStatus("idle");
+        return;
+      }
+      if (!form.casting_time) {
+        setErrorMsg("Casting time is required for spells.");
+        setStatus("idle");
+        return;
+      }
+      if (!form.range) {
+        setErrorMsg("Range is required for spells.");
+        setStatus("idle");
+        return;
+      }
+      if (!form.spell_duration) {
+        setErrorMsg("Duration is required for spells.");
+        setStatus("idle");
+        return;
+      }
       const sp: SpellProperties = {
         level: form.spell_level,
         school: form.school,
@@ -220,6 +251,16 @@ export default function CreateEntryPage() {
     }
 
     if (form.type === "scroll") {
+      if (!form.spell_name) {
+        setErrorMsg("Spell name is required for scrolls.");
+        setStatus("idle");
+        return;
+      }
+      if (!form.scroll_level) {
+        setErrorMsg("Spell level is required for scrolls.");
+        setStatus("idle");
+        return;
+      }
       const sp: ScrollProperties = {
         spell_name: form.spell_name,
         spell_level: form.scroll_level,
@@ -229,6 +270,11 @@ export default function CreateEntryPage() {
     }
 
     if (form.type === "adventuring_gear") {
+      if (!form.gear_category) {
+        setErrorMsg("Gear category is required for adventuring gear.");
+        setStatus("idle");
+        return;
+      }
       const gp: AdventuringGearProperties = {
         gear_category: form.gear_category,
         quantity: form.quantity ? Number(form.quantity) : 1,
@@ -552,6 +598,7 @@ export default function CreateEntryPage() {
                 type="button"
                 onClick={() => {
                   setStatus("idle");
+                  allowDuplicate.current = false;
                 }}
                 className="rounded-lg border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700"
               >
@@ -559,6 +606,7 @@ export default function CreateEntryPage() {
               </button>
               <button
                 type="submit"
+                onClick={() => { allowDuplicate.current = true; }}
                 className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-500"
               >
                 Save anyway

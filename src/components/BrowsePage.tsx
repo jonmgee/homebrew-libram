@@ -89,14 +89,18 @@ export default function BrowsePage() {
     return result;
   }, [entries, search, hideDmOnly]);
 
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   async function handleDelete(id: string) {
     const { error } = await supabase.from("entries").delete().eq("id", id);
     if (error) {
       console.error("Delete error:", error);
+      setDeleteError(error.message);
       return;
     }
     setEntries((prev) => prev.filter((e) => e.id !== id));
     setDeleteConfirmId(null);
+    setDeleteError(null);
   }
 
   // ───── render ─────
@@ -142,6 +146,18 @@ export default function BrowsePage() {
       {loadState === "error" && (
         <div className="rounded-lg border border-red-700 bg-red-900/50 px-4 py-3 text-sm text-red-300">
           {errorMsg}
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="mb-4 rounded-lg border border-red-700 bg-red-900/50 px-4 py-3 text-sm text-red-300">
+          Failed to delete: {deleteError}
+          <button
+            onClick={() => setDeleteError(null)}
+            className="ml-2 underline underline-offset-2 hover:text-red-200"
+          >
+            Dismiss
+          </button>
         </div>
       )}
 
