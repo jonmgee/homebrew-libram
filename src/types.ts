@@ -138,9 +138,34 @@ export interface DbEntry {
 }
 
 export interface MonsterProperties {
-  challenge_rating?: string;
-  creature_type?: string;
-  size?: string;
+  cr: string;
+  size: string;
+  creature_type: string;
+  alignment: string;
+  ac: number;
+  hp: string;
+  speed: string;
+  ability_str: number;
+  ability_dex: number;
+  ability_con: number;
+  ability_int: number;
+  ability_wis: number;
+  ability_cha: number;
+  saving_throws: string;
+  skills: string;
+  damage_resistances: string;
+  damage_immunities: string;
+  condition_immunities: string;
+  senses: string;
+  languages: string;
+  actions: string;
+  legendary_actions: string;
+  special_abilities: string;
+}
+
+export interface NpcProperties extends MonsterProperties {
+  role: string;
+  faction: string;
 }
 
 export interface SpellProperties {
@@ -243,3 +268,29 @@ export const SCHOOL_OPTIONS = [
 ] as const;
 
 export const COMPONENT_OPTIONS = ["V", "S", "M"] as const;
+
+export const CREATURE_SIZE_OPTIONS = [
+  "tiny",
+  "small",
+  "medium",
+  "large",
+  "huge",
+  "gargantuan",
+] as const;
+
+export const CREATURE_TYPE_OPTIONS = [
+  "aberration",
+  "beast",
+  "celestial",
+  "construct",
+  "dragon",
+  "elemental",
+  "fey",
+  "fiend",
+  "giant",
+  "humanoid",
+  "monstrosity",
+  "ooze",
+  "plant",
+  "undead",
+] as const;

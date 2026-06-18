@@ -12,6 +12,7 @@ import type {
   AdventuringGearProperties,
   SpellProperties,
   ScrollProperties,
+  MonsterProperties,
 } from "../types";
 import {
   RARITY_OPTIONS,
@@ -22,6 +23,8 @@ import {
   SPELL_LEVEL_OPTIONS,
   SCHOOL_OPTIONS,
   COMPONENT_OPTIONS,
+  CREATURE_SIZE_OPTIONS,
+  CREATURE_TYPE_OPTIONS,
 } from "../types";
 
 interface FormState {
@@ -68,6 +71,32 @@ interface FormState {
   spell_name: string;
   scroll_rarity: string;
   scroll_level: string;
+  // monster / npc
+  cr: string;
+  size: string;
+  creature_type: string;
+  alignment: string;
+  ac: string;
+  hp: string;
+  speed: string;
+  ability_str: string;
+  ability_dex: string;
+  ability_con: string;
+  ability_int: string;
+  ability_wis: string;
+  ability_cha: string;
+  saving_throws: string;
+  skills: string;
+  damage_resistances: string;
+  damage_immunities: string;
+  condition_immunities: string;
+  senses: string;
+  languages: string;
+  actions: string;
+  legendary_actions: string;
+  special_abilities: string;
+  role: string;
+  faction: string;
   // subcategory
   subcategory: string;
 }
@@ -109,6 +138,31 @@ const EMPTY_FORM: FormState = {
   spell_name: "",
   scroll_rarity: "",
   scroll_level: "",
+  cr: "",
+  size: "",
+  creature_type: "",
+  alignment: "",
+  ac: "",
+  hp: "",
+  speed: "",
+  ability_str: "",
+  ability_dex: "",
+  ability_con: "",
+  ability_int: "",
+  ability_wis: "",
+  ability_cha: "",
+  saving_throws: "",
+  skills: "",
+  damage_resistances: "",
+  damage_immunities: "",
+  condition_immunities: "",
+  senses: "",
+  languages: "",
+  actions: "",
+  legendary_actions: "",
+  special_abilities: "",
+  role: "",
+  faction: "",
   subcategory: "",
 };
 
@@ -123,6 +177,8 @@ const ENTRY_TYPES: { value: EntryType; label: string }[] = [
   { value: "trinket", label: "Trinket" },
   { value: "spell", label: "Spell" },
   { value: "scroll", label: "Scroll" },
+  { value: "monster", label: "Monster" },
+  { value: "npc", label: "NPC" },
 ];
 
 export default function CreateEntryPage() {
@@ -290,6 +346,60 @@ export default function CreateEntryPage() {
       properties = gp as unknown as Record<string, unknown>;
     }
 
+    if (form.type === "monster" || form.type === "npc") {
+      if (!form.cr) {
+        setErrorMsg("CR is required for monsters and NPCs.");
+        setStatus("idle");
+        return;
+      }
+      if (!form.size) {
+        setErrorMsg("Size is required for monsters and NPCs.");
+        setStatus("idle");
+        return;
+      }
+      if (!form.creature_type) {
+        setErrorMsg("Creature type is required for monsters and NPCs.");
+        setStatus("idle");
+        return;
+      }
+      if (!form.ac) {
+        setErrorMsg("AC is required for monsters and NPCs.");
+        setStatus("idle");
+        return;
+      }
+      const mp: MonsterProperties = {
+        cr: form.cr,
+        size: form.size,
+        creature_type: form.creature_type,
+        alignment: form.alignment,
+        ac: form.ac ? Number(form.ac) : 0,
+        hp: form.hp,
+        speed: form.speed,
+        ability_str: form.ability_str ? Number(form.ability_str) : 10,
+        ability_dex: form.ability_dex ? Number(form.ability_dex) : 10,
+        ability_con: form.ability_con ? Number(form.ability_con) : 10,
+        ability_int: form.ability_int ? Number(form.ability_int) : 10,
+        ability_wis: form.ability_wis ? Number(form.ability_wis) : 10,
+        ability_cha: form.ability_cha ? Number(form.ability_cha) : 10,
+        saving_throws: form.saving_throws,
+        skills: form.skills,
+        damage_resistances: form.damage_resistances,
+        damage_immunities: form.damage_immunities,
+        condition_immunities: form.condition_immunities,
+        senses: form.senses,
+        languages: form.languages,
+        actions: form.actions,
+        legendary_actions: form.legendary_actions,
+        special_abilities: form.special_abilities,
+      };
+      properties = mp as unknown as Record<string, unknown>;
+
+      if (form.type === "npc") {
+        (properties as Record<string, unknown>).role = form.role;
+        (properties as Record<string, unknown>).faction = form.faction;
+      }
+    }
+
     const tags = form.tags
       .split(",")
       .map((t) => t.trim())
@@ -386,7 +496,7 @@ export default function CreateEntryPage() {
     </div>
   );
 
-  const numField = (label: string, key: "charges" | "weight" | "quantity") => (
+  const numField = (label: string, key: "charges" | "weight" | "quantity" | "ac") => (
     <div>
       <label className="mb-1 block text-sm font-medium text-zinc-300">{label}</label>
       <input
@@ -541,6 +651,70 @@ export default function CreateEntryPage() {
     </div>
   );
 
+  const abilityRow = (label: string, key: "ability_str" | "ability_dex" | "ability_con" | "ability_int" | "ability_wis" | "ability_cha") => (
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-xs font-bold text-zinc-500 uppercase">{label}</span>
+      <input
+        type="number"
+        min={1}
+        max={30}
+        value={form[key]}
+        onChange={(e) => update(key, e.target.value as never)}
+        className="w-16 rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-center text-sm text-zinc-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+      />
+    </div>
+  );
+
+  const monsterSection = (isNpc: boolean) => (
+    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">{isNpc ? "NPC" : "Monster"} Properties</h2>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        {sharedField("CR", "cr")}
+        {selectField("Size", "size", CREATURE_SIZE_OPTIONS, "Select size")}
+        {selectField("Type", "creature_type", CREATURE_TYPE_OPTIONS, "Select type")}
+      </div>
+
+      {sharedField("Alignment", "alignment")}
+
+      <div className="grid grid-cols-3 gap-4">
+        {numField("AC", "ac")}
+        {sharedField("HP", "hp")}
+        {sharedField("Speed", "speed")}
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-zinc-300">Ability Scores</label>
+        <div className="flex flex-wrap gap-4">
+          {abilityRow("STR", "ability_str")}
+          {abilityRow("DEX", "ability_dex")}
+          {abilityRow("CON", "ability_con")}
+          {abilityRow("INT", "ability_int")}
+          {abilityRow("WIS", "ability_wis")}
+          {abilityRow("CHA", "ability_cha")}
+        </div>
+      </div>
+
+      {sharedField("Saving Throws", "saving_throws")}
+      {sharedField("Skills", "skills")}
+      {sharedField("Damage Resistances", "damage_resistances")}
+      {sharedField("Damage Immunities", "damage_immunities")}
+      {sharedField("Condition Immunities", "condition_immunities")}
+      {sharedField("Senses", "senses")}
+      {sharedField("Languages", "languages")}
+      {sharedField("Actions", "actions", "textarea")}
+      {sharedField("Legendary Actions", "legendary_actions", "textarea")}
+      {sharedField("Special Abilities", "special_abilities", "textarea")}
+
+      {isNpc && (
+        <>
+          {sharedField("Role", "role")}
+          {sharedField("Faction", "faction")}
+        </>
+      )}
+    </div>
+  );
+
   const propertySection = () => {
     switch (form.type) {
       case "magic_item": return magicItemSection();
@@ -551,6 +725,8 @@ export default function CreateEntryPage() {
       case "trinket": return trinketSection();
       case "spell": return spellSection();
       case "scroll": return scrollSection();
+      case "monster": return monsterSection(false);
+      case "npc": return monsterSection(true);
       default: return null;
     }
   };
