@@ -1,6 +1,8 @@
+
 import { useState, type FormEvent, useRef } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { getSubcategorySlug } from "../lib/subcategories";
 import type {
   EntryType,
   MagicItemProperties,
@@ -66,6 +68,8 @@ interface FormState {
   spell_name: string;
   scroll_rarity: string;
   scroll_level: string;
+  // subcategory
+  subcategory: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -105,6 +109,7 @@ const EMPTY_FORM: FormState = {
   spell_name: "",
   scroll_rarity: "",
   scroll_level: "",
+  subcategory: "",
 };
 
 type SaveStatus = "idle" | "saving" | "saved" | "error" | "duplicate";
@@ -313,7 +318,10 @@ export default function CreateEntryPage() {
       dm_only: form.dm_only,
       tags,
       campaign: form.campaign,
-      properties,
+      properties: {
+        ...properties,
+        subcategory: form.subcategory,
+      },
     };
 
     const { error } = await supabase.from("entries").insert(payload);
@@ -406,6 +414,7 @@ export default function CreateEntryPage() {
         <p className="mt-1 text-xs text-zinc-500">Comma-separated</p>
       </div>
       {sharedField("Campaign", "campaign")}
+      {sharedField("Subcategory", "subcategory")}
     </div>
   );
 
@@ -551,7 +560,13 @@ export default function CreateEntryPage() {
               <button
                 key={value}
                 type="button"
-                onClick={() => { update("type", value); setStatus("idle"); setErrorMsg(""); }}
+                onClick={() => {
+                  const sub = getSubcategorySlug(value);
+                  update("type", value);
+                  update("subcategory", sub);
+                  setStatus("idle");
+                  setErrorMsg("");
+                }}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                   form.type === value ? "bg-amber-600 text-white" : "border border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600"
                 }`}

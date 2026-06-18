@@ -3,21 +3,40 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { getCategory, formatEntryType, type DbEntry } from "../types";
 import { entrySummary } from "../lib/entrySummary";
+import { getTypesForSubCategory } from "../lib/subcategories";
 
 type LoadState = "loading" | "loaded" | "error";
 
 export default function BrowsePage() {
-  const { category } = useParams<{ category: string }>();
+  const { category, subcategory } = useParams<{ category: string; subcategory?: string }>();
   const isAll = category === "all";
 
   const cat = isAll ? undefined : getCategory(category ?? "");
-  const heading = isAll ? "All Entries" : cat?.label ?? "Unknown Category";
+
+  // Build heading and back link
+  let heading = "";
+  let backTo: string;
+  let backLabel: string;
+
+  if (isAll) {
+    heading = "All Entries";
+    backTo = "/";
+    backLabel = "Home";
+  } else if (subcategory) {
+    const subLabel = subcategory.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    heading = subLabel;
+    backTo = `/browse/${category}`;
+    backLabel = cat?.label ?? "Category";
+  } else {
+    heading = cat?.label ?? "Unknown Category";
+    backTo = "/";
+    backLabel = "Home";
+  }
 
   const [entries, setEntries] = useState<DbEntry[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // search
   const [search, setSearch] = useState("");
   const [hideDmOnly, setHideDmOnly] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -35,7 +54,12 @@ export default function BrowsePage() {
           .select("*")
           .order("name", { ascending: true });
 
-        if (!isAll && cat) {
+        if (isAll) {
+          // no filter — all entries
+        } else if (subcategory && cat) {
+          const types = getTypesForSubCategory(cat.slug, subcategory);
+          query = query.in("type", types);
+        } else if (cat) {
           query = query.in("type", cat.types);
         }
 
@@ -65,13 +89,12 @@ export default function BrowsePage() {
     return () => {
       cancelled = true;
     };
-  }, [category, isAll, cat]);
+  }, [category, subcategory, isAll, cat]);
 
   // ───── filtered view ─────
   const filtered = useMemo(() => {
     let result = entries;
 
-    // search
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter(
@@ -81,7 +104,6 @@ export default function BrowsePage() {
       );
     }
 
-    // DM-only filter
     if (hideDmOnly) {
       result = result.filter((e) => !e.dm_only);
     }
@@ -103,27 +125,24 @@ export default function BrowsePage() {
     setDeleteError(null);
   }
 
-  // ───── render ─────
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      {/* back + heading */}
       <div className="mb-6 flex items-center gap-4">
         <Link
-          to="/"
+          to={backTo}
           className="text-sm text-zinc-500 underline underline-offset-2 hover:text-zinc-300"
         >
-          &larr; Home
+          &larr; {backLabel}
         </Link>
         <h1 className="text-2xl font-bold text-zinc-100">{heading}</h1>
       </div>
 
-      {/* search + filters */}
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or description…"
+          placeholder="Search by name or description\u2026"
           className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
         />
 
@@ -138,9 +157,8 @@ export default function BrowsePage() {
         </label>
       </div>
 
-      {/* results */}
       {loadState === "loading" && (
-        <p className="py-12 text-center text-zinc-500">Loading entries…</p>
+        <p className="py-12 text-center text-zinc-500">Loading entries\u2026</p>
       )}
 
       {loadState === "error" && (
@@ -175,9 +193,7 @@ export default function BrowsePage() {
                 <div
                   key={entry.id}
                   className={`rounded-lg border bg-zinc-900 px-4 py-3 ${
-                    entry.dm_only
-                      ? "border-amber-800/40"
-                      : "border-zinc-800"
+                    entry.dm_only ? "border-amber-800/40" : "border-zinc-800"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -194,7 +210,7 @@ export default function BrowsePage() {
                         {formatEntryType(entry.type)}
                       </p>
                       <p className="mt-1 text-sm text-zinc-400 line-clamp-1">
-                        {entrySummary(entry) || "—"}
+                        {entrySummary(entry) || "\u2014"}
                       </p>
                     </div>
                     <div className="shrink-0">
