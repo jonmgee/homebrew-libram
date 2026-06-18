@@ -39,7 +39,6 @@ interface FormState {
   weight: string;
   // armour
   armour_type: string;
-  base_ac: string;
   stealth_disadvantage: boolean;
   // potion
   effect: string;
@@ -68,7 +67,6 @@ const EMPTY_FORM: FormState = {
   cost: "",
   weight: "",
   armour_type: "",
-  base_ac: "",
   stealth_disadvantage: false,
   effect: "",
   duration: "",
@@ -151,7 +149,7 @@ export default function CreateEntryPage() {
       }
       const ap: ArmourProperties = {
         armour_type: form.armour_type as ArmourProperties["armour_type"],
-        base_ac: form.base_ac ? Number(form.base_ac) : 0,
+
         bonus: form.bonus as ArmourProperties["bonus"],
         stealth_disadvantage: form.stealth_disadvantage,
         cost: form.cost,
@@ -259,7 +257,7 @@ export default function CreateEntryPage() {
     </div>
   );
 
-  const numField = (label: string, key: "charges" | "weight" | "base_ac" | "quantity") => (
+  const numField = (label: string, key: "charges" | "weight" | "quantity") => (
     <div>
       <label className="mb-1 block text-sm font-medium text-zinc-300">{label}</label>
       <input
@@ -316,7 +314,6 @@ export default function CreateEntryPage() {
     <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
       <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Armour Properties</h2>
       {selectField("Armour Type", "armour_type", ARMOUR_TYPE_OPTIONS, "Select armour type")}
-      {numField("Base AC", "base_ac")}
       {selectField("Bonus", "bonus", BONUS_OPTIONS)}
       {toggleField("Stealth Disadvantage", "stealth_disadvantage")}
       {sharedField("Cost", "cost")}

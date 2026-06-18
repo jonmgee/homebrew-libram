@@ -151,7 +151,6 @@ export interface SpellProperties {
 
 export interface ArmourProperties {
   armour_type: "light" | "medium" | "heavy" | "shield";
-  base_ac: number;
   bonus: "+0" | "+1" | "+2" | "+3";
   stealth_disadvantage: boolean;
   cost: string;
