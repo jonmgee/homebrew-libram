@@ -2,7 +2,7 @@
 import { useState, type FormEvent, useRef } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { getSubcategorySlug } from "../lib/subcategories";
+import { getSubcategoryLabel } from "../lib/subcategories";
 import type {
   EntryType,
   MagicItemProperties,
@@ -414,7 +414,17 @@ export default function CreateEntryPage() {
         <p className="mt-1 text-xs text-zinc-500">Comma-separated</p>
       </div>
       {sharedField("Campaign", "campaign")}
-      {sharedField("Subcategory", "subcategory")}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-zinc-300">Subcategory</label>
+        <select
+          value={form.subcategory}
+          onChange={(e) => update("subcategory", e.target.value as never)}
+          disabled
+          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-500 opacity-60 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:cursor-not-allowed"
+        >
+          <option value={form.subcategory}>{form.subcategory}</option>
+        </select>
+      </div>
     </div>
   );
 
@@ -561,7 +571,7 @@ export default function CreateEntryPage() {
                 key={value}
                 type="button"
                 onClick={() => {
-                  const sub = getSubcategorySlug(value);
+                  const sub = getSubcategoryLabel(value);
                   update("type", value);
                   update("subcategory", sub);
                   setStatus("idle");

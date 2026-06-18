@@ -1,10 +1,41 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 import { getCategory } from "../types";
 import { getSubCategories, type SubCategoryDef } from "../lib/subcategories";
 
 export default function SubCategoryPage() {
   const { category } = useParams<{ category: string }>();
   const cat = getCategory(category ?? "");
+
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!cat) return;
+    let cancelled = false;
+
+    async function fetchCounts() {
+      // Get all types in this category
+      const types = cat!.types;
+
+      // Count entries grouped by type in a single query
+      const { data, error } = await supabase
+        .from("entries")
+        .select("type")
+        .in("type", types);
+
+      if (cancelled || error) return;
+
+      const typeCounts: Record<string, number> = {};
+      for (const row of data ?? []) {
+        typeCounts[row.type] = (typeCounts[row.type] || 0) + 1;
+      }
+      setCounts(typeCounts);
+    }
+
+    fetchCounts();
+    return () => { cancelled = true; };
+  }, [cat]);
 
   if (!cat) {
     return (
@@ -42,7 +73,10 @@ export default function SubCategoryPage() {
               {sub.label}
             </h2>
             <p className="mt-1 text-sm text-zinc-500">
-              {sub.types.length} entr{sub.types.length === 1 ? "y" : "ies"}
+              {(() => {
+                const c = sub.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
+                return `${c} entr${c === 1 ? "y" : "ies"}`;
+              })()}
             </p>
           </Link>
         ))}
