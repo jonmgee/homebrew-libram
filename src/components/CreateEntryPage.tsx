@@ -163,7 +163,7 @@ export default function CreateEntryPage() {
         effect: form.effect,
         duration: form.duration,
         rarity: form.rarity,
-        charges: form.charges ? Number(form.charges) : 1,
+
       };
       properties = pp as unknown as Record<string, unknown>;
     }
@@ -327,7 +327,6 @@ export default function CreateEntryPage() {
       {sharedField("Effect", "effect")}
       {sharedField("Duration", "duration")}
       {selectField("Rarity", "rarity", RARITY_OPTIONS, "Select rarity")}
-      {numField("Charges", "charges")}
     </div>
   );
 

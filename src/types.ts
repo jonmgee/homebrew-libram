@@ -161,7 +161,6 @@ export interface PotionProperties {
   effect: string;
   duration: string;
   rarity: string;
-  charges: number;
 }
 
 export interface AdventuringGearProperties {
