@@ -19,8 +19,8 @@ export default function BrowsePage() {
 
   // search
   const [search, setSearch] = useState("");
-  // DM-only filter — default: show everything
   const [hideDmOnly, setHideDmOnly] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,6 +88,16 @@ export default function BrowsePage() {
 
     return result;
   }, [entries, search, hideDmOnly]);
+
+  async function handleDelete(id: string) {
+    const { error } = await supabase.from("entries").delete().eq("id", id);
+    if (error) {
+      console.error("Delete error:", error);
+      return;
+    }
+    setEntries((prev) => prev.filter((e) => e.id !== id));
+    setDeleteConfirmId(null);
+  }
 
   // ───── render ─────
   return (
@@ -170,6 +180,32 @@ export default function BrowsePage() {
                       <p className="mt-1 text-sm text-zinc-400 line-clamp-1">
                         {entrySummary(entry) || "—"}
                       </p>
+                    </div>
+                    <div className="shrink-0">
+                      {deleteConfirmId === entry.id ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-amber-400">Delete?</span>
+                          <button
+                            onClick={() => handleDelete(entry.id)}
+                            className="rounded bg-red-700 px-2 py-1 text-xs font-medium text-white hover:bg-red-600"
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="rounded bg-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-600"
+                          >
+                            No
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setDeleteConfirmId(entry.id)}
+                          className="text-xs text-zinc-600 underline underline-offset-2 hover:text-red-400"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
