@@ -2,6 +2,17 @@
 
 ## Completed tasks
 
+- [x] **Feature: Manual entry creation form** — DM can create `magic_item` and `weapon` entries.
+  - Type selector (magic_item / weapon) switches form fields dynamically.
+  - Shared fields: name, description, source, dm_only toggle, tags (comma-separated), campaign.
+  - Magic item fields: rarity (6-tier dropdown), requires_attunement toggle, item_subtype, charges.
+  - Weapon fields: damage_dice, damage_type dropdown (slashing/piercing/bludgeoning), bonus dropdown (+0 to +3), properties, cost, weight.
+  - Type-specific fields stored in JSONB `properties` column.
+  - RLS: anon INSERT policy added so the app can write entries without auth.
+  - Green confirmation on success; "Create another" to reset form.
+  - Committed and pushed; Vercel auto-deployed.
+  - Confirmed working: entry landed in Supabase dashboard.
+
 - [x] Project folder created at `~/homebrew-libram/`
 - [x] README.md, .gitignore, memory/, HANDOFF.md
 - [x] Git repo initialised + initial commit
@@ -22,4 +33,4 @@
 
 ## Next task
 
-First feature — to be detailed in the next session.
+Awaiting brief — options include: extending to remaining 11 entry types, browsing/searching entries, editing entries, or deleting entries.

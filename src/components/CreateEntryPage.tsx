@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import type {
   EntryType,
@@ -232,9 +233,17 @@ export default function CreateEntryPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-8 text-2xl font-bold text-zinc-100">
-        Create New Entry
-      </h1>
+      <div className="mb-6 flex items-center gap-4">
+        <Link
+          to="/"
+          className="text-sm text-zinc-500 underline underline-offset-2 hover:text-zinc-300"
+        >
+          &larr; Home
+        </Link>
+        <h1 className="text-2xl font-bold text-zinc-100">
+          Create New Entry
+        </h1>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Entry Type */}
