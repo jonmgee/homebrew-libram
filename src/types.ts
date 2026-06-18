@@ -144,9 +144,22 @@ export interface MonsterProperties {
 }
 
 export interface SpellProperties {
-  level?: number;
-  school?: string;
-  casting_time?: string;
+  level: string;
+  school: string;
+  casting_time: string;
+  range: string;
+  components: string[];
+  material: string;
+  duration: string;
+  classes: string;
+  ritual: boolean;
+  concentration: boolean;
+}
+
+export interface ScrollProperties {
+  spell_name: string;
+  spell_level: string;
+  rarity: string;
 }
 
 export interface ArmourProperties {
@@ -204,3 +217,29 @@ export const GEAR_CATEGORY_OPTIONS = [
   "instrument",
   "other",
 ] as const;
+
+export const SPELL_LEVEL_OPTIONS = [
+  "cantrip",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+] as const;
+
+export const SCHOOL_OPTIONS = [
+  "abjuration",
+  "conjuration",
+  "divination",
+  "enchantment",
+  "evocation",
+  "illusion",
+  "necromancy",
+  "transmutation",
+] as const;
+
+export const COMPONENT_OPTIONS = ["V", "S", "M"] as const;

@@ -8,6 +8,8 @@ import type {
   ArmourProperties,
   PotionProperties,
   AdventuringGearProperties,
+  SpellProperties,
+  ScrollProperties,
 } from "../types";
 import {
   RARITY_OPTIONS,
@@ -15,6 +17,9 @@ import {
   BONUS_OPTIONS,
   ARMOUR_TYPE_OPTIONS,
   GEAR_CATEGORY_OPTIONS,
+  SPELL_LEVEL_OPTIONS,
+  SCHOOL_OPTIONS,
+  COMPONENT_OPTIONS,
 } from "../types";
 
 interface FormState {
@@ -46,6 +51,21 @@ interface FormState {
   // adventuring gear
   gear_category: string;
   quantity: string;
+  // spell
+  spell_level: string;
+  school: string;
+  casting_time: string;
+  range: string;
+  components: string[];
+  material: string;
+  spell_duration: string;
+  classes: string;
+  ritual: boolean;
+  concentration: boolean;
+  // scroll
+  spell_name: string;
+  scroll_rarity: string;
+  scroll_level: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -72,6 +92,19 @@ const EMPTY_FORM: FormState = {
   duration: "",
   gear_category: "",
   quantity: "",
+  spell_level: "",
+  school: "",
+  casting_time: "",
+  range: "",
+  components: [],
+  material: "",
+  spell_duration: "",
+  classes: "",
+  ritual: false,
+  concentration: false,
+  spell_name: "",
+  scroll_rarity: "",
+  scroll_level: "",
 };
 
 type SaveStatus = "idle" | "saving" | "saved" | "error" | "duplicate";
@@ -83,6 +116,8 @@ const ENTRY_TYPES: { value: EntryType; label: string }[] = [
   { value: "potion", label: "Potion" },
   { value: "adventuring_gear", label: "Adventuring Gear" },
   { value: "trinket", label: "Trinket" },
+  { value: "spell", label: "Spell" },
+  { value: "scroll", label: "Scroll" },
 ];
 
 export default function CreateEntryPage() {
@@ -164,9 +199,33 @@ export default function CreateEntryPage() {
         effect: form.effect,
         duration: form.duration,
         rarity: form.rarity,
-
       };
       properties = pp as unknown as Record<string, unknown>;
+    }
+
+    if (form.type === "spell") {
+      const sp: SpellProperties = {
+        level: form.spell_level,
+        school: form.school,
+        casting_time: form.casting_time,
+        range: form.range,
+        components: form.components,
+        material: form.material,
+        duration: form.spell_duration,
+        classes: form.classes,
+        ritual: form.ritual,
+        concentration: form.concentration,
+      };
+      properties = sp as unknown as Record<string, unknown>;
+    }
+
+    if (form.type === "scroll") {
+      const sp: ScrollProperties = {
+        spell_name: form.spell_name,
+        spell_level: form.scroll_level,
+        rarity: form.scroll_rarity,
+      };
+      properties = sp as unknown as Record<string, unknown>;
     }
 
     if (form.type === "adventuring_gear") {
@@ -246,7 +305,7 @@ export default function CreateEntryPage() {
     </div>
   );
 
-  const toggleField = (label: string, key: "dm_only" | "requires_attunement" | "stealth_disadvantage") => (
+  const toggleField = (label: string, key: "dm_only" | "requires_attunement" | "stealth_disadvantage" | "ritual" | "concentration") => (
     <label className="flex cursor-pointer items-center gap-3">
       <span className="text-sm font-medium text-zinc-300">{label}</span>
       <button
@@ -346,6 +405,59 @@ export default function CreateEntryPage() {
     </div>
   );
 
+  const spellSection = () => {
+    const toggleComponent = (comp: string) => {
+      const current = form.components;
+      const next = current.includes(comp)
+        ? current.filter((c) => c !== comp)
+        : [...current, comp];
+      update("components", next);
+    };
+
+    return (
+      <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Spell Properties</h2>
+        {selectField("Level", "spell_level", SPELL_LEVEL_OPTIONS, "Select level")}
+        {selectField("School", "school", SCHOOL_OPTIONS, "Select school")}
+        {sharedField("Casting Time", "casting_time")}
+        {sharedField("Range", "range")}
+
+        <div>
+          <label className="mb-1 block text-sm font-medium text-zinc-300">Components</label>
+          <div className="flex gap-4">
+            {COMPONENT_OPTIONS.map((comp) => (
+              <label key={comp} className="flex cursor-pointer items-center gap-1.5 text-sm text-zinc-300">
+                <input
+                  type="checkbox"
+                  checked={form.components.includes(comp)}
+                  onChange={() => toggleComponent(comp)}
+                  className="size-4 rounded border-zinc-600 bg-zinc-800 text-amber-600 accent-amber-600"
+                />
+                {comp}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {form.components.includes("M") && sharedField("Material", "material")}
+
+        {sharedField("Duration", "spell_duration")}
+        {sharedField("Classes", "classes")}
+        {toggleField("Ritual", "ritual")}
+        {toggleField("Concentration", "concentration")}
+      </div>
+    );
+  };
+
+  const scrollSection = () => (
+    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Scroll Properties</h2>
+      {sharedField("Spell Name", "spell_name")}
+      {selectField("Spell Level", "scroll_level", SPELL_LEVEL_OPTIONS, "Select level")}
+      {selectField("Rarity", "scroll_rarity", RARITY_OPTIONS, "Select rarity")}
+    </div>
+  );
+
   const gearSection = () => (
     <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
       <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Adventuring Gear Properties</h2>
@@ -372,6 +484,8 @@ export default function CreateEntryPage() {
       case "potion": return potionSection();
       case "adventuring_gear": return gearSection();
       case "trinket": return trinketSection();
+      case "spell": return spellSection();
+      case "scroll": return scrollSection();
       default: return null;
     }
   };
