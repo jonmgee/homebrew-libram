@@ -10,6 +10,7 @@ function App() {
       <main className="book-content">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/browse/all" element={<BrowsePage />} />
           <Route path="/browse/:category" element={<SubCategoryPage />} />
           <Route path="/browse/:category/:subcategory" element={<BrowsePage />} />
           <Route path="/create" element={<CreateEntryPage />} />

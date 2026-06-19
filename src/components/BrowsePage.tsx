@@ -142,7 +142,7 @@ export default function BrowsePage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or description\u2026"
+          placeholder="Search by name or description…"
           className="parchment-input min-w-0 flex-1 rounded-lg px-4 py-2 text-sm"
         />
 
@@ -159,7 +159,7 @@ export default function BrowsePage() {
 
       {loadState === "loading" && (
         <p className="font-fell py-12 text-center italic text-ink-light/60">
-          Loading entries\u2026
+          Loading entries…
         </p>
       )}
 
@@ -207,9 +207,11 @@ export default function BrowsePage() {
                         {entry.dm_only && (
                           <span className="dm-stamp shrink-0">DM</span>
                         )}
-                        <span className="wax-seal shrink-0">
-                          {formatEntryType(entry.type)}
-                        </span>
+                        {isAll && (
+                          <span className="wax-seal shrink-0">
+                            {formatEntryType(entry.type)}
+                          </span>
+                        )}
                       </div>
                       <p className="font-fell mt-1 text-sm italic text-ink-light line-clamp-1">
                         {entrySummary(entry) || "\u2014"}
