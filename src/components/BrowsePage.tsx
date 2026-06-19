@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { getCategory, formatEntryType, type DbEntry } from "../types";
 import { entrySummary } from "../lib/entrySummary";
@@ -9,7 +9,8 @@ type LoadState = "loading" | "loaded" | "error";
 
 export default function BrowsePage() {
   const { category, subcategory } = useParams<{ category: string; subcategory?: string }>();
-  const isAll = category === "all";
+  const location = useLocation();
+  const isAll = category === "all" || location.pathname === "/browse/all";
 
   const cat = isAll ? undefined : getCategory(category ?? "");
 
