@@ -339,3 +339,26 @@ export const PARENT_CLASS_OPTIONS = [
   "wizard",
   "artificer",
 ] as const;
+
+// ──────────────── Table ────────────────
+
+export interface TableRow {
+  roll_range: string;
+  result: string;
+}
+
+export interface TableProperties {
+  die: string;
+  table_category: string;
+  rows: TableRow[];
+}
+
+export const DIE_OPTIONS = [
+  "d4",
+  "d6",
+  "d8",
+  "d10",
+  "d12",
+  "d20",
+  "d100",
+] as const;

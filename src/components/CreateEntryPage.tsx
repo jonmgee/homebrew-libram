@@ -16,6 +16,7 @@ import type {
   BackgroundProperties,
   FeatProperties,
   SubclassProperties,
+  TableProperties,
 } from "../types";
 import {
   RARITY_OPTIONS,
@@ -29,6 +30,7 @@ import {
   CREATURE_SIZE_OPTIONS,
   CREATURE_TYPE_OPTIONS,
   PARENT_CLASS_OPTIONS,
+  DIE_OPTIONS,
 } from "../types";
 
 interface FormState {
@@ -120,6 +122,10 @@ interface FormState {
   // subclass
   parent_class: string;
   subclass_features: string;
+  // table
+  die: string;
+  table_category: string;
+  tableRows: { roll_range: string; result: string }[];
 }
 
 const EMPTY_FORM: FormState = {
@@ -199,6 +205,9 @@ const EMPTY_FORM: FormState = {
   benefit: "",
   parent_class: "",
   subclass_features: "",
+  die: "",
+  table_category: "",
+  tableRows: [],
 };
 
 type SaveStatus = "idle" | "saving" | "saved" | "error" | "duplicate";
@@ -483,6 +492,28 @@ export default function CreateEntryPage() {
         subclass_features: form.subclass_features,
       };
       properties = sp as unknown as Record<string, unknown>;
+    }
+
+    if (form.type === "table") {
+      if (!form.die) {
+        setErrorMsg("Die is required for tables.");
+        setStatus("idle");
+        return;
+      }
+      if (!form.tableRows.length || !form.tableRows.some((r) => r.result.trim())) {
+        setErrorMsg("At least one row with a result is required.");
+        setStatus("idle");
+        return;
+      }
+      const tp: TableProperties = {
+        die: form.die,
+        table_category: form.table_category,
+        rows: form.tableRows.map((r) => ({
+          roll_range: r.roll_range,
+          result: r.result,
+        })),
+      };
+      properties = tp as unknown as Record<string, unknown>;
     }
 
     const tags = form.tags
@@ -838,6 +869,91 @@ export default function CreateEntryPage() {
     </div>
   );
 
+  const addRow = () => {
+    setForm((prev) => ({
+      ...prev,
+      tableRows: [...prev.tableRows, { roll_range: "", result: "" }],
+    }));
+  };
+
+  const removeRow = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      tableRows: prev.tableRows.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateRow = (index: number, field: "roll_range" | "result", value: string) => {
+    setForm((prev) => {
+      const rows = [...prev.tableRows];
+      const existing = rows[index];
+      if (!existing) return prev;
+      rows[index] = {
+        roll_range: field === "roll_range" ? value : existing.roll_range,
+        result: field === "result" ? value : existing.result,
+      };
+      return { ...prev, tableRows: rows };
+    });
+  };
+
+  const tableSection = () => (
+    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Table Properties</h2>
+
+      {selectField("Die", "die", DIE_OPTIONS, "Select die")}
+      <span className="text-xs text-zinc-500">Required</span>
+      {sharedField("Table Category", "table_category")}
+
+      <div>
+        <label className="mb-2 block text-sm font-medium text-zinc-300">Rows</label>
+        <span className="text-xs text-zinc-500">At least one row with a result is required</span>
+
+        {form.tableRows.length === 0 && (
+          <p className="mt-2 text-sm text-zinc-500 italic">No rows yet. Add one below.</p>
+        )}
+
+        {form.tableRows.map((row, i) => (
+          <div key={i} className="mt-2 flex items-start gap-2">
+            <div className="w-1/3 shrink-0">
+              <input
+                type="text"
+                value={row.roll_range}
+                onChange={(e) => updateRow(i, "roll_range", e.target.value)}
+                placeholder="e.g. 1-5"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              />
+            </div>
+            <div className="flex-1">
+              <input
+                type="text"
+                value={row.result}
+                onChange={(e) => updateRow(i, "result", e.target.value)}
+                placeholder="Result description"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => removeRow(i)}
+              className="mt-0.5 size-8 shrink-0 rounded-md bg-red-900/50 text-sm text-red-400 hover:bg-red-800/50 hover:text-red-300"
+              title="Remove row"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={addRow}
+          className="mt-3 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-zinc-300 hover:border-zinc-600 hover:bg-zinc-700"
+        >
+          + Add Row
+        </button>
+      </div>
+    </div>
+  );
+
   const propertySection = () => {
     switch (form.type) {
       case "magic_item": return magicItemSection();
@@ -853,6 +969,7 @@ export default function CreateEntryPage() {
       case "background": return backgroundSection();
       case "feat": return featSection();
       case "subclass": return subclassSection();
+      case "table": return tableSection();
       default: return null;
     }
   };
