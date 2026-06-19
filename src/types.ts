@@ -294,3 +294,48 @@ export const CREATURE_TYPE_OPTIONS = [
   "plant",
   "undead",
 ] as const;
+
+// ──────────────── Background ────────────────
+
+export interface BackgroundProperties {
+  skill_proficiencies: string;
+  tool_proficiencies: string;
+  languages: string;
+  feature_name: string;
+  feature_description: string;
+  equipment: string;
+  personality_traits: string;
+  ideals: string;
+  bonds: string;
+  flaws: string;
+}
+
+// ──────────────── Feat ────────────────
+
+export interface FeatProperties {
+  prerequisite: string;
+  benefit: string;
+}
+
+// ──────────────── Subclass ────────────────
+
+export interface SubclassProperties {
+  parent_class: string;
+  subclass_features: string;
+}
+
+export const PARENT_CLASS_OPTIONS = [
+  "barbarian",
+  "bard",
+  "cleric",
+  "druid",
+  "fighter",
+  "monk",
+  "paladin",
+  "ranger",
+  "rogue",
+  "sorcerer",
+  "warlock",
+  "wizard",
+  "artificer",
+] as const;

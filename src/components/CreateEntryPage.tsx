@@ -13,6 +13,9 @@ import type {
   SpellProperties,
   ScrollProperties,
   MonsterProperties,
+  BackgroundProperties,
+  FeatProperties,
+  SubclassProperties,
 } from "../types";
 import {
   RARITY_OPTIONS,
@@ -25,6 +28,7 @@ import {
   COMPONENT_OPTIONS,
   CREATURE_SIZE_OPTIONS,
   CREATURE_TYPE_OPTIONS,
+  PARENT_CLASS_OPTIONS,
 } from "../types";
 
 interface FormState {
@@ -99,6 +103,23 @@ interface FormState {
   faction: string;
   // subcategory
   subcategory: string;
+  // background
+  skill_proficiencies: string;
+  tool_proficiencies: string;
+  bg_languages: string;
+  feature_name: string;
+  feature_description: string;
+  equipment: string;
+  personality_traits: string;
+  ideals: string;
+  bonds: string;
+  flaws: string;
+  // feat
+  prerequisite: string;
+  benefit: string;
+  // subclass
+  parent_class: string;
+  subclass_features: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -164,6 +185,20 @@ const EMPTY_FORM: FormState = {
   role: "",
   faction: "",
   subcategory: "",
+  skill_proficiencies: "",
+  tool_proficiencies: "",
+  bg_languages: "",
+  feature_name: "",
+  feature_description: "",
+  equipment: "",
+  personality_traits: "",
+  ideals: "",
+  bonds: "",
+  flaws: "",
+  prerequisite: "",
+  benefit: "",
+  parent_class: "",
+  subclass_features: "",
 };
 
 type SaveStatus = "idle" | "saving" | "saved" | "error" | "duplicate";
@@ -179,6 +214,9 @@ const ENTRY_TYPES: { value: EntryType; label: string }[] = [
   { value: "scroll", label: "Scroll" },
   { value: "monster", label: "Monster" },
   { value: "npc", label: "NPC" },
+  { value: "background", label: "Background" },
+  { value: "feat", label: "Feat" },
+  { value: "subclass", label: "Subclass" },
 ];
 
 export default function CreateEntryPage() {
@@ -398,6 +436,53 @@ export default function CreateEntryPage() {
         (properties as Record<string, unknown>).role = form.role;
         (properties as Record<string, unknown>).faction = form.faction;
       }
+    }
+
+    if (form.type === "background") {
+      if (!form.feature_name) {
+        setErrorMsg("Feature name is required for backgrounds.");
+        setStatus("idle");
+        return;
+      }
+      const bp: BackgroundProperties = {
+        skill_proficiencies: form.skill_proficiencies,
+        tool_proficiencies: form.tool_proficiencies,
+        languages: form.bg_languages,
+        feature_name: form.feature_name,
+        feature_description: form.feature_description,
+        equipment: form.equipment,
+        personality_traits: form.personality_traits,
+        ideals: form.ideals,
+        bonds: form.bonds,
+        flaws: form.flaws,
+      };
+      properties = bp as unknown as Record<string, unknown>;
+    }
+
+    if (form.type === "feat") {
+      if (!form.benefit) {
+        setErrorMsg("Benefit is required for feats.");
+        setStatus("idle");
+        return;
+      }
+      const fp: FeatProperties = {
+        prerequisite: form.prerequisite,
+        benefit: form.benefit,
+      };
+      properties = fp as unknown as Record<string, unknown>;
+    }
+
+    if (form.type === "subclass") {
+      if (!form.parent_class) {
+        setErrorMsg("Parent class is required for subclasses.");
+        setStatus("idle");
+        return;
+      }
+      const sp: SubclassProperties = {
+        parent_class: form.parent_class,
+        subclass_features: form.subclass_features,
+      };
+      properties = sp as unknown as Record<string, unknown>;
     }
 
     const tags = form.tags
@@ -715,6 +800,44 @@ export default function CreateEntryPage() {
     </div>
   );
 
+  const backgroundSection = () => (
+    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Background Properties</h2>
+
+      {sharedField("Skill Proficiencies", "skill_proficiencies")}
+      {sharedField("Tool Proficiencies", "tool_proficiencies")}
+      {sharedField("Languages", "bg_languages")}
+      {sharedField("Feature Name", "feature_name")}
+      <span className="text-xs text-zinc-500">Required</span>
+      {sharedField("Feature Description", "feature_description", "textarea")}
+      {sharedField("Equipment", "equipment")}
+      {sharedField("Personality Traits", "personality_traits", "textarea")}
+      {sharedField("Ideals", "ideals", "textarea")}
+      {sharedField("Bonds", "bonds", "textarea")}
+      {sharedField("Flaws", "flaws", "textarea")}
+    </div>
+  );
+
+  const featSection = () => (
+    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Feat Properties</h2>
+
+      {sharedField("Prerequisite", "prerequisite")}
+      {sharedField("Benefit", "benefit", "textarea")}
+      <span className="text-xs text-zinc-500">Required</span>
+    </div>
+  );
+
+  const subclassSection = () => (
+    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Subclass Properties</h2>
+
+      {selectField("Parent Class", "parent_class", PARENT_CLASS_OPTIONS, "Select a class")}
+      <span className="text-xs text-zinc-500">Required</span>
+      {sharedField("Subclass Features", "subclass_features", "textarea")}
+    </div>
+  );
+
   const propertySection = () => {
     switch (form.type) {
       case "magic_item": return magicItemSection();
@@ -727,6 +850,9 @@ export default function CreateEntryPage() {
       case "scroll": return scrollSection();
       case "monster": return monsterSection(false);
       case "npc": return monsterSection(true);
+      case "background": return backgroundSection();
+      case "feat": return featSection();
+      case "subclass": return subclassSection();
       default: return null;
     }
   };
