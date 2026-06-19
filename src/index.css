@@ -1,1 +1,128 @@
+/* ──────────── Google Fonts ──────────── */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=IM+Fell+English:ital@0;1&display=swap");
+
+/* ──────────── Tailwind ──────────── */
 @import "tailwindcss";
+
+/* ──────────── Custom Theme ──────────── */
+@theme {
+  --font-cinzel: "Cinzel", serif;
+  --font-fell: "IM Fell English", serif;
+
+  --color-parchment: #ede0c8;
+  --color-parchment-light: #f5efe0;
+  --color-parchment-dark: #d4c5a9;
+  --color-ink: #1a1a1a;
+  --color-ink-light: #3a3a3a;
+  --color-gilding: #c9a84c;
+  --color-gilding-light: #e0c76a;
+  --color-gilding-dark: #a8882e;
+  --color-crimson: #8b0000;
+  --color-crimson-light: #b22222;
+  --color-cover: #1a0a00;
+  --color-cover-light: #2a1508;
+}
+
+/* ──────────── Base ──────────── */
+body {
+  font-family: var(--font-fell);
+  color: var(--color-ink);
+  background-color: var(--color-cover);
+}
+
+/* ──────────── Parchment card base ──────────── */
+.parchment-card {
+  background-color: var(--color-parchment-light);
+  border: 1px solid var(--color-parchment-dark);
+  border-radius: 0.5rem;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.parchment-card:hover {
+  border-color: var(--color-gilding);
+  box-shadow:
+    0 0 0 3px rgba(201, 168, 76, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+/* ──────────── Gilded border (ornate) ──────────── */
+.gilded-border {
+  border: 2px solid var(--color-gilding-dark);
+  border-radius: 0.625rem;
+  box-shadow:
+    0 0 0 1px var(--color-gilding),
+    0 0 0 3px var(--color-parchment-dark),
+    0 0 0 4px var(--color-gilding),
+    0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.2s ease;
+}
+
+.gilded-border:hover {
+  box-shadow:
+    0 0 0 1px var(--color-gilding-light),
+    0 0 0 3px var(--color-gilding),
+    0 0 0 4px var(--color-gilding-light),
+    0 0 16px rgba(201, 168, 76, 0.25),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ──────────── Wax-seal badge ──────────── */
+.wax-seal {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-crimson);
+  color: #f5efe0;
+  font-family: var(--font-cinzel);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* ──────────── DM ink-stamp badge ──────────── */
+.dm-stamp {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-cinzel);
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--color-crimson);
+  color: var(--color-crimson);
+  border-radius: 0.125rem;
+  background: transparent;
+}
+
+/* ──────────── Book-cover content wrapper ──────────── */
+.book-content {
+  background-color: var(--color-parchment);
+  color: var(--color-ink);
+  min-height: 100dvh;
+}
+
+/* ──────────── Search / filter inputs ──────────── */
+.parchment-input {
+  background-color: var(--color-parchment-light);
+  border: 1px solid var(--color-parchment-dark);
+  color: var(--color-ink);
+  font-family: var(--font-fell);
+}
+
+.parchment-input::placeholder {
+  color: #a09078;
+}
+
+.parchment-input:focus {
+  border-color: var(--color-gilding);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15);
+}

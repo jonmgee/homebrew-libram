@@ -7,7 +7,7 @@ import CreateEntryPage from "./components/CreateEntryPage";
 function App() {
   return (
     <BrowserRouter>
-      <main className="min-h-dvh bg-zinc-950 text-zinc-100">
+      <main className="book-content">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/browse/:category" element={<SubCategoryPage />} />

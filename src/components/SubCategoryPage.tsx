@@ -40,8 +40,8 @@ export default function SubCategoryPage() {
   if (!cat) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold text-zinc-100">Unknown Category</h1>
-        <Link to="/" className="mt-4 inline-block text-sm text-zinc-500 underline underline-offset-2 hover:text-zinc-300">
+        <h1 className="font-cinzel text-2xl font-bold text-ink">Unknown Category</h1>
+        <Link to="/" className="font-cinzel mt-4 inline-block text-sm font-semibold text-crimson underline underline-offset-4 hover:text-crimson-light">
           &larr; Home
         </Link>
       </div>
@@ -55,24 +55,24 @@ export default function SubCategoryPage() {
       <div className="mb-6 flex items-center gap-4">
         <Link
           to="/"
-          className="text-sm text-zinc-500 underline underline-offset-2 hover:text-zinc-300"
+          className="font-cinzel text-sm font-semibold text-crimson underline underline-offset-4 hover:text-crimson-light"
         >
           &larr; Home
         </Link>
-        <h1 className="text-2xl font-bold text-zinc-100">{cat.label}</h1>
+        <h1 className="font-cinzel text-2xl font-bold text-ink">{cat.label}</h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {subCategories.map((sub: SubCategoryDef) => (
           <Link
             key={sub.slug}
             to={`/browse/${cat.slug}/${sub.slug}`}
-            className="group rounded-xl border border-zinc-700 bg-zinc-900 p-5 transition-colors hover:border-amber-600 hover:bg-zinc-800"
+            className="parchment-card gilded-border p-5"
           >
-            <h2 className="text-lg font-semibold text-zinc-100 group-hover:text-amber-400">
+            <h2 className="font-cinzel text-lg font-bold text-ink">
               {sub.label}
             </h2>
-            <p className="mt-1 text-sm text-zinc-500">
+            <p className="font-fell mt-1 text-sm italic text-ink-light">
               {(() => {
                 const c = sub.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
                 return `${c} entr${c === 1 ? "y" : "ies"}`;

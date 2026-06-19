@@ -5,8 +5,10 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <header className="mb-12 text-center">
-        <h1 className="text-3xl font-bold text-zinc-100">Homebrew Libram</h1>
-        <p className="mt-2 text-zinc-500">
+        <h1 className="font-cinzel text-3xl font-bold text-ink">
+          Homebrew Libram
+        </h1>
+        <p className="font-fell mt-2 text-ink-light italic">
           Browse your custom D&D content
         </p>
       </header>
@@ -17,22 +19,24 @@ export default function HomePage() {
         This empty div reserves the space / acts as a
         visual anchor until the image is ready.
       */}
-      <div className="mb-12 flex items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-900/50 py-20 text-zinc-600">
-        <span className="text-sm">⛰️ Henge illustration placeholder</span>
+      <div className="gilded-border mb-12 flex items-center justify-center py-20 text-ink-light/60">
+        <span className="font-fell text-sm italic">
+          ⛰️ Henge illustration placeholder
+        </span>
       </div>
 
       {/* ───── category grid ───── */}
-      <nav className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <nav className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {CATEGORIES.map((cat) => (
           <Link
             key={cat.slug}
             to={`/browse/${cat.slug}`}
-            className="group rounded-xl border border-zinc-700 bg-zinc-900 p-5 transition-colors hover:border-amber-600 hover:bg-zinc-800"
+            className="parchment-card gilded-border p-5"
           >
-            <h2 className="text-lg font-semibold text-zinc-100 group-hover:text-amber-400">
+            <h2 className="font-cinzel text-lg font-bold text-ink">
               {cat.label}
             </h2>
-            <p className="mt-1 text-sm text-zinc-500">
+            <p className="font-fell mt-1 text-sm text-ink-light italic">
               {cat.label === "Treasure"
                 ? "Armour, weapons, wondrous items, potions, gear, trinkets"
                 : cat.label === "Arcana"
@@ -49,19 +53,19 @@ export default function HomePage() {
         {/* ───── all entries ───── */}
         <Link
           to="/browse/all"
-          className="group col-span-1 flex items-center justify-center rounded-xl border border-dashed border-zinc-600 bg-zinc-900/50 p-5 transition-colors hover:border-amber-600 hover:bg-zinc-800 sm:col-span-2 lg:col-span-3"
+          className="parchment-card gilded-border col-span-1 flex items-center justify-center p-5 sm:col-span-2 lg:col-span-3"
         >
-          <span className="text-lg font-semibold text-zinc-400 group-hover:text-amber-400">
+          <span className="font-cinzel text-lg font-semibold text-ink">
             All Entries
           </span>
         </Link>
       </nav>
 
       {/* ───── nav footer ───── */}
-      <div className="mt-12 flex justify-center gap-6 border-t border-zinc-800 pt-6">
+      <div className="mt-12 flex items-center justify-center gap-6 border-t border-parchment-dark pt-6">
         <Link
           to="/create"
-          className="text-sm text-zinc-500 underline underline-offset-2 hover:text-zinc-300"
+          className="font-cinzel text-sm font-semibold text-crimson underline underline-offset-4 hover:text-crimson-light"
         >
           Create New Entry
         </Link>
