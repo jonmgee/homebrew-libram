@@ -748,8 +748,7 @@ export default function CreateEntryPage() {
                 type="button"
                 onClick={() => {
                   const sub = getSubcategoryLabel(value);
-                  update("type", value);
-                  update("subcategory", sub);
+                  setForm({ ...EMPTY_FORM, type: value, subcategory: sub });
                   setStatus("idle");
                   setErrorMsg("");
                 }}
