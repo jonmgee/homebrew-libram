@@ -226,6 +226,7 @@ const ENTRY_TYPES: { value: EntryType; label: string }[] = [
   { value: "background", label: "Background" },
   { value: "feat", label: "Feat" },
   { value: "subclass", label: "Subclass" },
+  { value: "table", label: "Table" },
 ];
 
 export default function CreateEntryPage() {
