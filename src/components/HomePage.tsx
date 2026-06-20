@@ -28,8 +28,8 @@ export default function HomePage() {
             to={`/browse/${cat.slug}`}
             className="parchment-card gilded-border block p-6 min-h-[9rem]"
           >
-            <div className="float-right ml-3 mb-2 flex h-20 w-20 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
-              <span className="phb-description text-center text-[0.55rem] leading-tight">
+            <div className="float-right -mr-3 -mt-3 ml-3 mb-3 flex h-28 w-28 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+              <span className="phb-description text-center text-[0.6rem] leading-tight">
                 Category illustration
               </span>
             </div>
