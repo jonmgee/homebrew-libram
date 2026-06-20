@@ -54,6 +54,18 @@ function renderDmBadge(dmOnly: boolean) {
   return <span className="dm-stamp ml-3 align-middle">DM</span>;
 }
 
+// ─────── Portrait placeholder ───────
+
+function PortraitPlaceholder() {
+  return (
+    <div className="absolute right-6 top-6 z-10 flex h-36 w-28 flex-col items-center justify-center border border-parchment-dark bg-parchment-dark/20 sm:right-8 sm:top-8">
+      <span className="phb-description px-1 text-center text-[0.6rem] leading-tight">
+        Entry illustration placeholder
+      </span>
+    </div>
+  );
+}
+
 // ──────────── Type-specific renderers ────────────
 
 function MagicItemDetail({ entry }: { entry: DbEntry }) {
@@ -65,7 +77,7 @@ function MagicItemDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl">
+      <h1 className="phb-h1 !text-2xl !pr-32">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -96,7 +108,7 @@ function WeaponDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl">
+      <h1 className="phb-h1 !text-2xl !pr-32">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -131,7 +143,7 @@ function ArmourDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl">
+      <h1 className="phb-h1 !text-2xl !pr-32">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -165,7 +177,7 @@ function PotionDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl">
+      <h1 className="phb-h1 !text-2xl !pr-32">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -200,7 +212,7 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl">
+      <h1 className="phb-h1 !text-2xl !pr-32">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -227,7 +239,7 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
 function TrinketDetail({ entry }: { entry: DbEntry }) {
   return (
     <>
-      <h1 className="phb-h1 !text-2xl">
+      <h1 className="phb-h1 !text-2xl !pr-32">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -352,7 +364,7 @@ export default function EntryDetailPage() {
   const typeLabel = formatEntryType(entry.type);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-6">
       <Link
         to={from}
         className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
@@ -360,10 +372,12 @@ export default function EntryDetailPage() {
         &larr; Back
       </Link>
 
-      <div className="parchment-card gilded-border mt-4 p-6 sm:p-8">
+      <div className="parchment-card gilded-border relative mt-4 p-6 sm:p-8">
+        <PortraitPlaceholder />
+
         {!treasureTypes.has(entry.type) ? (
           <>
-            <h1 className="phb-h1 !text-2xl">
+            <h1 className="phb-h1 !text-2xl !pr-32">
               {entry.name}
               {renderDmBadge(entry.dm_only)}
             </h1>
@@ -386,7 +400,7 @@ export default function EntryDetailPage() {
           <TrinketDetail entry={entry} />
         ) : (
           <>
-            <h1 className="phb-h1 !text-2xl">
+            <h1 className="phb-h1 !text-2xl !pr-32">
               {entry.name}
               {renderDmBadge(entry.dm_only)}
             </h1>

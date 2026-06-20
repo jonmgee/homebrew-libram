@@ -15,10 +15,8 @@ export default function SubCategoryPage() {
     let cancelled = false;
 
     async function fetchCounts() {
-      // Get all types in this category
       const types = cat!.types;
 
-      // Count entries grouped by type in a single query
       const { data, error } = await supabase
         .from("entries")
         .select("type")
@@ -67,17 +65,25 @@ export default function SubCategoryPage() {
           <Link
             key={sub.slug}
             to={`/browse/${cat.slug}/${sub.slug}`}
-            className="parchment-card gilded-border p-5"
+            className="parchment-card gilded-border flex flex-col overflow-hidden"
           >
-            <h2 className="phb-h2 !text-lg !font-bold">
-              {sub.label}
-            </h2>
-            <p className="phb-description mt-1 text-sm">
-              {(() => {
-                const c = sub.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
-                return `${c} entr${c === 1 ? "y" : "ies"}`;
-              })()}
-            </p>
+            {/* landscape placeholder */}
+            <div className="flex h-28 items-center justify-center bg-parchment-dark/20">
+              <span className="phb-description text-xs">
+                Sub-category illustration placeholder
+              </span>
+            </div>
+            <div className="flex flex-col gap-1 p-5 pt-4">
+              <h2 className="phb-h2 !text-lg !font-bold">
+                {sub.label}
+              </h2>
+              <p className="phb-description text-sm">
+                {(() => {
+                  const c = sub.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
+                  return `${c} entr${c === 1 ? "y" : "ies"}`;
+                })()}
+              </p>
+            </div>
           </Link>
         ))}
       </div>

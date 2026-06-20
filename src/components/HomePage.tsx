@@ -14,11 +14,6 @@ export default function HomePage() {
       </header>
 
       {/* ───── placeholder hero zone ───── */}
-      {/*
-        The henge illustration drops in here later.
-        This empty div reserves the space / acts as a
-        visual anchor until the image is ready.
-      */}
       <div className="gilded-border mb-12 flex items-center justify-center py-20 text-ink-light/60">
         <span className="phb-description text-sm">
           ⛰️ Henge illustration placeholder
@@ -31,29 +26,37 @@ export default function HomePage() {
           <Link
             key={cat.slug}
             to={`/browse/${cat.slug}`}
-            className="parchment-card gilded-border p-5"
+            className="parchment-card gilded-border flex flex-col overflow-hidden"
           >
-            <h2 className="phb-h2 !text-lg !font-bold">
-              {cat.label}
-            </h2>
-            <p className="phb-description mt-1 text-sm">
-              {cat.label === "Treasure"
-                ? "Armour, weapons, wondrous items, potions, gear, trinkets"
-                : cat.label === "Arcana"
-                  ? "Spells and scrolls"
-                  : cat.label === "Creatures"
-                    ? "Monsters and NPCs"
-                    : cat.label === "Character Options"
-                      ? "Backgrounds, feats, subclasses"
-                      : "Random tables and generators"}
-            </p>
+            {/* landscape placeholder */}
+            <div className="flex h-28 items-center justify-center bg-parchment-dark/20">
+              <span className="phb-description text-xs">
+                Category illustration placeholder
+              </span>
+            </div>
+            <div className="flex flex-col gap-1 p-5 pt-4">
+              <h2 className="phb-h2 !text-lg !font-bold">
+                {cat.label}
+              </h2>
+              <p className="phb-description text-sm">
+                {cat.label === "Treasure"
+                  ? "Armour, weapons, wondrous items, potions, gear, trinkets"
+                  : cat.label === "Arcana"
+                    ? "Spells and scrolls"
+                    : cat.label === "Creatures"
+                      ? "Monsters and NPCs"
+                      : cat.label === "Character Options"
+                        ? "Backgrounds, feats, subclasses"
+                        : "Random tables and generators"}
+              </p>
+            </div>
           </Link>
         ))}
 
         {/* ───── all entries ───── */}
         <Link
           to="/browse/all"
-          className="parchment-card gilded-border col-span-1 flex items-center justify-center p-5 sm:col-span-2 lg:col-span-3"
+          className="parchment-card gilded-border col-span-1 flex items-center justify-center p-6 sm:col-span-2 lg:col-span-3"
         >
           <span className="phb-h2 !text-lg !font-semibold">
             All Entries
