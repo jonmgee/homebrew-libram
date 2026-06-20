@@ -3,6 +3,7 @@ import HomePage from "./components/HomePage";
 import SubCategoryPage from "./components/SubCategoryPage";
 import BrowsePage from "./components/BrowsePage";
 import CreateEntryPage from "./components/CreateEntryPage";
+import EntryDetailPage from "./components/EntryDetailPage";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/browse/:category" element={<SubCategoryPage />} />
           <Route path="/browse/:category/:subcategory" element={<BrowsePage />} />
           <Route path="/create" element={<CreateEntryPage />} />
+          <Route path="/entry/:id" element={<EntryDetailPage />} />
         </Routes>
       </main>
     </BrowserRouter>

@@ -192,63 +192,69 @@ export default function BrowsePage() {
             </p>
           ) : (
             <div className="space-y-2">
-              {filtered.map((entry) => (
-                <div
-                  key={entry.id}
-                  className={`parchment-card px-4 py-3 ${
-                    entry.dm_only ? "border-l-4 border-l-crimson" : ""
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-cinzel text-base font-bold text-ink">
-                          {entry.name}
-                        </h3>
-                        {entry.dm_only && (
-                          <span className="dm-stamp shrink-0">DM</span>
-                        )}
-                        {isAll && (
-                          <span className="wax-seal shrink-0">
-                            {formatEntryType(entry.type)}
-                          </span>
+              {filtered.map((entry) => {
+                const detailPath = `/entry/${entry.id}?from=${encodeURIComponent(location.pathname + location.search)}`;
+                return (
+                  <div
+                    key={entry.id}
+                    className={`parchment-card px-4 py-3 ${
+                      entry.dm_only ? "border-l-4 border-l-crimson" : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <Link
+                        to={detailPath}
+                        className="min-w-0 flex-1 no-underline"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-cinzel text-base font-bold text-ink hover:text-crimson transition-colors">
+                            {entry.name}
+                          </h3>
+                          {entry.dm_only && (
+                            <span className="dm-stamp shrink-0">DM</span>
+                          )}
+                          {isAll && (
+                            <span className="wax-seal shrink-0">
+                              {formatEntryType(entry.type)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-fell mt-1 text-sm italic text-ink-light line-clamp-1">
+                          {entrySummary(entry) || "\u2014"}
+                        </p>
+                      </Link>
+                      <div className="mt-0.5 shrink-0">
+                        {deleteConfirmId === entry.id ? (
+                          <div className="flex items-center gap-2">
+                            <span className="font-cinzel text-xs text-crimson">
+                              Delete?
+                            </span>
+                            <button
+                              onClick={() => handleDelete(entry.id)}
+                              className="rounded bg-crimson px-2 py-1 font-cinzel text-xs font-semibold text-parchment-light hover:bg-crimson-light"
+                            >
+                              Yes
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirmId(null)}
+                              className="rounded bg-parchment-dark px-2 py-1 font-cinzel text-xs font-semibold text-ink hover:bg-parchment"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setDeleteConfirmId(entry.id)}
+                            className="font-fell text-xs italic text-ink-light/40 underline underline-offset-2 hover:text-crimson"
+                          >
+                            Delete
+                          </button>
                         )}
                       </div>
-                      <p className="font-fell mt-1 text-sm italic text-ink-light line-clamp-1">
-                        {entrySummary(entry) || "\u2014"}
-                      </p>
-                    </div>
-                    <div className="mt-0.5 shrink-0">
-                      {deleteConfirmId === entry.id ? (
-                        <div className="flex items-center gap-2">
-                          <span className="font-cinzel text-xs text-crimson">
-                            Delete?
-                          </span>
-                          <button
-                            onClick={() => handleDelete(entry.id)}
-                            className="rounded bg-crimson px-2 py-1 font-cinzel text-xs font-semibold text-parchment-light hover:bg-crimson-light"
-                          >
-                            Yes
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirmId(null)}
-                            className="rounded bg-parchment-dark px-2 py-1 font-cinzel text-xs font-semibold text-ink hover:bg-parchment"
-                          >
-                            No
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setDeleteConfirmId(entry.id)}
-                          className="font-fell text-xs italic text-ink-light/40 underline underline-offset-2 hover:text-crimson"
-                        >
-                          Delete
-                        </button>
-                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
