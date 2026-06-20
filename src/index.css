@@ -127,20 +127,20 @@ body {
 /* ──────────── PHB-style heading classes ──────────── */
 .phb-h1 {
   font-family: var(--font-title);
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   color: var(--color-header);
   margin-bottom: 0.25rem;
 }
 
 .phb-h2 {
   font-family: var(--font-title);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   color: var(--color-header);
 }
 
 .phb-h3 {
   font-family: var(--font-title);
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   color: var(--color-header);
   border-bottom: 2px solid var(--color-gilding);
   padding-bottom: 0.125rem;

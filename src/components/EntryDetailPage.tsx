@@ -43,7 +43,7 @@ function renderMeta(entry: DbEntry) {
   }
   if (parts.length === 0) return null;
   return (
-    <div className="mt-6 flex flex-wrap gap-x-6 gap-y-1 border-t border-parchment-dark pt-4">
+    <div className="mt-8 flex flex-wrap gap-x-6 gap-y-1 border-t border-parchment-dark pt-4">
       {parts}
     </div>
   );
@@ -52,18 +52,6 @@ function renderMeta(entry: DbEntry) {
 function renderDmBadge(dmOnly: boolean) {
   if (!dmOnly) return null;
   return <span className="dm-stamp ml-3 align-middle">DM</span>;
-}
-
-// ─────── Portrait placeholder ───────
-
-function PortraitPlaceholder() {
-  return (
-    <div className="absolute right-6 top-6 z-10 flex h-36 w-28 flex-col items-center justify-center border border-parchment-dark bg-parchment-dark/20 sm:right-8 sm:top-8">
-      <span className="phb-description px-1 text-center text-[0.6rem] leading-tight">
-        Entry illustration placeholder
-      </span>
-    </div>
-  );
 }
 
 // ──────────── Type-specific renderers ────────────
@@ -77,7 +65,7 @@ function MagicItemDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl !pr-32">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -108,7 +96,7 @@ function WeaponDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl !pr-32">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -143,7 +131,7 @@ function ArmourDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl !pr-32">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -177,7 +165,7 @@ function PotionDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl !pr-32">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -212,7 +200,7 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl !pr-32">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -239,7 +227,7 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
 function TrinketDetail({ entry }: { entry: DbEntry }) {
   return (
     <>
-      <h1 className="phb-h1 !text-2xl !pr-32">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -247,6 +235,18 @@ function TrinketDetail({ entry }: { entry: DbEntry }) {
       {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
+  );
+}
+
+// ──────────── Portrait placeholder ────────────
+
+function PortraitPlaceholder() {
+  return (
+    <div className="float-right ml-6 mb-4 flex h-[250px] w-[200px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+      <span className="phb-description px-2 text-center text-[0.6rem] leading-tight">
+        Entry illustration placeholder
+      </span>
+    </div>
   );
 }
 
@@ -372,44 +372,46 @@ export default function EntryDetailPage() {
         &larr; Back
       </Link>
 
-      <div className="parchment-card gilded-border relative mt-4 p-6 sm:p-8">
-        <PortraitPlaceholder />
+      <div className="parchment-card gilded-border mt-4 p-6 sm:p-8">
+        <div className="overflow-hidden">
+          <PortraitPlaceholder />
 
-        {!treasureTypes.has(entry.type) ? (
-          <>
-            <h1 className="phb-h1 !text-2xl !pr-32">
-              {entry.name}
-              {renderDmBadge(entry.dm_only)}
-            </h1>
-            <p className="phb-description mt-1 text-sm">{typeLabel}</p>
-            {renderDescription(entry.description)}
-            {renderTags(entry.tags)}
-            {renderMeta(entry)}
-          </>
-        ) : entry.type === "magic_item" ? (
-          <MagicItemDetail entry={entry} />
-        ) : entry.type === "weapon" ? (
-          <WeaponDetail entry={entry} />
-        ) : entry.type === "armour" ? (
-          <ArmourDetail entry={entry} />
-        ) : entry.type === "potion" ? (
-          <PotionDetail entry={entry} />
-        ) : entry.type === "adventuring_gear" ? (
-          <AdventuringGearDetail entry={entry} />
-        ) : entry.type === "trinket" ? (
-          <TrinketDetail entry={entry} />
-        ) : (
-          <>
-            <h1 className="phb-h1 !text-2xl !pr-32">
-              {entry.name}
-              {renderDmBadge(entry.dm_only)}
-            </h1>
-            <p className="phb-description mt-1 text-sm">{typeLabel}</p>
-            {renderDescription(entry.description)}
-            {renderTags(entry.tags)}
-            {renderMeta(entry)}
-          </>
-        )}
+          {!treasureTypes.has(entry.type) ? (
+            <>
+              <h1 className="phb-h1 !text-2xl">
+                {entry.name}
+                {renderDmBadge(entry.dm_only)}
+              </h1>
+              <p className="phb-description mt-1 text-sm">{typeLabel}</p>
+              {renderDescription(entry.description)}
+              {renderTags(entry.tags)}
+              {renderMeta(entry)}
+            </>
+          ) : entry.type === "magic_item" ? (
+            <MagicItemDetail entry={entry} />
+          ) : entry.type === "weapon" ? (
+            <WeaponDetail entry={entry} />
+          ) : entry.type === "armour" ? (
+            <ArmourDetail entry={entry} />
+          ) : entry.type === "potion" ? (
+            <PotionDetail entry={entry} />
+          ) : entry.type === "adventuring_gear" ? (
+            <AdventuringGearDetail entry={entry} />
+          ) : entry.type === "trinket" ? (
+            <TrinketDetail entry={entry} />
+          ) : (
+            <>
+              <h1 className="phb-h1 !text-2xl">
+                {entry.name}
+                {renderDmBadge(entry.dm_only)}
+              </h1>
+              <p className="phb-description mt-1 text-sm">{typeLabel}</p>
+              {renderDescription(entry.description)}
+              {renderTags(entry.tags)}
+              {renderMeta(entry)}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

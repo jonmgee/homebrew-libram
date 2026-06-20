@@ -37,7 +37,7 @@ export default function SubCategoryPage() {
 
   if (!cat) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-12 text-center">
+      <div className="mx-auto max-w-5xl px-4 py-12 text-center">
         <h1 className="phb-h1 !text-2xl">Unknown Category</h1>
         <Link to="/" className="phb-small-sc mt-4 inline-block text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light">
           &larr; Home
@@ -49,7 +49,7 @@ export default function SubCategoryPage() {
   const subCategories = getSubCategories(cat.slug);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-6 flex items-center gap-4">
         <Link
           to="/"
@@ -60,30 +60,27 @@ export default function SubCategoryPage() {
         <h1 className="phb-h1 !text-2xl">{cat.label}</h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {subCategories.map((sub: SubCategoryDef) => (
           <Link
             key={sub.slug}
             to={`/browse/${cat.slug}/${sub.slug}`}
-            className="parchment-card gilded-border flex flex-col overflow-hidden"
+            className="parchment-card gilded-border block p-6 min-h-[9rem]"
           >
-            {/* landscape placeholder */}
-            <div className="flex h-28 items-center justify-center bg-parchment-dark/20">
-              <span className="phb-description text-xs">
-                Sub-category illustration placeholder
+            <div className="float-right ml-3 mb-2 flex h-20 w-20 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+              <span className="phb-description text-center text-[0.55rem] leading-tight">
+                Sub-category illustration
               </span>
             </div>
-            <div className="flex flex-col gap-1 p-5 pt-4">
-              <h2 className="phb-h2 !text-lg !font-bold">
-                {sub.label}
-              </h2>
-              <p className="phb-description text-sm">
-                {(() => {
-                  const c = sub.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
-                  return `${c} entr${c === 1 ? "y" : "ies"}`;
-                })()}
-              </p>
-            </div>
+            <h2 className="phb-h2 !text-[1.1rem] !font-bold">
+              {sub.label}
+            </h2>
+            <p className="phb-description mt-1 text-sm">
+              {(() => {
+                const c = sub.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
+                return `${c} entr${c === 1 ? "y" : "ies"}`;
+              })()}
+            </p>
           </Link>
         ))}
       </div>
