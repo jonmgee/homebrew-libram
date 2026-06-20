@@ -298,7 +298,7 @@ export default function EntryDetailPage() {
   // ───── Loading state ─────
   if (loadState === "loading") {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-12">
+      <div className="mx-auto max-w-4xl px-4 py-12">
         <p className="phb-description text-center">Loading entry\u2026</p>
       </div>
     );
@@ -307,7 +307,7 @@ export default function EntryDetailPage() {
   // ───── Error state ─────
   if (loadState === "error") {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-12">
+      <div className="mx-auto max-w-4xl px-4 py-12">
         <Link
           to={from}
           className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
@@ -324,7 +324,7 @@ export default function EntryDetailPage() {
   // ───── Not found ─────
   if (loadState === "not_found" || !entry) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-12">
+      <div className="mx-auto max-w-4xl px-4 py-12">
         <Link
           to={from}
           className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
@@ -352,7 +352,7 @@ export default function EntryDetailPage() {
   const typeLabel = formatEntryType(entry.type);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-8">
       <Link
         to={from}
         className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"

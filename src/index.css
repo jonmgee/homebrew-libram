@@ -94,9 +94,9 @@
   --color-ink-light: #4a4a4a;
   --color-header: #58180d;           /* HB_Color_HeaderText */
   --color-accent: #e0e5c1;           /* HB_Color_Accent */
-  --color-gilding: #c0ad6a;          /* HB_Color_HeaderUnderline */
-  --color-gilding-light: #d4c080;
-  --color-gilding-dark: #a09050;
+  --color-gilding: #c9a84c;          /* HB_Color_HeaderUnderline (restored richer gold) */
+  --color-gilding-light: #e0c76a;
+  --color-gilding-dark: #a8882e;
   --color-crimson: #9c2b1b;          /* HB_Color_HorizontalRule */
   --color-crimson-light: #b84030;
   --color-caption: #766649;          /* HB_Color_CaptionText */
