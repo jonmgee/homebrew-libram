@@ -131,11 +131,11 @@ export default function BrowsePage() {
       <div className="mb-6 flex items-center gap-4">
         <Link
           to={backTo}
-          className="font-cinzel text-sm font-semibold text-crimson underline underline-offset-4 hover:text-crimson-light"
+          className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
         >
           &larr; {backLabel}
         </Link>
-        <h1 className="font-cinzel text-2xl font-bold text-ink">{heading}</h1>
+        <h1 className="phb-h1 !text-2xl">{heading}</h1>
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-4">
@@ -143,11 +143,11 @@ export default function BrowsePage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or description…"
+          placeholder="Search by name or description\u2026"
           className="parchment-input min-w-0 flex-1 rounded-lg px-4 py-2 text-sm"
         />
 
-        <label className="flex cursor-pointer items-center gap-2 font-fell text-sm text-ink-light">
+        <label className="flex cursor-pointer items-center gap-2 phb-description text-sm text-ink-light">
           <input
             type="checkbox"
             checked={hideDmOnly}
@@ -159,23 +159,23 @@ export default function BrowsePage() {
       </div>
 
       {loadState === "loading" && (
-        <p className="font-fell py-12 text-center italic text-ink-light/60">
-          Loading entries…
+        <p className="phb-description py-12 text-center">
+          Loading entries\u2026
         </p>
       )}
 
       {loadState === "error" && (
-        <div className="rounded-lg border border-crimson bg-crimson/10 px-4 py-3 font-fell text-sm text-crimson">
+        <div className="rounded-lg border border-crimson bg-crimson/10 px-4 py-3 phb-body text-sm text-crimson">
           {errorMsg}
         </div>
       )}
 
       {deleteError && (
-        <div className="mb-4 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 font-fell text-sm text-crimson">
+        <div className="mb-4 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 phb-body text-sm text-crimson">
           Failed to delete: {deleteError}
           <button
             onClick={() => setDeleteError(null)}
-            className="ml-2 font-cinzel text-xs font-semibold underline underline-offset-2"
+            className="ml-2 phb-small-sc text-xs font-bold underline underline-offset-2"
           >
             Dismiss
           </button>
@@ -185,7 +185,7 @@ export default function BrowsePage() {
       {loadState === "loaded" && (
         <>
           {filtered.length === 0 ? (
-            <p className="font-fell py-12 text-center italic text-ink-light/40">
+            <p className="phb-description py-12 text-center">
               {search.trim()
                 ? "No entries match your search."
                 : "No entries yet in this category."}
@@ -207,7 +207,7 @@ export default function BrowsePage() {
                         className="min-w-0 flex-1 no-underline"
                       >
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-cinzel text-base font-bold text-ink hover:text-crimson transition-colors">
+                          <h3 className="phb-h3 !border-none !mb-0 !pb-0 !text-base">
                             {entry.name}
                           </h3>
                           {entry.dm_only && (
@@ -219,25 +219,25 @@ export default function BrowsePage() {
                             </span>
                           )}
                         </div>
-                        <p className="font-fell mt-1 text-sm italic text-ink-light line-clamp-1">
+                        <p className="phb-description mt-1 text-sm line-clamp-1">
                           {entrySummary(entry) || "\u2014"}
                         </p>
                       </Link>
                       <div className="mt-0.5 shrink-0">
                         {deleteConfirmId === entry.id ? (
                           <div className="flex items-center gap-2">
-                            <span className="font-cinzel text-xs text-crimson">
+                            <span className="phb-small-sc text-xs text-crimson">
                               Delete?
                             </span>
                             <button
                               onClick={() => handleDelete(entry.id)}
-                              className="rounded bg-crimson px-2 py-1 font-cinzel text-xs font-semibold text-parchment-light hover:bg-crimson-light"
+                              className="rounded bg-crimson px-2 py-1 phb-small-sc text-xs font-bold text-parchment-light hover:bg-crimson-light"
                             >
                               Yes
                             </button>
                             <button
                               onClick={() => setDeleteConfirmId(null)}
-                              className="rounded bg-parchment-dark px-2 py-1 font-cinzel text-xs font-semibold text-ink hover:bg-parchment"
+                              className="rounded bg-parchment-dark px-2 py-1 phb-small-sc text-xs font-bold text-ink hover:bg-parchment"
                             >
                               No
                             </button>
@@ -245,7 +245,7 @@ export default function BrowsePage() {
                         ) : (
                           <button
                             onClick={() => setDeleteConfirmId(entry.id)}
-                            className="font-fell text-xs italic text-ink-light/40 underline underline-offset-2 hover:text-crimson"
+                            className="phb-body text-xs italic text-ink-light/40 underline underline-offset-2 hover:text-crimson"
                           >
                             Delete
                           </button>
@@ -258,7 +258,7 @@ export default function BrowsePage() {
             </div>
           )}
 
-          <p className="font-fell mt-4 text-center text-xs italic text-ink-light/40">
+          <p className="phb-description mt-4 text-center text-xs">
             {filtered.length} of {entries.length} entr{entries.length === 1 ? "y" : "ies"}
           </p>
         </>

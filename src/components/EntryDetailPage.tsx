@@ -8,7 +8,7 @@ type LoadState = "loading" | "loaded" | "error" | "not_found";
 function renderDescription(text: string) {
   if (!text) return null;
   return (
-    <div className="font-fell mt-4 text-base leading-relaxed text-ink whitespace-pre-line">
+    <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">
       {text}
     </div>
   );
@@ -19,12 +19,7 @@ function renderTags(tags: string[]) {
   return (
     <div className="mt-4 flex flex-wrap gap-1.5">
       {tags.map((tag) => (
-        <span
-          key={tag}
-          className="rounded bg-parchment-dark/40 px-2 py-0.5 font-fell text-xs italic text-ink-light"
-        >
-          {tag}
-        </span>
+        <span key={tag} className="phb-tag">{tag}</span>
       ))}
     </div>
   );
@@ -34,14 +29,14 @@ function renderMeta(entry: DbEntry) {
   const parts: React.ReactNode[] = [];
   if (entry.source) {
     parts.push(
-      <span key="source" className="font-fell text-sm italic text-ink-light">
+      <span key="source" className="phb-description text-sm">
         Source: {entry.source}
       </span>,
     );
   }
   if (entry.campaign) {
     parts.push(
-      <span key="campaign" className="font-fell text-sm italic text-ink-light">
+      <span key="campaign" className="phb-description text-sm">
         Campaign: {entry.campaign}
       </span>,
     );
@@ -56,9 +51,7 @@ function renderMeta(entry: DbEntry) {
 
 function renderDmBadge(dmOnly: boolean) {
   if (!dmOnly) return null;
-  return (
-    <span className="dm-stamp ml-3 align-middle">DM</span>
-  );
+  return <span className="dm-stamp ml-3 align-middle">DM</span>;
 }
 
 // ──────────── Type-specific renderers ────────────
@@ -72,20 +65,18 @@ function MagicItemDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="font-cinzel text-2xl font-bold text-ink">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
-      <p className="font-fell mt-1 text-base italic text-ink-light">
+      <p className="phb-description mt-1 text-base">
         {[rarity, subtype].filter(Boolean).join(", ")}
         {attunement && (
           <span className="ml-1 not-italic">(requires attunement)</span>
         )}
       </p>
       {charges !== undefined && charges > 0 && (
-        <p className="font-fell mt-1 text-sm text-ink-light">
-          Charges: {charges}
-        </p>
+        <p className="phb-description mt-1 text-sm">Charges: {charges}</p>
       )}
       {renderDescription(entry.description)}
       {renderTags(entry.tags)}
@@ -105,22 +96,20 @@ function WeaponDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="font-cinzel text-2xl font-bold text-ink">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
-      <p className="font-fell mt-1 text-base text-ink">
+      <p className="phb-body mt-1 text-base">
         <span className="font-semibold">{dd}</span>
         {dt && <span className="text-ink-light"> {dt}</span>}
         {bonus !== "+0" && <span className="text-ink-light"> ({bonus})</span>}
       </p>
       {props && (
-        <p className="font-fell mt-1 text-sm italic text-ink-light">
-          {props}
-        </p>
+        <p className="phb-description mt-1 text-sm">{props}</p>
       )}
       {(cost || weight !== undefined) && (
-        <div className="font-fell mt-2 flex gap-4 text-sm text-ink-light">
+        <div className="phb-description mt-2 flex gap-4 text-sm">
           {cost && <span>Cost: {cost}</span>}
           {weight !== undefined && <span>Weight: {weight} lb</span>}
         </div>
@@ -142,21 +131,21 @@ function ArmourDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="font-cinzel text-2xl font-bold text-ink">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
-      <p className="font-fell mt-1 text-base text-ink">
+      <p className="phb-body mt-1 text-base">
         <span className="font-semibold capitalize">{armourType}</span>
         {bonus !== "+0" && <span className="text-ink-light"> ({bonus})</span>}
         {stealth && (
-          <span className="ml-2 text-sm italic text-ink-light">
+          <span className="ml-2 phb-description text-sm">
             — Disadvantage on Stealth
           </span>
         )}
       </p>
       {(cost || weight !== undefined) && (
-        <div className="font-fell mt-2 flex gap-4 text-sm text-ink-light">
+        <div className="phb-description mt-2 flex gap-4 text-sm">
           {cost && <span>Cost: {cost}</span>}
           {weight !== undefined && <span>Weight: {weight} lb</span>}
         </div>
@@ -176,27 +165,23 @@ function PotionDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="font-cinzel text-2xl font-bold text-ink">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
       {rarity && (
-        <p className="font-fell mt-1 text-base italic text-ink-light">
-          {rarity}
-        </p>
+        <p className="phb-description mt-1 text-base">{rarity}</p>
       )}
       {effect && (
-        <div className="font-fell mt-4">
-          <span className="text-sm font-semibold uppercase tracking-wider text-ink-light">
+        <div className="phb-body mt-4">
+          <span className="phb-small-sc text-sm font-bold uppercase tracking-wider text-caption">
             Effect
           </span>
-          <p className="mt-1 text-base leading-relaxed text-ink">{effect}</p>
+          <p className="mt-1 text-base leading-relaxed">{effect}</p>
         </div>
       )}
       {duration && (
-        <p className="font-fell mt-2 text-sm text-ink-light">
-          Duration: {duration}
-        </p>
+        <p className="phb-description mt-2 text-sm">Duration: {duration}</p>
       )}
       {renderDescription(entry.description)}
       {renderTags(entry.tags)}
@@ -215,26 +200,22 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      <h1 className="font-cinzel text-2xl font-bold text-ink">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
       {gearCategory && (
-        <p className="font-fell mt-1 text-base italic text-ink-light capitalize">
-          {gearCategory}
-        </p>
+        <p className="phb-description mt-1 text-base capitalize">{gearCategory}</p>
       )}
       {(cost || weight !== undefined || quantity > 1) && (
-        <div className="font-fell mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-light">
+        <div className="phb-description mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           {cost && <span>Cost: {cost}</span>}
           {weight !== undefined && <span>Weight: {weight} lb</span>}
           {quantity > 1 && <span>Quantity: {quantity}</span>}
         </div>
       )}
       {props && (
-        <p className="font-fell mt-2 text-sm italic text-ink-light">
-          {props}
-        </p>
+        <p className="phb-description mt-2 text-sm">{props}</p>
       )}
       {renderDescription(entry.description)}
       {renderTags(entry.tags)}
@@ -246,7 +227,7 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
 function TrinketDetail({ entry }: { entry: DbEntry }) {
   return (
     <>
-      <h1 className="font-cinzel text-2xl font-bold text-ink">
+      <h1 className="phb-h1 !text-2xl">
         {entry.name}
         {renderDmBadge(entry.dm_only)}
       </h1>
@@ -311,19 +292,14 @@ export default function EntryDetailPage() {
     }
 
     fetchEntry();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [id]);
 
   // ───── Loading state ─────
   if (loadState === "loading") {
     return (
       <div className="mx-auto max-w-2xl px-4 py-12">
-        <p className="font-fell text-center italic text-ink-light/60">
-          Loading entry…
-        </p>
+        <p className="phb-description text-center">Loading entry\u2026</p>
       </div>
     );
   }
@@ -334,11 +310,11 @@ export default function EntryDetailPage() {
       <div className="mx-auto max-w-2xl px-4 py-12">
         <Link
           to={from}
-          className="font-cinzel text-sm font-semibold text-crimson underline underline-offset-4 hover:text-crimson-light"
+          className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
         >
           &larr; Back
         </Link>
-        <div className="mt-6 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 font-fell text-sm text-crimson">
+        <div className="mt-6 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 phb-body text-sm text-crimson">
           {errorMsg}
         </div>
       </div>
@@ -351,15 +327,13 @@ export default function EntryDetailPage() {
       <div className="mx-auto max-w-2xl px-4 py-12">
         <Link
           to={from}
-          className="font-cinzel text-sm font-semibold text-crimson underline underline-offset-4 hover:text-crimson-light"
+          className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
         >
           &larr; Back
         </Link>
         <div className="mt-6 text-center">
-          <h1 className="font-cinzel text-2xl font-bold text-ink">Entry Not Found</h1>
-          <p className="font-fell mt-2 italic text-ink-light">
-            This entry may have been deleted.
-          </p>
+          <h1 className="phb-h1 !text-2xl">Entry Not Found</h1>
+          <p className="phb-description mt-2">This entry may have been deleted.</p>
         </div>
       </div>
     );
@@ -381,7 +355,7 @@ export default function EntryDetailPage() {
     <div className="mx-auto max-w-2xl px-4 py-8">
       <Link
         to={from}
-        className="font-cinzel text-sm font-semibold text-crimson underline underline-offset-4 hover:text-crimson-light"
+        className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
       >
         &larr; Back
       </Link>
@@ -389,13 +363,11 @@ export default function EntryDetailPage() {
       <div className="parchment-card gilded-border mt-4 p-6 sm:p-8">
         {!treasureTypes.has(entry.type) ? (
           <>
-            <h1 className="font-cinzel text-2xl font-bold text-ink">
+            <h1 className="phb-h1 !text-2xl">
               {entry.name}
               {renderDmBadge(entry.dm_only)}
             </h1>
-            <p className="font-fell mt-1 text-sm italic text-ink-light">
-              {typeLabel}
-            </p>
+            <p className="phb-description mt-1 text-sm">{typeLabel}</p>
             {renderDescription(entry.description)}
             {renderTags(entry.tags)}
             {renderMeta(entry)}
@@ -414,13 +386,11 @@ export default function EntryDetailPage() {
           <TrinketDetail entry={entry} />
         ) : (
           <>
-            <h1 className="font-cinzel text-2xl font-bold text-ink">
+            <h1 className="phb-h1 !text-2xl">
               {entry.name}
               {renderDmBadge(entry.dm_only)}
             </h1>
-            <p className="font-fell mt-1 text-sm italic text-ink-light">
-              {typeLabel}
-            </p>
+            <p className="phb-description mt-1 text-sm">{typeLabel}</p>
             {renderDescription(entry.description)}
             {renderTags(entry.tags)}
             {renderMeta(entry)}

@@ -40,8 +40,8 @@ export default function SubCategoryPage() {
   if (!cat) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-12 text-center">
-        <h1 className="font-cinzel text-2xl font-bold text-ink">Unknown Category</h1>
-        <Link to="/" className="font-cinzel mt-4 inline-block text-sm font-semibold text-crimson underline underline-offset-4 hover:text-crimson-light">
+        <h1 className="phb-h1 !text-2xl">Unknown Category</h1>
+        <Link to="/" className="phb-small-sc mt-4 inline-block text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light">
           &larr; Home
         </Link>
       </div>
@@ -55,11 +55,11 @@ export default function SubCategoryPage() {
       <div className="mb-6 flex items-center gap-4">
         <Link
           to="/"
-          className="font-cinzel text-sm font-semibold text-crimson underline underline-offset-4 hover:text-crimson-light"
+          className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
         >
           &larr; Home
         </Link>
-        <h1 className="font-cinzel text-2xl font-bold text-ink">{cat.label}</h1>
+        <h1 className="phb-h1 !text-2xl">{cat.label}</h1>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -69,10 +69,10 @@ export default function SubCategoryPage() {
             to={`/browse/${cat.slug}/${sub.slug}`}
             className="parchment-card gilded-border p-5"
           >
-            <h2 className="font-cinzel text-lg font-bold text-ink">
+            <h2 className="phb-h2 !text-lg !font-bold">
               {sub.label}
             </h2>
-            <p className="font-fell mt-1 text-sm italic text-ink-light">
+            <p className="phb-description mt-1 text-sm">
               {(() => {
                 const c = sub.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
                 return `${c} entr${c === 1 ? "y" : "ies"}`;

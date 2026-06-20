@@ -5,10 +5,10 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <header className="mb-12 text-center">
-        <h1 className="font-cinzel text-3xl font-bold text-ink">
+        <h1 className="phb-h1 !text-3xl">
           Homebrew Libram
         </h1>
-        <p className="font-fell mt-2 text-ink-light italic">
+        <p className="phb-description mt-2">
           Browse your custom D&D content
         </p>
       </header>
@@ -20,7 +20,7 @@ export default function HomePage() {
         visual anchor until the image is ready.
       */}
       <div className="gilded-border mb-12 flex items-center justify-center py-20 text-ink-light/60">
-        <span className="font-fell text-sm italic">
+        <span className="phb-description text-sm">
           ⛰️ Henge illustration placeholder
         </span>
       </div>
@@ -33,10 +33,10 @@ export default function HomePage() {
             to={`/browse/${cat.slug}`}
             className="parchment-card gilded-border p-5"
           >
-            <h2 className="font-cinzel text-lg font-bold text-ink">
+            <h2 className="phb-h2 !text-lg !font-bold">
               {cat.label}
             </h2>
-            <p className="font-fell mt-1 text-sm text-ink-light italic">
+            <p className="phb-description mt-1 text-sm">
               {cat.label === "Treasure"
                 ? "Armour, weapons, wondrous items, potions, gear, trinkets"
                 : cat.label === "Arcana"
@@ -55,7 +55,7 @@ export default function HomePage() {
           to="/browse/all"
           className="parchment-card gilded-border col-span-1 flex items-center justify-center p-5 sm:col-span-2 lg:col-span-3"
         >
-          <span className="font-cinzel text-lg font-semibold text-ink">
+          <span className="phb-h2 !text-lg !font-semibold">
             All Entries
           </span>
         </Link>
@@ -65,7 +65,7 @@ export default function HomePage() {
       <div className="mt-12 flex items-center justify-center gap-6 border-t border-parchment-dark pt-6">
         <Link
           to="/create"
-          className="font-cinzel text-sm font-semibold text-crimson underline underline-offset-4 hover:text-crimson-light"
+          className="font-sans-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
         >
           Create New Entry
         </Link>

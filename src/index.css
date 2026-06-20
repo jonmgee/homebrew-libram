@@ -1,36 +1,172 @@
-/* ──────────── Google Fonts ──────────── */
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=IM+Fell+English:ital@0;1&display=swap");
+/* ──────────── Self-hosted PHB fonts (Homebrewery / naturalcrit, MIT license) ──────────── */
+
+/* Body serif: BookInsanity */
+@font-face {
+  font-family: "BookInsanityRemake";
+  font-style: normal;
+  font-weight: normal;
+  src: url("/fonts/Bookinsanity.woff2");
+}
+@font-face {
+  font-family: "BookInsanityRemake";
+  font-style: normal;
+  font-weight: bold;
+  src: url("/fonts/Bookinsanity Bold.woff2");
+}
+@font-face {
+  font-family: "BookInsanityRemake";
+  font-style: italic;
+  font-weight: normal;
+  src: url("/fonts/Bookinsanity Italic.woff2");
+}
+@font-face {
+  font-family: "BookInsanityRemake";
+  font-style: italic;
+  font-weight: bold;
+  src: url("/fonts/Bookinsanity Bold Italic.woff2");
+}
+
+/* Headings: Mr Eaves Small Caps */
+@font-face {
+  font-family: "MrEavesRemake";
+  font-style: normal;
+  font-weight: normal;
+  src: url("/fonts/Mr Eaves Small Caps.woff2");
+}
+
+/* Sans-serif notes/tables: Scaly Sans */
+@font-face {
+  font-family: "ScalySansRemake";
+  font-style: normal;
+  font-weight: normal;
+  src: url("/fonts/Scaly Sans.woff2");
+}
+@font-face {
+  font-family: "ScalySansRemake";
+  font-style: normal;
+  font-weight: bold;
+  src: url("/fonts/Scaly Sans Bold.woff2");
+}
+@font-face {
+  font-family: "ScalySansRemake";
+  font-style: italic;
+  font-weight: normal;
+  src: url("/fonts/Scaly Sans Italic.woff2");
+}
+@font-face {
+  font-family: "ScalySansRemake";
+  font-style: italic;
+  font-weight: bold;
+  src: url("/fonts/Scaly Sans Bold Italic.woff2");
+}
+@font-face {
+  font-family: "ScalySansSmallCapsRemake";
+  font-style: normal;
+  font-weight: normal;
+  src: url("/fonts/Scaly Sans Caps.woff2");
+}
+
+/* Fancy drop cap */
+@font-face {
+  font-family: "SolberaImitationRemake";
+  font-style: italic;
+  font-weight: 100 1000;
+  src: url("/fonts/Solbera Imitation Tweak.woff2");
+}
 
 /* ──────────── Tailwind ──────────── */
 @import "tailwindcss";
 
-/* ──────────── Custom Theme ──────────── */
+/* ──────────── Custom PHB Theme ──────────── */
 @theme {
-  --font-cinzel: "Cinzel", serif;
-  --font-fell: "IM Fell English", serif;
+  /* Fonts */
+  --font-phb: "BookInsanityRemake", serif;
+  --font-title: "MrEavesRemake", serif;
+  --font-sans: "ScalySansRemake", sans-serif;
+  --font-sans-sc: "ScalySansSmallCapsRemake", sans-serif;
+  --font-dropcap: "SolberaImitationRemake", serif;
 
-  --color-parchment: #ede0c8;
-  --color-parchment-light: #f5efe0;
-  --color-parchment-dark: #d4c5a9;
+  /* PHB colour palette */
+  --color-parchment: #eee5ce;        /* HB_Color_Background */
+  --color-parchment-light: #faf7ea;  /* lighter parchment for cards */
+  --color-parchment-dark: #d8d0b8;   /* darker border tone */
   --color-ink: #1a1a1a;
-  --color-ink-light: #3a3a3a;
-  --color-gilding: #c9a84c;
-  --color-gilding-light: #e0c76a;
-  --color-gilding-dark: #a8882e;
-  --color-crimson: #8b0000;
-  --color-crimson-light: #b22222;
+  --color-ink-light: #4a4a4a;
+  --color-header: #58180d;           /* HB_Color_HeaderText */
+  --color-accent: #e0e5c1;           /* HB_Color_Accent */
+  --color-gilding: #c0ad6a;          /* HB_Color_HeaderUnderline */
+  --color-gilding-light: #d4c080;
+  --color-gilding-dark: #a09050;
+  --color-crimson: #9c2b1b;          /* HB_Color_HorizontalRule */
+  --color-crimson-light: #b84030;
+  --color-caption: #766649;          /* HB_Color_CaptionText */
+  --color-footnotes: #c9ad6a;        /* HB_Color_Footnotes */
   --color-cover: #1a0a00;
   --color-cover-light: #2a1508;
 }
 
 /* ──────────── Base ──────────── */
 body {
-  font-family: var(--font-fell);
+  font-family: var(--font-phb);
   color: var(--color-ink);
   background-color: var(--color-cover);
+  line-height: 1.5;
 }
 
-/* ──────────── Parchment card base ──────────── */
+/* Parchment background applied to content area */
+.book-content {
+  background-color: var(--color-parchment);
+  color: var(--color-ink);
+  min-height: 100dvh;
+  background-image: url("/assets/parchmentBackground.jpg");
+  background-repeat: repeat;
+  background-size: 400px 400px;
+  background-blend-mode: multiply;
+}
+
+/* ──────────── PHB-style heading classes ──────────── */
+.phb-h1 {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  color: var(--color-header);
+  margin-bottom: 0.25rem;
+}
+
+.phb-h2 {
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  color: var(--color-header);
+}
+
+.phb-h3 {
+  font-family: var(--font-title);
+  font-size: 0.875rem;
+  color: var(--color-header);
+  border-bottom: 2px solid var(--color-gilding);
+  padding-bottom: 0.125rem;
+  margin-bottom: 0.25rem;
+}
+
+.phb-body {
+  font-family: var(--font-phb);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-ink);
+}
+
+.phb-small {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.phb-small-sc {
+  font-family: var(--font-sans-sc);
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+/* ──────────── Parchment card ──────────── */
 .parchment-card {
   background-color: var(--color-parchment-light);
   border: 1px solid var(--color-parchment-dark);
@@ -44,7 +180,7 @@ body {
 .parchment-card:hover {
   border-color: var(--color-gilding);
   box-shadow:
-    0 0 0 3px rgba(201, 168, 76, 0.2),
+    0 0 0 3px rgba(192, 173, 106, 0.2),
     0 4px 12px rgba(0, 0, 0, 0.15),
     inset 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
@@ -66,7 +202,7 @@ body {
     0 0 0 1px var(--color-gilding-light),
     0 0 0 3px var(--color-gilding),
     0 0 0 4px var(--color-gilding-light),
-    0 0 16px rgba(201, 168, 76, 0.25),
+    0 0 16px rgba(192, 173, 106, 0.25),
     0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -76,7 +212,7 @@ body {
   align-items: center;
   background: var(--color-crimson);
   color: #f5efe0;
-  font-family: var(--font-cinzel);
+  font-family: var(--font-sans);
   font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -90,7 +226,7 @@ body {
 .dm-stamp {
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-cinzel);
+  font-family: var(--font-sans-sc);
   font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -102,27 +238,49 @@ body {
   background: transparent;
 }
 
-/* ──────────── Book-cover content wrapper ──────────── */
-.book-content {
-  background-color: var(--color-parchment);
-  color: var(--color-ink);
-  min-height: 100dvh;
-}
-
 /* ──────────── Search / filter inputs ──────────── */
 .parchment-input {
   background-color: var(--color-parchment-light);
   border: 1px solid var(--color-parchment-dark);
   color: var(--color-ink);
-  font-family: var(--font-fell);
+  font-family: var(--font-phb);
 }
 
 .parchment-input::placeholder {
-  color: #a09078;
+  color: var(--color-caption);
 }
 
 .parchment-input:focus {
   border-color: var(--color-gilding);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15);
+  box-shadow: 0 0 0 3px rgba(192, 173, 106, 0.15);
+}
+
+/* ──────────── PHB-style horizontal rule (maroon line) ──────────── */
+.phb-hr {
+  height: 1px;
+  border: none;
+  background: var(--color-crimson);
+  margin: 1rem 0;
+  opacity: 0.4;
+}
+
+/* ──────────── Category / sub-category descriptions ──────────── */
+.phb-description {
+  font-family: var(--font-phb);
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-caption);
+  line-height: 1.4;
+}
+
+/* ──────────── Tag chips ──────────── */
+.phb-tag {
+  display: inline-block;
+  background: var(--color-accent);
+  color: var(--color-ink-light);
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
 }
