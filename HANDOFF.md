@@ -1,17 +1,17 @@
 # Handoff: Homebrew Libram
 
+## Project
+
+D&D homebrew content organiser — a web app for DMs to create, browse, and manage custom D&D content.
+
+- **Live:** https://homebrew-libram.vercel.app
+- **GitHub:** https://github.com/jonmgee/homebrew-libram
+- **Stack:** React 19, TypeScript, Tailwind CSS v4, Vite 8, Supabase
+- **Deploy:** Push to `main` → Vercel auto-deploy
+
 ## Completed tasks
 
-- [x] **Feature: Manual entry creation form** — DM can create `magic_item` and `weapon` entries.
-  - Type selector (magic_item / weapon) switches form fields dynamically.
-  - Shared fields: name, description, source, dm_only toggle, tags (comma-separated), campaign.
-  - Magic item fields: rarity (6-tier dropdown), requires_attunement toggle, item_subtype, charges.
-  - Weapon fields: damage_dice, damage_type dropdown (slashing/piercing/bludgeoning), bonus dropdown (+0 to +3), properties, cost, weight.
-  - Type-specific fields stored in JSONB `properties` column.
-  - RLS: anon INSERT policy added so the app can write entries without auth.
-  - Green confirmation on success; "Create another" to reset form.
-  - Committed and pushed; Vercel auto-deployed.
-  - Confirmed working: entry landed in Supabase dashboard.
+### Infrastructure (2026-06-16)
 
 - [x] Project folder created at `~/homebrew-libram/`
 - [x] README.md, .gitignore, memory/, HANDOFF.md
@@ -24,13 +24,99 @@
 - [x] Vercel Git integration connected — every push to main auto-deploys
 - [x] React + TypeScript + Vite + Tailwind CSS v4 + Supabase scaffold created
 - [x] Supabase client wired from `.env` credentials
-- [x] Placeholder home screen (app name + one-line description) styled with Tailwind
 - [x] `npm install` clean, `npm run build` clean, `npm run dev` runs at localhost:5173
 - [x] Scaffold committed and pushed — Vercel auto-deploy confirmed live
-- [x] **Database schema:** `entries` table created with shared fields + JSONB `properties`
-- [x] **Indexes:** full-text search (name+description), GIN on tags, GIN on properties, B-tree on type, campaign, dm_only, created_at
-- [x] **RLS:** public read, authenticated write — grants and policies set
 
-## Next task
+### Database (2026-06-16)
 
-Awaiting brief — options include: extending to remaining 11 entry types, browsing/searching entries, editing entries, or deleting entries.
+- [x] `entries` table created with shared fields (id, name, type, description, source, dm_only, tags, campaign, created_at) + JSONB `properties`
+- [x] Indexes: full-text search (name+description), GIN on tags, GIN on properties, B-tree on type, campaign, dm_only, created_at
+- [x] RLS: anon = SELECT + DELETE, authenticated = full CRUD
+- [x] Migration files tracked in `supabase/`:
+  - `migration-001-entries-table.sql` — table + indexes + RLS
+  - `migration-002-anon-delete-policy.sql` — anon DELETE grant + policy
+
+### Entry creation form (2026-06-17 — 2026-06-19)
+
+- [x] **All 14 entry types implemented** with dynamic form fields:
+  - `magic_item` — rarity, attunement, subtype, charges
+  - `weapon` — damage dice, damage type, bonus, properties, cost, weight
+  - `armour` — armour type, bonus, stealth disadvantage, cost, weight
+  - `potion` — effect, duration, rarity
+  - `adventuring_gear` — gear category, quantity, properties, cost, weight
+  - `trinket` — description only (no type-specific fields)
+  - `spell` — level, school, casting time, range, components, material, duration, classes, ritual, concentration
+  - `scroll` — spell name, spell level, rarity
+  - `monster` — CR, size, type, alignment, AC, HP, speed, all 6 abilities, saves, skills, resistances, immunities, senses, languages, actions, legendary actions, special abilities
+  - `npc` — all monster fields + role + faction
+  - `background` — skill/tool proficiencies, languages, feature, equipment, personality traits, ideals, bonds, flaws
+  - `feat` — prerequisite, benefit
+  - `subclass` — parent class, subclass features
+  - `table` — die dropdown (d4–d100), table category, dynamic row builder (add/remove roll_range + result pairs)
+- [x] Type selector buttons switch form fields dynamically
+- [x] Shared fields: name, description, source, dm_only toggle, tags (comma-separated), campaign
+- [x] Subcategory field auto-populated (disabled dropdown with human labels)
+- [x] Duplicate detection (name + type match) with "Save anyway" override
+- [x] Validation on required fields per type
+- [x] Success feedback with "Create another" reset
+- [x] Form state resets cleanly on type switch
+
+### Browse & search (2026-06-17 — 2026-06-19)
+
+- [x] Browse page at `/browse/:category/:subcategory` — filtered entry list
+- [x] "All Entries" at `/browse/all` — unfiltered list
+- [x] Real-time search by name or description
+- [x] "Hide DM-only" checkbox filter
+- [x] Delete with confirmation (Yes/No prompt per entry)
+- [x] Entry count display ("X of Y entries")
+- [x] Entry summary line per type (damage dice for weapons, rarity for magic items, CR for monsters, etc.)
+
+### Sub-category system (2026-06-18)
+
+- [x] Sub-category landing pages at `/browse/:category` — card grid with real entry counts from Supabase
+- [x] Human-readable sub-category labels (e.g. "Wondrous Items" not "wondrous_items")
+- [x] "Misc" sub-category catches unclaimed types
+- [x] Routing: `/browse/treasure/weapons`, `/browse/arcana/spells`, etc.
+
+### Styling (2026-06-19)
+
+- [x] PHB-inspired fantasy theme:
+  - Parchment background (#EDE0C8), dark ink text (#1a1a1a)
+  - Near-black book-cover page background (#1a0a00)
+  - Google Fonts: Cinzel (headings), IM Fell English (body)
+  - Gilded multi-layer gold borders on category/sub-category cards
+  - Wax-seal type badges (crimson)
+  - DM ink-stamp badges on browse entries
+- [x] Responsive — cards stack on small screens
+- [x] Hover effects on cards (gilded glow, border transitions)
+
+### Bug fixes (2026-06-19)
+
+- [x] "Unknown Category" heading in All Entries view — fixed with `useLocation` fallback
+- [x] Redundant type badge in sub-category view — gated behind `isAll` check
+- [x] Escaped unicode `\u2026` → literal `…` character
+- [x] Table type missing from `ENTRY_TYPES` array — button wasn't rendering
+- [x] Form state bleeding on type switch — reset to EMPTY_FORM
+
+## Known gaps
+
+- [ ] **Entry detail/view page** — clicking an entry in browse only shows the summary line; no dedicated detail page
+- [ ] **Entry editing** — no edit form; entries can only be created and deleted
+- [ ] **Auth** — anon policies are temporary; needs Supabase Auth integration
+- [ ] **Table rendering** — tables are browsable but don't render as interactive rollable tables
+- [ ] **Henge illustration** — placeholder on home page, no actual image yet
+- [ ] **Mobile optimisation** — responsive but not fully polished for small screens
+- [ ] **Pagination** — no pagination for large entry lists
+- [ ] **Import/export** — no bulk import or export of entries
+
+## Next tasks
+
+Awaiting brief — options include:
+- Entry detail/view page
+- Entry editing
+- Auth integration
+- Table rendering (interactive rollable tables)
+- Henge illustration
+- Mobile polish
+- Pagination
+- Import/export
