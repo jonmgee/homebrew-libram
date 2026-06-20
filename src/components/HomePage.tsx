@@ -26,7 +26,7 @@ export default function HomePage() {
           <Link
             key={cat.slug}
             to={`/browse/${cat.slug}`}
-            className="parchment-card gilded-border block p-6 min-h-[9rem]"
+            className="parchment-card gilded-border block p-6 pb-3 min-h-[9rem]"
           >
             <div className="float-right -mr-3 -mt-3 ml-3 mb-3 flex h-28 w-28 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
               <span className="phb-description text-center text-[0.6rem] leading-tight">
