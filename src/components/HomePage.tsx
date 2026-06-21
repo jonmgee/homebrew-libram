@@ -30,18 +30,25 @@ export default function HomePage() {
       </div>
 
       {/* ───── category grid ───── */}
-      <nav className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <nav className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {CATEGORIES.map((cat) => (
           <Link
             key={cat.slug}
             to={`/browse/${cat.slug}`}
-            className="parchment-card gilded-border flex h-[154px] items-start justify-between p-[10px]"
+            className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
           >
-            <div className="flex flex-1 flex-col justify-center">
-              <h2 className="phb-h2 !text-[1.1rem] !font-bold">
+            <img
+              src={CATEGORY_IMAGES[cat.slug]}
+              alt={cat.label}
+              className="h-full w-full object-cover"
+            />
+            {/* gradient overlay at the bottom */}
+            <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/80 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <h2 className="font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
                 {cat.label}
               </h2>
-              <p className="phb-description mt-1 text-sm">
+              <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
                 {cat.label === "Treasure"
                   ? "Armour, weapons, wondrous items, potions, gear, trinkets"
                   : cat.label === "Arcana"
@@ -53,35 +60,27 @@ export default function HomePage() {
                         : "Random tables and generators"}
               </p>
             </div>
-            <div className="ml-[10px] flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
-              <img
-                src={CATEGORY_IMAGES[cat.slug]}
-                alt={cat.label}
-                className="h-full w-full object-cover"
-              />
-            </div>
           </Link>
         ))}
 
         {/* ───── all entries ───── */}
         <Link
           to="/browse/all"
-          className="parchment-card gilded-border flex h-[154px] items-start justify-between p-[10px]"
+          className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
         >
-          <div className="flex flex-1 flex-col justify-center">
-            <h2 className="phb-h2 !text-[1.1rem] !font-bold">
+          <img
+            src={CATEGORY_IMAGES.all}
+            alt="All Items"
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/80 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <h2 className="font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
               All Entries
             </h2>
-            <p className="phb-description mt-1 text-sm">
+            <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
               Browse every entry across all categories
             </p>
-          </div>
-          <div className="ml-[10px] flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
-            <img
-              src={CATEGORY_IMAGES.all}
-              alt="All Items"
-              className="h-full w-full object-cover"
-            />
           </div>
         </Link>
       </nav>
