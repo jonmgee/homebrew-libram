@@ -4,6 +4,23 @@ import { supabase } from "../lib/supabase";
 import { getCategory } from "../types";
 import { getSubCategories, type SubCategoryDef } from "../lib/subcategories";
 
+const SUBCAT_IMAGES: Record<string, string> = {
+  weapons: "/assets/weapons.webp",
+  armour: "/assets/armour.webp",
+  wondrous_items: "/assets/wondrous_items.webp",
+  potions: "/assets/potions.webp",
+  adventuring_gear: "/assets/adventuring_gear.webp",
+  trinkets: "/assets/trinkets.webp",
+  spells: "/assets/spells.webp",
+  scrolls: "/assets/scrolls.webp",
+  monsters: "/assets/monsters.webp",
+  npcs: "/assets/npcs.webp",
+  backgrounds: "/assets/backgrounds.webp",
+  feats: "/assets/feats.webp",
+  subclasses: "/assets/subclasses.webp",
+  misc: "/assets/misc.webp",
+};
+
 export default function SubCategoryPage() {
   const { category } = useParams<{ category: string }>();
   const cat = getCategory(category ?? "");
@@ -60,29 +77,42 @@ export default function SubCategoryPage() {
         <h1 className="phb-h1 !text-2xl">{cat.label}</h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {subCategories.map((sub: SubCategoryDef) => (
-          <Link
-            key={sub.slug}
-            to={`/browse/${cat.slug}/${sub.slug}`}
-            className="parchment-card gilded-border block p-6 pb-3 min-h-[9rem]"
-          >
-            <div className="float-right -mr-3 -mt-3 ml-3 mb-3 flex h-28 w-28 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
-              <span className="phb-description text-center text-[0.6rem] leading-tight">
-                Sub-category illustration
-              </span>
-            </div>
-            <h2 className="phb-h2 !text-[1.1rem] !font-bold">
-              {sub.label}
-            </h2>
-            <p className="phb-description mt-1 text-sm">
-              {(() => {
-                const c = sub.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
-                return `${c} entr${c === 1 ? "y" : "ies"}`;
-              })()}
-            </p>
-          </Link>
-        ))}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {subCategories.map((sub: SubCategoryDef) => {
+          const imgSrc = SUBCAT_IMAGES[sub.slug];
+          const entryCount = sub.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
+
+          return (
+            <Link
+              key={sub.slug}
+              to={`/browse/${cat.slug}/${sub.slug}`}
+              className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
+            >
+              {imgSrc ? (
+                <>
+                  <img
+                    src={imgSrc}
+                    alt={sub.label}
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/80 to-transparent" />
+                </>
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-parchment-dark/30">
+                  <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/80 to-transparent" />
+                </div>
+              )}
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <h2 className="font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
+                  {sub.label}
+                </h2>
+                <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
+                  {entryCount} entr{entryCount === 1 ? "y" : "ies"}
+                </p>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
