@@ -17,6 +17,10 @@ dist/
 *.njsproj
 *.sln
 
+# Source images (app uses webp copies in public/assets)
+/images/
+/Images/
+
 # OS
 .DS_Store
 Thumbs.db
