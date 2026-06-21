@@ -37,7 +37,7 @@ export default function HomePage() {
             to={`/browse/${cat.slug}`}
             className="parchment-card gilded-border block p-6 pb-3 min-h-[9rem]"
           >
-            <div className="float-right -mr-3 -mt-3 ml-3 mb-3 flex h-28 w-28 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+            <div className="float-right -mr-1 -mt-1 ml-2 mb-2 flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
               <img
                 src={CATEGORY_IMAGES[cat.slug]}
                 alt={cat.label}
@@ -66,7 +66,7 @@ export default function HomePage() {
           to="/browse/all"
           className="parchment-card gilded-border block p-6 pb-3 min-h-[9rem]"
         >
-          <div className="float-right -mr-3 -mt-3 ml-3 mb-3 flex h-28 w-28 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+          <div className="float-right -mr-1 -mt-1 ml-2 mb-2 flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
             <img
               src={CATEGORY_IMAGES.all}
               alt="All Items"
