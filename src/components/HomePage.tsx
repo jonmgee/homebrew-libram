@@ -35,7 +35,7 @@ export default function HomePage() {
           <Link
             key={cat.slug}
             to={`/browse/${cat.slug}`}
-            className="parchment-card gilded-border block p-[10px] min-h-[9rem]"
+            className="parchment-card gilded-border flow-root block p-[10px] min-h-[9rem]"
           >
             <div className="float-right ml-3 mb-3 flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
               <img
@@ -64,7 +64,7 @@ export default function HomePage() {
         {/* ───── all entries ───── */}
         <Link
           to="/browse/all"
-          className="parchment-card gilded-border block p-[10px] min-h-[9rem]"
+          className="parchment-card gilded-border flow-root block p-[10px] min-h-[9rem]"
         >
           <div className="float-right ml-3 mb-3 flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
             <img
