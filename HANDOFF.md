@@ -90,6 +90,16 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] Responsive — cards stack on small screens
 - [x] Hover effects on cards (gilded glow, border transitions)
 
+### Homepage images (2026-06-21)
+
+- [x] 6 watercolour PNGs (11.8 MB total) converted to 300×300 WebP (186 KB total — 98.4% reduction)
+- [x] Category cards now show their watercolour illustration in a 134×134px image, flush to top-right
+- [x] All Entries card promoted from full-width bar to matching grid card
+- [x] Cards use flex row layout, fixed 154px height (134px image + 10px padding × 2)
+- [x] Text column vertically centred, 10px uniform spacing throughout
+- [x] Original PNGs removed from git tracking, `images/` and `Images/` in `.gitignore`
+- [x] Commits: 050a797, 89bda3d, 04dda0a, 06127a3, a870896, 16980b6, 1da903e, 648b2d1, 9c1c36b
+
 ### Bug fixes (2026-06-19)
 
 - [x] "Unknown Category" heading in All Entries view — fixed with `useLocation` fallback
@@ -100,11 +110,10 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 
 ## Known gaps
 
-- [ ] **Entry detail/view page** — clicking an entry in browse only shows the summary line; no dedicated detail page
 - [ ] **Entry editing** — no edit form; entries can only be created and deleted
 - [ ] **Auth** — anon policies are temporary; needs Supabase Auth integration
 - [ ] **Table rendering** — tables are browsable but don't render as interactive rollable tables
-- [ ] **Henge illustration** — placeholder on home page, no actual image yet
+- [ ] **Henge illustration** — placeholder on home page, no actual image yet (put in `public/assets/` as webp when ready)
 - [ ] **Mobile optimisation** — responsive but not fully polished for small screens
 - [ ] **Pagination** — no pagination for large entry lists
 - [ ] **Import/export** — no bulk import or export of entries
