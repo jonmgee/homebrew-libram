@@ -64,25 +64,21 @@ export default function HomePage() {
         {/* ───── all entries ───── */}
         <Link
           to="/browse/all"
-          className="parchment-card gilded-border col-span-1 block p-6 pb-3 sm:col-span-2 lg:col-span-3 min-h-[5rem]"
+          className="parchment-card gilded-border block p-6 pb-3 min-h-[9rem]"
         >
-          <div className="flex items-center gap-6">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
-              <img
-                src={CATEGORY_IMAGES.all}
-                alt="All Items"
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div>
-              <h2 className="phb-h2 !text-lg !font-semibold">
-                All Entries
-              </h2>
-              <p className="phb-description mt-1 text-sm">
-                Browse every entry across all categories
-              </p>
-            </div>
+          <div className="float-right -mr-3 -mt-3 ml-3 mb-3 flex h-28 w-28 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+            <img
+              src={CATEGORY_IMAGES.all}
+              alt="All Items"
+              className="h-full w-full object-cover"
+            />
           </div>
+          <h2 className="phb-h2 !text-[1.1rem] !font-bold">
+            All Entries
+          </h2>
+          <p className="phb-description mt-1 text-sm">
+            Browse every entry across all categories
+          </p>
         </Link>
       </nav>
 
