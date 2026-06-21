@@ -75,7 +75,7 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 
 - [x] Sub-category landing pages at `/browse/:category` — card grid with real entry counts from Supabase
 - [x] Human-readable sub-category labels (e.g. "Wondrous Items" not "wondrous_items")
-- [x] "Misc" sub-category catches unclaimed types
+- [x] "Misc" sub-category catches unclaimed types (uses `/assets/misc.webp`)
 - [x] Routing: `/browse/treasure/weapons`, `/browse/arcana/spells`, etc.
 
 ### Styling (2026-06-19)
@@ -90,15 +90,15 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] Responsive — cards stack on small screens
 - [x] Hover effects on cards (gilded glow, border transitions)
 
-### Homepage images (2026-06-21)
+### Homepage & sub-category image cards (2026-06-21)
 
 - [x] 6 watercolour PNGs converted to 300×300 WebP (98.4% reduction), then swapped to Graphic style
 - [x] 5 graphic images lightened by 15% (Arcana untouched) via Pillow
-- [x] Card layout redesigned: square cards (aspect-square) with full-bleed background images
-- [x] Dark gradient overlay at bottom, text in gold (Mr Eaves heading + description)
-- [x] Gilded borders preserved around each square card
+- [x] **Homepage cards redesigned:** square (aspect-square) with full-bleed backgrounds, dark gradient overlay, gold text (Mr Eaves), gilded borders
+- [x] **Sub-category cards rebuilt identically:** 13 sub-cat images + misc image, same full-bleed square layout
+- [x] All sub-cat images lightened by 15% via Pillow
 - [x] Original PNGs removed from git tracking, `images/` and `Images/` in `.gitignore`
-- [x] Commits: 050a797 → 68937a3
+- [x] Commits: 050a797 → 68937a3 (homepage), 555f4b9 (sub-category)
 
 ### Bug fixes (2026-06-19)
 
