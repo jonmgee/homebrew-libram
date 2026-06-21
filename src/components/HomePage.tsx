@@ -1,6 +1,15 @@
 import { Link } from "react-router-dom";
 import { CATEGORIES } from "../types";
 
+const CATEGORY_IMAGES: Record<string, string> = {
+  treasure: "/assets/treasure.webp",
+  arcana: "/assets/arcana.webp",
+  creatures: "/assets/creatures.webp",
+  character_options: "/assets/character_options.webp",
+  tables: "/assets/tables.webp",
+  all: "/assets/all_items.webp",
+};
+
 export default function HomePage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12">
@@ -29,9 +38,11 @@ export default function HomePage() {
             className="parchment-card gilded-border block p-6 pb-3 min-h-[9rem]"
           >
             <div className="float-right -mr-3 -mt-3 ml-3 mb-3 flex h-28 w-28 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
-              <span className="phb-description text-center text-[0.6rem] leading-tight">
-                Category illustration
-              </span>
+              <img
+                src={CATEGORY_IMAGES[cat.slug]}
+                alt={cat.label}
+                className="h-full w-full object-cover"
+              />
             </div>
             <h2 className="phb-h2 !text-[1.1rem] !font-bold">
               {cat.label}
@@ -53,11 +64,25 @@ export default function HomePage() {
         {/* ───── all entries ───── */}
         <Link
           to="/browse/all"
-          className="parchment-card gilded-border col-span-1 flex items-center justify-center p-6 sm:col-span-2 lg:col-span-3 min-h-[5rem]"
+          className="parchment-card gilded-border col-span-1 block p-6 pb-3 sm:col-span-2 lg:col-span-3 min-h-[5rem]"
         >
-          <span className="phb-h2 !text-lg !font-semibold">
-            All Entries
-          </span>
+          <div className="flex items-center gap-6">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+              <img
+                src={CATEGORY_IMAGES.all}
+                alt="All Items"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div>
+              <h2 className="phb-h2 !text-lg !font-semibold">
+                All Entries
+              </h2>
+              <p className="phb-description mt-1 text-sm">
+                Browse every entry across all categories
+              </p>
+            </div>
+          </div>
         </Link>
       </nav>
 
