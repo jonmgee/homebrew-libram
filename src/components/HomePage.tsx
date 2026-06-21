@@ -53,7 +53,7 @@ export default function HomePage() {
                         : "Random tables and generators"}
               </p>
             </div>
-            <div className="ml-3 flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+            <div className="ml-[10px] flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
               <img
                 src={CATEGORY_IMAGES[cat.slug]}
                 alt={cat.label}
@@ -76,7 +76,7 @@ export default function HomePage() {
               Browse every entry across all categories
             </p>
           </div>
-          <div className="ml-3 flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+          <div className="ml-[10px] flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
             <img
               src={CATEGORY_IMAGES.all}
               alt="All Items"
