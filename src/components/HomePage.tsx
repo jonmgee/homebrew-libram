@@ -35,50 +35,54 @@ export default function HomePage() {
           <Link
             key={cat.slug}
             to={`/browse/${cat.slug}`}
-            className="parchment-card gilded-border flow-root block p-[10px] min-h-[9rem]"
+            className="parchment-card gilded-border flex h-[154px] items-start justify-between p-[10px]"
           >
-            <div className="float-right ml-3 mb-3 flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+            <div className="flex flex-1 flex-col justify-center">
+              <h2 className="phb-h2 !text-[1.1rem] !font-bold">
+                {cat.label}
+              </h2>
+              <p className="phb-description mt-1 text-sm">
+                {cat.label === "Treasure"
+                  ? "Armour, weapons, wondrous items, potions, gear, trinkets"
+                  : cat.label === "Arcana"
+                    ? "Spells and scrolls"
+                    : cat.label === "Creatures"
+                      ? "Monsters and NPCs"
+                      : cat.label === "Character Options"
+                        ? "Backgrounds, feats, subclasses"
+                        : "Random tables and generators"}
+              </p>
+            </div>
+            <div className="ml-3 flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
               <img
                 src={CATEGORY_IMAGES[cat.slug]}
                 alt={cat.label}
                 className="h-full w-full object-cover"
               />
             </div>
-            <h2 className="phb-h2 !text-[1.1rem] !font-bold">
-              {cat.label}
-            </h2>
-            <p className="phb-description mt-1 text-sm">
-              {cat.label === "Treasure"
-                ? "Armour, weapons, wondrous items, potions, gear, trinkets"
-                : cat.label === "Arcana"
-                  ? "Spells and scrolls"
-                  : cat.label === "Creatures"
-                    ? "Monsters and NPCs"
-                    : cat.label === "Character Options"
-                      ? "Backgrounds, feats, subclasses"
-                      : "Random tables and generators"}
-            </p>
           </Link>
         ))}
 
         {/* ───── all entries ───── */}
         <Link
           to="/browse/all"
-          className="parchment-card gilded-border flow-root block p-[10px] min-h-[9rem]"
+          className="parchment-card gilded-border flex h-[154px] items-start justify-between p-[10px]"
         >
-          <div className="float-right ml-3 mb-3 flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
+          <div className="flex flex-1 flex-col justify-center">
+            <h2 className="phb-h2 !text-[1.1rem] !font-bold">
+              All Entries
+            </h2>
+            <p className="phb-description mt-1 text-sm">
+              Browse every entry across all categories
+            </p>
+          </div>
+          <div className="ml-3 flex h-[134px] w-[134px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
             <img
               src={CATEGORY_IMAGES.all}
               alt="All Items"
               className="h-full w-full object-cover"
             />
           </div>
-          <h2 className="phb-h2 !text-[1.1rem] !font-bold">
-            All Entries
-          </h2>
-          <p className="phb-description mt-1 text-sm">
-            Browse every entry across all categories
-          </p>
         </Link>
       </nav>
 
