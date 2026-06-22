@@ -1003,8 +1003,8 @@ export default function CreateEntryPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <div className="mb-6 flex items-center gap-4">
-        <Link to="/" className="text-sm text-zinc-500 underline underline-offset-2 hover:text-zinc-300">&larr; Home</Link>
-        <h1 className="text-2xl font-bold text-zinc-100">Create New Entry</h1>
+        <Link to="/" className="text-sm text-[#766649] underline underline-offset-2 hover:text-[#58180d]">&larr; Home</Link>
+        <h1 className="phb-h1 !text-3xl text-[#58180d]">Create New Entry</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
