@@ -15,22 +15,16 @@ export default function HomePage() {
     <>
       <div className="mx-auto max-w-5xl px-4 pt-12">
         <header className="mb-6 text-center">
-          {/* decorative banner above title */}
-          <img
-            src="/assets/partCoverHeaderPHB.png"
-            alt=""
-            className="mx-auto mb-8 w-64 sm:w-80"
-          />
           <h1
             className="font-[var(--font-title)] text-4xl uppercase tracking-[0.15em] text-[#58180d] drop-shadow-[0_2px_3px_rgba(88,24,13,0.35)] sm:text-5xl"
           >
             Homebrew Libram
           </h1>
-          {/* decorative rule below title */}
+          {/* decorative rule below title — scaled to match title width */}
           <img
-            src="/assets/horizontalRule.svg"
+            src="/assets/phb-horizontalRule.svg"
             alt=""
-            className="mx-auto mb-4 mt-4 w-48"
+            className="mx-auto mb-4 mt-4 w-72 sm:w-96"
           />
           <p className="font-[var(--font-sans)] text-sm italic leading-relaxed text-[#766649]">
             Browse your custom D&D content
