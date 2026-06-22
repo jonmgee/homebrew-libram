@@ -24,22 +24,30 @@ export default function HomePage() {
         </header>
       </div>
 
-      {/* ───── full-bleed clickable hero (→ Create Entry) ───── */}
-      <Link
-        to="/create"
-        className="relative block w-full overflow-hidden"
-        aria-label="Create New Entry"
-      >
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="block w-full"
+      {/* ───── hero banner — same width as grid, gilded border ───── */}
+      <div className="mx-auto max-w-5xl px-4">
+        <Link
+          to="/create"
+          className="gilded-border relative block overflow-hidden"
+          aria-label="Create New Entry"
         >
-          <source src="/assets/Hero.mp4" type="video/mp4" />
-        </video>
-      </Link>
+          <video
+            autoPlay
+            muted
+            playsInline
+            className="block w-full"
+          >
+            <source src="/assets/Hero.mp4" type="video/mp4" />
+          </video>
+          {/* gradient overlay + CTA text */}
+          <div className="absolute inset-x-0 bottom-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <p className="text-center font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
+              Create New Entry
+            </p>
+          </div>
+        </Link>
+      </div>
 
       {/* ───── category grid ───── */}
       <nav className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-4 py-12 sm:grid-cols-2 lg:grid-cols-3">
