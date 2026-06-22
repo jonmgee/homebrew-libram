@@ -3,6 +3,7 @@ import { useState, type FormEvent, useRef } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { getSubcategoryLabel } from "../lib/subcategories";
+import { CATEGORIES } from "../types";
 import type {
   EntryType,
   MagicItemProperties,
@@ -228,6 +229,30 @@ const ENTRY_TYPES: { value: EntryType; label: string }[] = [
   { value: "subclass", label: "Subclass" },
   { value: "table", label: "Table" },
 ];
+
+function getParentCategory(type: EntryType): string {
+  for (const cat of CATEGORIES) {
+    if (cat.types.includes(type)) return cat.label;
+  }
+  return "";
+}
+
+const TYPE_IMAGES: Record<string, string> = {
+  magic_item: "/assets/wondrous_items.webp",
+  weapon: "/assets/weapons.webp",
+  armour: "/assets/armour.webp",
+  potion: "/assets/potions.webp",
+  adventuring_gear: "/assets/adventuring_gear.webp",
+  trinket: "/assets/trinkets.webp",
+  spell: "/assets/spells.webp",
+  scroll: "/assets/scrolls.webp",
+  monster: "/assets/monsters.webp",
+  npc: "/assets/npcs.webp",
+  background: "/assets/backgrounds.webp",
+  feat: "/assets/feats.webp",
+  subclass: "/assets/subclasses.webp",
+  table: "/assets/tables.webp",
+};
 
 export default function CreateEntryPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -983,27 +1008,43 @@ export default function CreateEntryPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="mb-2 block text-sm font-medium text-zinc-300">Entry Type</label>
-          <div className="flex flex-wrap gap-2">
-            {ENTRY_TYPES.map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => {
-                  const sub = getSubcategoryLabel(value);
-                  setForm({ ...EMPTY_FORM, type: value, subcategory: sub });
-                  setStatus("idle");
-                  setErrorMsg("");
-                }}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                  form.type === value ? "bg-amber-600 text-white" : "border border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+        {/* ───── entry type card grid ───── */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          {ENTRY_TYPES.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => {
+                const sub = getSubcategoryLabel(value);
+                setForm({ ...EMPTY_FORM, type: value, subcategory: sub });
+                setStatus("idle");
+                setErrorMsg("");
+              }}
+              className={`gilded-border relative flex items-center overflow-hidden rounded-lg text-left ${
+                form.type === value
+                  ? "ring-2 ring-[var(--color-gilding-light)]"
+                  : ""
+              }`}
+            >
+              {/* thumbnail on the right */}
+              <div className="relative h-16 w-16 shrink-0 sm:h-20 sm:w-20">
+                <img
+                  src={TYPE_IMAGES[value]}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              {/* text on the left */}
+              <div className="flex flex-1 flex-col justify-center px-3 py-2">
+                <span className="font-[var(--font-title)] text-sm font-bold text-[#E0E5C1] drop-shadow-sm">
+                  {label}
+                </span>
+                <span className="mt-0.5 text-[10px] italic leading-tight text-[#C9A84C] drop-shadow-sm">
+                  {getParentCategory(value)}
+                </span>
+              </div>
+            </button>
+          ))}
         </div>
 
         {form.type && (
