@@ -15,7 +15,7 @@ export default function HomePage() {
     <>
       <div className="mx-auto max-w-5xl px-4 pt-12">
         <header className="mb-12 text-center">
-          <h1 className="phb-h1 !text-3xl">
+          <h1 className="phb-h1 !text-3xl text-[#58180d]">
             Homebrew Libram
           </h1>
           <p className="phb-description mt-2">
