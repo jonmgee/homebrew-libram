@@ -1,8 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
 import { getCategory } from "../types";
 import { getSubCategories, type SubCategoryDef } from "../lib/subcategories";
+
+const MotionLink = motion(Link);
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+} as const;
+
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
+} as const;
+
+const hoverTransition = { type: "spring" as const, stiffness: 300, damping: 15, mass: 0.5 } as const;
 
 const SUBCAT_IMAGES: Record<string, string> = {
   weapons: "/assets/weapons.webp",
@@ -77,16 +92,24 @@ export default function SubCategoryPage() {
         <h1 className="phb-h1 !text-2xl">{cat.label}</h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.div
+        className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
         {subCategories.map((sub: SubCategoryDef) => {
           const imgSrc = SUBCAT_IMAGES[sub.slug];
           const entryCount = sub.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
 
           return (
-            <Link
+            <MotionLink
               key={sub.slug}
               to={`/browse/${cat.slug}/${sub.slug}`}
               className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
+              variants={cardVariants}
+              whileHover={{ scale: 1.02 }}
+              transition={hoverTransition}
             >
               {imgSrc ? (
                 <>
@@ -110,10 +133,10 @@ export default function SubCategoryPage() {
                   {entryCount} entr{entryCount === 1 ? "y" : "ies"}
                 </p>
               </div>
-            </Link>
+            </MotionLink>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 }

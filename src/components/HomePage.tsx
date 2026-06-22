@@ -1,5 +1,8 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { CATEGORIES } from "../types";
+
+const MotionLink = motion(Link);
 
 const CATEGORY_IMAGES: Record<string, string> = {
   treasure: "/assets/treasure.webp",
@@ -9,6 +12,18 @@ const CATEGORY_IMAGES: Record<string, string> = {
   tables: "/assets/tables.webp",
   all: "/assets/all_items.webp",
 };
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+} as const;
+
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
+} as const;
+
+const hoverTransition = { type: "spring" as const, stiffness: 300, damping: 15, mass: 0.5 } as const;
 
 export default function HomePage() {
   return (
@@ -23,7 +38,6 @@ export default function HomePage() {
               OMEBREW LIBRAM
             </span>
           </h1>
-          {/* decorative rule below title — scaled to match title width */}
           <img
             src="/assets/phb-horizontalRule.svg"
             alt=""
@@ -35,7 +49,6 @@ export default function HomePage() {
         </header>
       </div>
 
-      {/* ───── hero banner — same width as grid, gilded border ───── */}
       <div className="mx-auto max-w-5xl px-4">
         <Link
           to="/create"
@@ -50,7 +63,6 @@ export default function HomePage() {
           >
             <source src="/assets/Hero.mp4" type="video/mp4" />
           </video>
-          {/* gradient overlay + CTA text */}
           <div className="absolute inset-x-0 bottom-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <p className="text-center font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
@@ -63,20 +75,26 @@ export default function HomePage() {
         </Link>
       </div>
 
-      {/* ───── category grid ───── */}
-      <nav className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-4 py-12 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.nav
+        className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-4 py-12 sm:grid-cols-2 lg:grid-cols-3"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
         {CATEGORIES.map((cat) => (
-          <Link
+          <MotionLink
             key={cat.slug}
             to={`/browse/${cat.slug}`}
             className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
+            variants={cardVariants}
+            whileHover={{ scale: 1.02 }}
+            transition={hoverTransition}
           >
             <img
               src={CATEGORY_IMAGES[cat.slug]}
               alt={cat.label}
               className="h-full w-full object-cover"
             />
-            {/* gradient overlay at the bottom */}
             <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-4">
               <h2 className="font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
@@ -94,13 +112,15 @@ export default function HomePage() {
                         : "Random tables and generators"}
               </p>
             </div>
-          </Link>
+          </MotionLink>
         ))}
 
-        {/* ───── all entries ───── */}
-        <Link
+        <MotionLink
           to="/browse/all"
           className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
+          variants={cardVariants}
+          whileHover={{ scale: 1.02 }}
+          transition={hoverTransition}
         >
           <img
             src={CATEGORY_IMAGES.all}
@@ -116,8 +136,8 @@ export default function HomePage() {
               Browse every entry across all categories
             </p>
           </div>
-        </Link>
-      </nav>
+        </MotionLink>
+      </motion.nav>
     </>
   );
 }

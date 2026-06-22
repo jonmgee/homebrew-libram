@@ -1,6 +1,21 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { CATEGORIES } from "../types";
 import type { EntryType } from "../types";
+
+const MotionLink = motion(Link);
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" as const } },
+} as const;
+
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
+} as const;
+
+const hoverTransition = { type: "spring" as const, stiffness: 300, damping: 15, mass: 0.5 } as const;
 
 const ENTRY_TYPES: { value: EntryType; label: string }[] = [
   { value: "magic_item", label: "Magic Item" },
@@ -51,15 +66,21 @@ export default function CreateEntryPage() {
         <h1 className="phb-h1 !text-3xl text-[#58180d]">Create New Entry</h1>
       </div>
 
-      {/* ───── entry type card grid ───── */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      <motion.div
+        className="grid grid-cols-2 gap-3 sm:gap-4"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
         {ENTRY_TYPES.map(({ value, label }) => (
-          <Link
+          <MotionLink
             key={value}
             to={`/create/${value}`}
             className="gilded-border relative flex items-center overflow-hidden rounded-lg text-left"
+            variants={cardVariants}
+            whileHover={{ scale: 1.02 }}
+            transition={hoverTransition}
           >
-            {/* thumbnail on the right */}
             <div className="relative h-16 w-16 shrink-0 sm:h-20 sm:w-20">
               <img
                 src={TYPE_IMAGES[value]}
@@ -67,7 +88,6 @@ export default function CreateEntryPage() {
                 className="h-full w-full object-cover"
               />
             </div>
-            {/* text on the left */}
             <div className="flex flex-1 flex-col justify-center px-4 py-3">
               <span className="font-[var(--font-title)] text-[17px] font-bold leading-tight text-[#58180d]">
                 {label}
@@ -76,9 +96,9 @@ export default function CreateEntryPage() {
                 {getParentCategory(value)}
               </span>
             </div>
-          </Link>
+          </MotionLink>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
