@@ -1035,11 +1035,11 @@ export default function CreateEntryPage() {
                 />
               </div>
               {/* text on the left */}
-              <div className="flex flex-1 flex-col justify-center px-3 py-2">
-                <span className="font-[var(--font-title)] text-sm font-bold text-[#58180d]">
+              <div className="flex flex-1 flex-col justify-center px-4 py-3">
+                <span className="font-[var(--font-title)] text-[21px] font-bold leading-tight text-[#58180d]">
                   {label}
                 </span>
-                <span className="mt-0.5 text-[10px] italic leading-tight text-[#766649]">
+                <span className="mt-1 text-[15px] italic leading-tight text-[#766649]">
                   {getParentCategory(value)}
                 </span>
               </div>
