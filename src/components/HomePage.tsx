@@ -45,6 +45,9 @@ export default function HomePage() {
             <p className="text-center font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
               Create New Entry
             </p>
+            <p className="mt-1 text-center text-xs leading-tight text-[#C9A84C] drop-shadow">
+              Click here to add the next legendary item to the Libram
+            </p>
           </div>
         </Link>
       </div>
