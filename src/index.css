@@ -185,34 +185,6 @@ body {
     inset 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
-/* ──────────── Decorative banner wrapper (cover / rule) ──────────── */
-.hero-banner-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* noise/grain overlay — same irregular shape as the SVG */
-.hero-banner-wrap::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 200px 200px;
-  pointer-events: none;
-  mix-blend-mode: overlay;
-  z-index: 2;
-}
-
-.hero-banner-wrap img {
-  display: block;
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
-}
-
 /* ──────────── Gilded border (ornate) ──────────── */
 .gilded-border {
   border: 2px solid var(--color-gilding-dark);
