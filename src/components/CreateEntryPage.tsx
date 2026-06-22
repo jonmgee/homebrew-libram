@@ -1033,15 +1033,13 @@ export default function CreateEntryPage() {
                   alt=""
                   className="h-full w-full object-cover"
                 />
-                {/* dark overlay over the image for text contrast */}
-                <div className="absolute inset-0 bg-black/40" />
               </div>
               {/* text on the left */}
-              <div className="flex flex-1 flex-col justify-center bg-[var(--color-parchment-dark)]/60 px-3 py-2">
-                <span className="font-[var(--font-title)] text-sm font-bold text-[#E0E5C1] drop-shadow-sm">
+              <div className="flex flex-1 flex-col justify-center px-3 py-2">
+                <span className="font-[var(--font-title)] text-sm font-bold text-[#58180d]">
                   {label}
                 </span>
-                <span className="mt-0.5 text-[10px] italic leading-tight text-[#C9A84C] drop-shadow-sm">
+                <span className="mt-0.5 text-[10px] italic leading-tight text-[#766649]">
                   {getParentCategory(value)}
                 </span>
               </div>
