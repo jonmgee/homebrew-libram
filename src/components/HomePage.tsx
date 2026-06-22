@@ -12,25 +12,37 @@ const CATEGORY_IMAGES: Record<string, string> = {
 
 export default function HomePage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12">
-      <header className="mb-12 text-center">
-        <h1 className="phb-h1 !text-3xl">
-          Homebrew Libram
-        </h1>
-        <p className="phb-description mt-2">
-          Browse your custom D&D content
-        </p>
-      </header>
-
-      {/* ───── placeholder hero zone ───── */}
-      <div className="gilded-border mb-12 flex items-center justify-center py-20 text-ink-light/60">
-        <span className="phb-description text-sm">
-          ⛰️ Henge illustration placeholder
-        </span>
+    <>
+      <div className="mx-auto max-w-5xl px-4 pt-12">
+        <header className="mb-12 text-center">
+          <h1 className="phb-h1 !text-3xl">
+            Homebrew Libram
+          </h1>
+          <p className="phb-description mt-2">
+            Browse your custom D&D content
+          </p>
+        </header>
       </div>
 
+      {/* ───── full-bleed clickable hero (→ Create Entry) ───── */}
+      <Link
+        to="/create"
+        className="relative block w-full overflow-hidden"
+        aria-label="Create New Entry"
+      >
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="block w-full"
+        >
+          <source src="/assets/Hero.mp4" type="video/mp4" />
+        </video>
+      </Link>
+
       {/* ───── category grid ───── */}
-      <nav className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <nav className="mx-auto grid max-w-5xl grid-cols-1 gap-6 px-4 py-12 sm:grid-cols-2 lg:grid-cols-3">
         {CATEGORIES.map((cat) => (
           <Link
             key={cat.slug}
@@ -84,16 +96,6 @@ export default function HomePage() {
           </div>
         </Link>
       </nav>
-
-      {/* ───── nav footer ───── */}
-      <div className="mt-12 flex items-center justify-center gap-6 border-t border-parchment-dark pt-6">
-        <Link
-          to="/create"
-          className="font-sans-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
-        >
-          Create New Entry
-        </Link>
-      </div>
-    </div>
+    </>
   );
 }
