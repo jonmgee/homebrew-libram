@@ -592,12 +592,12 @@ export default function CreateEntryPage() {
 
   const sharedField = (label: string, key: keyof FormState, kind: "text" | "textarea" = "text") => (
     <div>
-      <label className="mb-1 block text-sm font-medium text-zinc-300">{label}</label>
+      <label className="mb-1 block text-sm font-medium text-[#4a4a4a]">{label}</label>
       {kind === "textarea" ? (
         <textarea
           value={form[key] as string}
           onChange={(e) => update(key, e.target.value as never)}
-          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="w-full rounded-lg border border-[#d8d0b8] bg-[#faf7ea] px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#766649] focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
           rows={3}
         />
       ) : (
@@ -605,7 +605,7 @@ export default function CreateEntryPage() {
           type="text"
           value={form[key] as string}
           onChange={(e) => update(key, e.target.value as never)}
-          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="w-full rounded-lg border border-[#d8d0b8] bg-[#faf7ea] px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#766649] focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
         />
       )}
     </div>
@@ -613,11 +613,11 @@ export default function CreateEntryPage() {
 
   const toggleField = (label: string, key: "dm_only" | "requires_attunement" | "stealth_disadvantage" | "ritual" | "concentration") => (
     <label className="flex cursor-pointer items-center gap-3">
-      <span className="text-sm font-medium text-zinc-300">{label}</span>
+      <span className="text-sm font-medium text-[#4a4a4a]">{label}</span>
       <button
         type="button"
         onClick={() => update(key, !form[key])}
-        className={`relative h-6 w-11 rounded-full transition-colors ${form[key] ? "bg-amber-600" : "bg-zinc-700"}`}
+        className={`relative h-6 w-11 rounded-full transition-colors ${form[key] ? "bg-amber-600" : "bg-[#d8d0b8]"}`}
       >
         <span className={`absolute left-0.5 top-0.5 size-5 rounded-full bg-white transition-transform ${form[key] ? "translate-x-5" : "translate-x-0"}`} />
       </button>
@@ -626,11 +626,11 @@ export default function CreateEntryPage() {
 
   const selectField = (label: string, key: keyof FormState, options: readonly string[], placeholder?: string) => (
     <div>
-      <label className="mb-1 block text-sm font-medium text-zinc-300">{label}</label>
+      <label className="mb-1 block text-sm font-medium text-[#4a4a4a]">{label}</label>
       <select
         value={form[key] as string}
         onChange={(e) => update(key, e.target.value as never)}
-        className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+        className="w-full rounded-lg border border-[#d8d0b8] bg-[#faf7ea] px-3 py-2 text-sm text-[#1a1a1a] focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
       >
         {placeholder && <option value="">{placeholder}</option>}
         {options.map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
@@ -640,13 +640,13 @@ export default function CreateEntryPage() {
 
   const numField = (label: string, key: "charges" | "weight" | "quantity" | "ac") => (
     <div>
-      <label className="mb-1 block text-sm font-medium text-zinc-300">{label}</label>
+      <label className="mb-1 block text-sm font-medium text-[#4a4a4a]">{label}</label>
       <input
         type="number"
         min={0}
         value={form[key]}
         onChange={(e) => update(key, e.target.value as never)}
-        className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+        className="w-full rounded-lg border border-[#d8d0b8] bg-[#faf7ea] px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#766649] focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
       />
     </div>
   );
@@ -654,25 +654,25 @@ export default function CreateEntryPage() {
   // ───── property section components ─────
 
   const sharedDetailsSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Details</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Details</h2>
       {sharedField("Name", "name")}
       {sharedField("Description", "description", "textarea")}
       {sharedField("Source", "source")}
       {toggleField("DM Only", "dm_only")}
       <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-300">Tags</label>
-        <input type="text" value={form.tags} onChange={(e) => update("tags", e.target.value)} placeholder="e.g. common, consumable, fire" className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" />
-        <p className="mt-1 text-xs text-zinc-500">Comma-separated</p>
+        <label className="mb-1 block text-sm font-medium text-[#4a4a4a]">Tags</label>
+        <input type="text" value={form.tags} onChange={(e) => update("tags", e.target.value)} placeholder="e.g. common, consumable, fire" className="w-full rounded-lg border border-[#d8d0b8] bg-[#faf7ea] px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#766649] focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" />
+        <p className="mt-1 text-xs text-[#766649]">Comma-separated</p>
       </div>
       {sharedField("Campaign", "campaign")}
       <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-300">Subcategory</label>
+        <label className="mb-1 block text-sm font-medium text-[#4a4a4a]">Subcategory</label>
         <select
           value={form.subcategory}
           onChange={(e) => update("subcategory", e.target.value as never)}
           disabled
-          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-500 opacity-60 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:cursor-not-allowed"
+          className="w-full rounded-lg border border-[#d8d0b8] bg-[#faf7ea] px-3 py-2 text-sm text-[#766649] opacity-60 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 disabled:cursor-not-allowed"
         >
           <option value={form.subcategory}>{form.subcategory}</option>
         </select>
@@ -681,8 +681,8 @@ export default function CreateEntryPage() {
   );
 
   const magicItemSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Magic Item Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Magic Item Properties</h2>
       {selectField("Rarity", "rarity", RARITY_OPTIONS, "Select rarity")}
       {toggleField("Requires Attunement", "requires_attunement")}
       {sharedField("Item Subtype", "item_subtype")}
@@ -691,8 +691,8 @@ export default function CreateEntryPage() {
   );
 
   const weaponSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Weapon Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Weapon Properties</h2>
       {sharedField("Damage Dice", "damage_dice")}
       {selectField("Damage Type", "damage_type", DAMAGE_TYPE_OPTIONS, "Select damage type")}
       {selectField("Bonus", "bonus", BONUS_OPTIONS)}
@@ -703,8 +703,8 @@ export default function CreateEntryPage() {
   );
 
   const armourSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Armour Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Armour Properties</h2>
       {selectField("Armour Type", "armour_type", ARMOUR_TYPE_OPTIONS, "Select armour type")}
       {selectField("Bonus", "bonus", BONUS_OPTIONS)}
       {toggleField("Stealth Disadvantage", "stealth_disadvantage")}
@@ -714,8 +714,8 @@ export default function CreateEntryPage() {
   );
 
   const potionSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Potion Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Potion Properties</h2>
       {sharedField("Effect", "effect")}
       {sharedField("Duration", "duration")}
       {selectField("Rarity", "rarity", RARITY_OPTIONS, "Select rarity")}
@@ -732,23 +732,23 @@ export default function CreateEntryPage() {
     };
 
     return (
-      <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Spell Properties</h2>
+      <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Spell Properties</h2>
         {selectField("Level", "spell_level", SPELL_LEVEL_OPTIONS, "Select level")}
         {selectField("School", "school", SCHOOL_OPTIONS, "Select school")}
         {sharedField("Casting Time", "casting_time")}
         {sharedField("Range", "range")}
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-300">Components</label>
+          <label className="mb-1 block text-sm font-medium text-[#4a4a4a]">Components</label>
           <div className="flex gap-4">
             {COMPONENT_OPTIONS.map((comp) => (
-              <label key={comp} className="flex cursor-pointer items-center gap-1.5 text-sm text-zinc-300">
+              <label key={comp} className="flex cursor-pointer items-center gap-1.5 text-sm text-[#4a4a4a]">
                 <input
                   type="checkbox"
                   checked={form.components.includes(comp)}
                   onChange={() => toggleComponent(comp)}
-                  className="size-4 rounded border-zinc-600 bg-zinc-800 text-amber-600 accent-amber-600"
+                  className="size-4 rounded border-[#c9a84c] bg-[#faf7ea] text-amber-600 accent-amber-600"
                 />
                 {comp}
               </label>
@@ -767,8 +767,8 @@ export default function CreateEntryPage() {
   };
 
   const scrollSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Scroll Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Scroll Properties</h2>
       {sharedField("Spell Name", "spell_name")}
       {selectField("Spell Level", "scroll_level", SPELL_LEVEL_OPTIONS, "Select level")}
       {selectField("Rarity", "scroll_rarity", RARITY_OPTIONS, "Select rarity")}
@@ -776,8 +776,8 @@ export default function CreateEntryPage() {
   );
 
   const gearSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Adventuring Gear Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Adventuring Gear Properties</h2>
       {selectField("Gear Category", "gear_category", GEAR_CATEGORY_OPTIONS, "Select category")}
       {numField("Quantity", "quantity")}
       {sharedField("Properties", "properties")}
@@ -787,29 +787,29 @@ export default function CreateEntryPage() {
   );
 
   const trinketSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Trinket Properties</h2>
-      <p className="text-sm text-zinc-500 italic">Trinkets have no extra properties — name and description are enough.</p>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Trinket Properties</h2>
+      <p className="text-sm text-[#766649] italic">Trinkets have no extra properties — name and description are enough.</p>
     </div>
   );
 
   const abilityRow = (label: string, key: "ability_str" | "ability_dex" | "ability_con" | "ability_int" | "ability_wis" | "ability_cha") => (
     <div className="flex flex-col items-center gap-1">
-      <span className="text-xs font-bold text-zinc-500 uppercase">{label}</span>
+      <span className="text-xs font-bold text-[#766649] uppercase">{label}</span>
       <input
         type="number"
         min={1}
         max={30}
         value={form[key]}
         onChange={(e) => update(key, e.target.value as never)}
-        className="w-16 rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-center text-sm text-zinc-100 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+        className="w-16 rounded-lg border border-[#d8d0b8] bg-[#faf7ea] px-2 py-1.5 text-center text-sm text-[#1a1a1a] focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
       />
     </div>
   );
 
   const monsterSection = (isNpc: boolean) => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">{isNpc ? "NPC" : "Monster"} Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">{isNpc ? "NPC" : "Monster"} Properties</h2>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {sharedField("CR", "cr")}
@@ -826,7 +826,7 @@ export default function CreateEntryPage() {
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-zinc-300">Ability Scores</label>
+        <label className="mb-2 block text-sm font-medium text-[#4a4a4a]">Ability Scores</label>
         <div className="flex flex-wrap gap-4">
           {abilityRow("STR", "ability_str")}
           {abilityRow("DEX", "ability_dex")}
@@ -858,14 +858,14 @@ export default function CreateEntryPage() {
   );
 
   const backgroundSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Background Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Background Properties</h2>
 
       {sharedField("Skill Proficiencies", "skill_proficiencies")}
       {sharedField("Tool Proficiencies", "tool_proficiencies")}
       {sharedField("Languages", "bg_languages")}
       {sharedField("Feature Name", "feature_name")}
-      <span className="text-xs text-zinc-500">Required</span>
+      <span className="text-xs text-[#766649]">Required</span>
       {sharedField("Feature Description", "feature_description", "textarea")}
       {sharedField("Equipment", "equipment")}
       {sharedField("Personality Traits", "personality_traits", "textarea")}
@@ -876,21 +876,21 @@ export default function CreateEntryPage() {
   );
 
   const featSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Feat Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Feat Properties</h2>
 
       {sharedField("Prerequisite", "prerequisite")}
       {sharedField("Benefit", "benefit", "textarea")}
-      <span className="text-xs text-zinc-500">Required</span>
+      <span className="text-xs text-[#766649]">Required</span>
     </div>
   );
 
   const subclassSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Subclass Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Subclass Properties</h2>
 
       {selectField("Parent Class", "parent_class", PARENT_CLASS_OPTIONS, "Select a class")}
-      <span className="text-xs text-zinc-500">Required</span>
+      <span className="text-xs text-[#766649]">Required</span>
       {sharedField("Subclass Features", "subclass_features", "textarea")}
     </div>
   );
@@ -923,19 +923,19 @@ export default function CreateEntryPage() {
   };
 
   const tableSection = () => (
-    <div className="space-y-4 rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">Table Properties</h2>
+    <div className="space-y-4 rounded-lg border border-[#d8d0b8] bg-[#faf7ea]/50 p-4">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#766649]">Table Properties</h2>
 
       {selectField("Die", "die", DIE_OPTIONS, "Select die")}
-      <span className="text-xs text-zinc-500">Required</span>
+      <span className="text-xs text-[#766649]">Required</span>
       {sharedField("Table Category", "table_category")}
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-zinc-300">Rows</label>
-        <span className="text-xs text-zinc-500">At least one row with a result is required</span>
+        <label className="mb-2 block text-sm font-medium text-[#4a4a4a]">Rows</label>
+        <span className="text-xs text-[#766649]">At least one row with a result is required</span>
 
         {form.tableRows.length === 0 && (
-          <p className="mt-2 text-sm text-zinc-500 italic">No rows yet. Add one below.</p>
+          <p className="mt-2 text-sm text-[#766649] italic">No rows yet. Add one below.</p>
         )}
 
         {form.tableRows.map((row, i) => (
@@ -946,7 +946,7 @@ export default function CreateEntryPage() {
                 value={row.roll_range}
                 onChange={(e) => updateRow(i, "roll_range", e.target.value)}
                 placeholder="e.g. 1-5"
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="w-full rounded-lg border border-[#d8d0b8] bg-[#faf7ea] px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#766649] focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
               />
             </div>
             <div className="flex-1">
@@ -955,13 +955,13 @@ export default function CreateEntryPage() {
                 value={row.result}
                 onChange={(e) => updateRow(i, "result", e.target.value)}
                 placeholder="Result description"
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="w-full rounded-lg border border-[#d8d0b8] bg-[#faf7ea] px-3 py-2 text-sm text-[#1a1a1a] placeholder-[#766649] focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
               />
             </div>
             <button
               type="button"
               onClick={() => removeRow(i)}
-              className="mt-0.5 size-8 shrink-0 rounded-md bg-red-900/50 text-sm text-red-400 hover:bg-red-800/50 hover:text-red-300"
+              className="mt-0.5 size-8 shrink-0 rounded-md bg-red-100/80 text-sm text-red-400 hover:bg-red-800/50 hover:text-red-700"
               title="Remove row"
             >
               ✕
@@ -972,7 +972,7 @@ export default function CreateEntryPage() {
         <button
           type="button"
           onClick={addRow}
-          className="mt-3 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm text-zinc-300 hover:border-zinc-600 hover:bg-zinc-700"
+          className="mt-3 rounded-lg border border-[#d8d0b8] bg-[#faf7ea] px-4 py-2 text-sm text-[#4a4a4a] hover:border-[#c9a84c] hover:bg-[#e8dfc8]"
         >
           + Add Row
         </button>
@@ -1063,12 +1063,12 @@ export default function CreateEntryPage() {
         )}
 
         {status === "saved" && (
-          <div className="rounded-lg border border-emerald-700 bg-emerald-900/50 px-4 py-3 text-sm text-emerald-300">
+          <div className="rounded-lg border border-emerald-600 bg-emerald-100/80 px-4 py-3 text-sm text-emerald-700">
             Entry saved successfully!{" "}
             <button
               type="button"
               onClick={resetForm}
-              className="ml-2 underline underline-offset-2 hover:text-emerald-200"
+              className="ml-2 underline underline-offset-2 hover:text-emerald-900"
             >
               Create another
             </button>
@@ -1076,7 +1076,7 @@ export default function CreateEntryPage() {
         )}
 
         {status === "duplicate" && (
-          <div className="rounded-lg border border-amber-700 bg-amber-900/50 px-4 py-3 text-sm text-amber-300">
+          <div className="rounded-lg border border-amber-500 bg-amber-100/80 px-4 py-3 text-sm text-amber-800">
             An entry with this name and type already exists.
             <div className="mt-3 flex gap-3">
               <button
@@ -1085,7 +1085,7 @@ export default function CreateEntryPage() {
                   setStatus("idle");
                   allowDuplicate.current = false;
                 }}
-                className="rounded-lg border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700"
+                className="rounded-lg border border-[#c9a84c] bg-[#faf7ea] px-3 py-1.5 text-xs text-[#4a4a4a] hover:bg-[#e8dfc8]"
               >
                 Go back
               </button>
@@ -1101,7 +1101,7 @@ export default function CreateEntryPage() {
         )}
 
         {status === "error" && (
-          <div className="rounded-lg border border-red-700 bg-red-900/50 px-4 py-3 text-sm text-red-300">
+          <div className="rounded-lg border border-red-500 bg-red-100/80 px-4 py-3 text-sm text-red-700">
             {errorMsg || "Something went wrong. Check the console."}
           </div>
         )}
