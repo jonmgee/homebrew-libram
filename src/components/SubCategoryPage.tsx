@@ -82,14 +82,9 @@ export default function SubCategoryPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex items-center gap-4">
-        <Link
-          to="/"
-          className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light"
-        >
-          &larr; Home
-        </Link>
-        <h1 className="phb-h1 !text-2xl">{cat.label}</h1>
+      <div className="mb-6 text-center">
+        <Link to="/" className="mb-2 block text-sm text-[#766649] underline underline-offset-2 hover:text-[#58180d]">&larr; Home</Link>
+        <h1 className="phb-h1 !text-3xl text-[#58180d]">{cat.label}</h1>
       </div>
 
       <motion.div
