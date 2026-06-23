@@ -438,14 +438,14 @@ function TableForm() {
   // cells[rowIdx][colIdx]
   const [cells, setCells] = useState<string[][]>([]);
 
-  // Rebuild rows when die type changes
+  // Keep cells sized as 1 + columns.length (index 0 = Roll read-only, rest = user cols)
   useEffect(() => {
     if (!dieType) {
       setCells([]);
       return;
     }
     const n = dieRowCount(dieType);
-    const colCount = columns.length;
+    const colCount = 1 + columns.length;
     setCells((prev) => {
       const next: string[][] = [];
       for (let r = 0; r < n; r++) {
@@ -458,26 +458,7 @@ function TableForm() {
       return next;
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dieType]);
-
-  // Keep cells in sync when columns change (add/remove)
-  useEffect(() => {
-    const n = rowCount;
-    if (!n) return;
-    const colCount = columns.length;
-    setCells((prev) => {
-      const next: string[][] = [];
-      for (let r = 0; r < n; r++) {
-        const row: string[] = [];
-        for (let c = 0; c < colCount; c++) {
-          row.push(prev[r]?.[c] ?? "");
-        }
-        next.push(row);
-      }
-      return next;
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columns.length]);
+  }, [dieType, columns.length]);
 
   const addColumn = () => setColumns((p) => [...p, ""]);
   const updColumn = (i: number, v: string) =>
