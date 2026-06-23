@@ -9,6 +9,7 @@ import {
   faSave,
   faTimes,
   faUpload,
+  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { formatEntryType, CATEGORIES, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
 import type { EntryType } from "../types";
@@ -242,12 +243,16 @@ const ARCANA_TYPES: EntryType[] = ["spell", "scroll"];
 
 const MONSTER_TYPES: EntryType[] = ["monster"];
 
+/* ──────── Subclass types ──────── */
+const SUBCLASS_TYPES: EntryType[] = ["subclass"];
+
 /* ──────── Manual Entry tab ──────── */
 function ManualEntryTab({ entryType }: { entryType: EntryType }) {
   if (TREASURE_TYPES.includes(entryType)) return <TreasureForm entryType={entryType} />;
   if (SIMPLE_TYPES.includes(entryType)) return <SimpleForm entryType={entryType} />;
   if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} />;
   if (MONSTER_TYPES.includes(entryType)) return <MonsterForm />;
+  if (SUBCLASS_TYPES.includes(entryType)) return <SubclassForm />;
 
   return (
     <div className="min-h-[120px]">
@@ -258,6 +263,149 @@ function ManualEntryTab({ entryType }: { entryType: EntryType }) {
         Form fields for this entry type coming soon
       </p>
     </div>
+  );
+}
+
+/* ──────── Subclass form ──────── */
+function SubclassForm() {
+  const [name, setName] = useState("");
+  const [parentClass, setParentClass] = useState("");
+  const [description, setDescription] = useState("");
+  const tags = useTagInput();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // ── Level Features ──
+  const [features, setFeatures] = useState<{ level: number; desc: string }[]>([]);
+  const addFeature = () => setFeatures((p) => [...p, { level: 1, desc: "" }]);
+  const updFeature = (i: number, f: "level" | "desc", v: number | string) =>
+    setFeatures((p) => p.map((ft, j) => (j === i ? { ...ft, [f]: v } : ft)));
+  const remFeature = (i: number) => setFeatures((p) => p.filter((_, j) => j !== i));
+
+  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+
+    const properties: Record<string, unknown> = {};
+    if (parentClass.trim()) properties.parent_class = parentClass.trim();
+    const filteredFeatures = features.filter((f) => f.desc.trim());
+    if (filteredFeatures.length) properties.level_features = filteredFeatures;
+
+    if (imageFile) {
+      const ext = imageFile.name.split(".").pop() ?? "png";
+      const filename = `${crypto.randomUUID()}.${ext}`;
+      const { data: uploadData } = await supabase.storage.from("entry-images").upload(filename, imageFile);
+      if (uploadData) {
+        const { data: pub } = supabase.storage.from("entry-images").getPublicUrl(filename);
+        properties.image_url = pub.publicUrl;
+      } else {
+        properties.image_data = imagePreview;
+      }
+    }
+
+    try {
+      const { error: insertError } = await supabase.from("entries").insert({
+        name: name.trim(),
+        type: "subclass",
+        description: description.trim(),
+        tags: tags.tags,
+        properties,
+      });
+      if (insertError) throw insertError;
+      setSuccess(true);
+      setName("");
+      setParentClass("");
+      setDescription("");
+      tags.resetTags();
+      setFeatures([]);
+      setImageFile(null);
+      setImagePreview(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save entry");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const numberSmCls =
+    "w-20 rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-center text-sm font-[var(--font-phb)] text-[var(--color-ink)] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600";
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
+      {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
+
+      <div>
+        <label className={labelCls}>Name</label>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. School of Evocation" className={inputCls} required />
+      </div>
+
+      <div>
+        <label className={labelCls}>Parent Class</label>
+        <input type="text" value={parentClass} onChange={(e) => setParentClass(e.target.value)} placeholder="e.g. Wizard, Fighter, Rogue" className={inputCls} />
+      </div>
+
+      <div>
+        <label className={labelCls}>Description</label>
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this subclass…" className={textareaCls} />
+      </div>
+
+      {/* ── Level Features ── */}
+      <div>
+        <label className={labelCls}>Level Features</label>
+        <div className="space-y-3">
+          {features.map((ft, i) => (
+            <div key={i} className="relative rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] p-3">
+              <button type="button" onClick={() => remFeature(i)} className="absolute right-2 top-2 text-red-600 hover:text-red-800">
+                <FontAwesomeIcon icon={faTimes} className="size-3.5" />
+              </button>
+              <div className="mb-2 flex items-center gap-3">
+                <label className="text-xs font-bold font-[var(--font-title)] text-[#58180d]">Level</label>
+                <input type="number" value={ft.level} onChange={(e) => updFeature(i, "level", parseInt(e.target.value) || 1)} min={1} max={20} className={numberSmCls} />
+              </div>
+              <textarea value={ft.desc} onChange={(e) => updFeature(i, "desc", e.target.value)} placeholder="Feature description…" className={textareaCls} />
+            </div>
+          ))}
+          <button type="button" onClick={addFeature} className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-3 py-2 text-sm font-[var(--font-title)] font-bold text-[#766649] transition-colors hover:border-amber-600 hover:text-[#58180d]">
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> Add Feature
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label className={labelCls}>Tags</label>
+        <div className="flex flex-wrap gap-1.5">
+          {tags.tags.map((tag) => (
+            <span key={tag} className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]">
+              {tag}
+              <button type="button" onClick={() => tags.removeTag(tag)} className="ml-0.5 text-[#766649] hover:text-[#58180d]">
+                <FontAwesomeIcon icon={faTimes} className="size-2.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <input type="text" value={tags.input} onChange={(e) => tags.setInput(e.target.value)} onKeyDown={tags.handleKeyDown} onBlur={() => { if (tags.input.trim()) tags.addTag(tags.input); }} placeholder="Type a tag and press Enter or comma…" className={`mt-1.5 ${inputCls}`} />
+      </div>
+
+      <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
+
+      <SaveButton saving={saving} disabled={!name.trim()} />
+    </form>
   );
 }
 
