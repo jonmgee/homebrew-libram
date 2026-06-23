@@ -78,17 +78,20 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] "Misc" sub-category catches unclaimed types (uses `/assets/misc.webp`)
 - [x] Routing: `/browse/treasure/weapons`, `/browse/arcana/spells`, etc.
 
-### Styling (2026-06-19)
+### Styling & manual entry completion (2026-06-23)
 
-- [x] PHB-inspired fantasy theme:
-  - Parchment background (#EDE0C8), dark ink text (#1a1a1a)
-  - Near-black book-cover page background (#1a0a00)
-  - Google Fonts: Cinzel (headings), IM Fell English (body)
-  - Gilded multi-layer gold borders on category/sub-category cards
-  - Wax-seal type badges (crimson)
-  - DM ink-stamp badges on browse entries
-- [x] Responsive — cards stack on small screens
-- [x] Hover effects on cards (gilded glow, border transitions)
+- [x] **All 14 entry types have manual entry forms** — no more "coming soon" placeholders
+- [x] **Treasure forms** (magic_item, weapon, armour, potion, adventuring_gear, trinket): Name, Rarity, Attunement toggle, Description, Tags, Image
+- [x] **Simple forms** (npc, background, feat): Name, Description, Tags, Image
+- [x] **NPC stat-block toggle**: "Include Full Stat Block" reveals full monster-style fields (Size, CR, abilities, saves, skills, traits, actions, legendary/lair actions, spellcasting)
+- [x] **Arcana forms** (spell, scroll): Spell/Scroll toggle, Level, School, Casting Time, Range, Components, Duration, Concentration, Rarity (scroll only), Tags, Image
+- [x] **Monster form**: Full stat block with auto-calc PB, ability mods, save/skill bonuses, RepeatBlock for traits/actions/lair/legendary
+- [x] **Subclass form**: Name, Parent Class, Description, Level Features (repeatable Level + Description), Tags, Image
+- [x] **Table form**: Die type (CustomSelect), user-defined columns, auto-generated editable rows in parchment/gold table, Tags, Image
+- [x] **CustomSelect** replaces all native `<select>` elements throughout
+- [x] All form controls consistently styled: parchment backgrounds, gold borders, maroon labels, BookInsanity/ScalySans fonts
+- [x] Image upload via Supabase Storage (entry-images bucket), fallback to base64 data URL
+- [x] Shared components: ImageUpload, SaveButton, RepeatBlock, TagRow, useTags, CustomSelect
 
 ### Homepage & sub-category image cards (2026-06-21)
 
@@ -113,19 +116,18 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [ ] **Entry editing** — no edit form; entries can only be created and deleted
 - [ ] **Auth** — anon policies are temporary; needs Supabase Auth integration
 - [ ] **Table rendering** — tables are browsable but don't render as interactive rollable tables
-- [ ] **Henge illustration** — placeholder on home page, replace with image in `public/assets/` as webp when ready
 - [ ] **Mobile optimisation** — responsive but not fully polished for small screens
 - [ ] **Pagination** — no pagination for large entry lists
 - [ ] **Import/export** — no bulk import or export of entries
+- [ ] **Supabase Storage bucket** — `entry-images` bucket may need manual creation in dashboard
+- [ ] **CRUD** — no edit/delete of existing entries from browse page
 
 ## Next tasks
 
-Awaiting brief — options include:
-- Entry detail/view page
-- Entry editing
+- Entry editing (edit/update existing entries)
 - Auth integration
 - Table rendering (interactive rollable tables)
-- Henge illustration
-- Mobile polish
+- Entry detail view polish
+- Mobile optimisation
 - Pagination
 - Import/export
