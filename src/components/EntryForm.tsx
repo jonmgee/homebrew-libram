@@ -1,4 +1,4 @@
-import { useState, useRef, type FormEvent } from "react";
+import { useState, useRef, useEffect, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -245,6 +245,7 @@ const MONSTER_TYPES: EntryType[] = ["monster"];
 
 /* ──────── Subclass types ──────── */
 const SUBCLASS_TYPES: EntryType[] = ["subclass"];
+const TABLE_TYPES: EntryType[] = ["table"];
 
 /* ──────── Manual Entry tab ──────── */
 function ManualEntryTab({ entryType }: { entryType: EntryType }) {
@@ -253,6 +254,7 @@ function ManualEntryTab({ entryType }: { entryType: EntryType }) {
   if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} />;
   if (MONSTER_TYPES.includes(entryType)) return <MonsterForm />;
   if (SUBCLASS_TYPES.includes(entryType)) return <SubclassForm />;
+  if (TABLE_TYPES.includes(entryType)) return <TableForm />;
 
   return (
     <div className="min-h-[120px]">
@@ -405,6 +407,251 @@ function SubclassForm() {
       <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
 
       <SaveButton saving={saving} disabled={!name.trim()} />
+    </form>
+  );
+}
+
+/* ──────── Die type options ──────── */
+const DIE_OPTIONS = ["d4", "d6", "d8", "d10", "d12", "d20", "d100"] as const;
+
+function dieRowCount(die: string): number {
+  if (die === "d100") return 100;
+  return parseInt(die.slice(1)) || 20;
+}
+
+/* ──────── Table form ──────── */
+function TableForm() {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [dieType, setDieType] = useState("");
+  const [columns, setColumns] = useState<string[]>([""]);
+  const tags = useTagInput();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const rowCount = dieType ? dieRowCount(dieType) : 0;
+
+  // cells[rowIdx][colIdx]
+  const [cells, setCells] = useState<string[][]>([]);
+
+  // Rebuild rows when die type changes
+  useEffect(() => {
+    if (!dieType) {
+      setCells([]);
+      return;
+    }
+    const n = dieRowCount(dieType);
+    const colCount = columns.length;
+    setCells((prev) => {
+      const next: string[][] = [];
+      for (let r = 0; r < n; r++) {
+        const row: string[] = [];
+        for (let c = 0; c < colCount; c++) {
+          row.push(prev[r]?.[c] ?? "");
+        }
+        next.push(row);
+      }
+      return next;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dieType]);
+
+  // Keep cells in sync when columns change (add/remove)
+  useEffect(() => {
+    const n = rowCount;
+    if (!n) return;
+    const colCount = columns.length;
+    setCells((prev) => {
+      const next: string[][] = [];
+      for (let r = 0; r < n; r++) {
+        const row: string[] = [];
+        for (let c = 0; c < colCount; c++) {
+          row.push(prev[r]?.[c] ?? "");
+        }
+        next.push(row);
+      }
+      return next;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columns.length]);
+
+  const addColumn = () => setColumns((p) => [...p, ""]);
+  const updColumn = (i: number, v: string) =>
+    setColumns((p) => p.map((c, j) => (j === i ? v : c)));
+  const remColumn = (i: number) =>
+    setColumns((p) => p.filter((_, j) => j !== i));
+
+  const updCell = (r: number, c: number, v: string) =>
+    setCells((prev) =>
+      prev.map((row, ri) =>
+        ri === r ? row.map((cell, ci) => (ci === c ? v : cell)) : row
+      )
+    );
+
+  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+
+    const properties: Record<string, unknown> = {};
+    if (dieType) properties.die_type = dieType;
+    const colHeaders = ["Roll", ...columns.filter((c) => c.trim())];
+    properties.columns = colHeaders;
+    const dataRows = cells.map((row, ri) => [String(ri + 1), ...row.slice(1)]);
+    properties.rows = dataRows;
+
+    if (imageFile) {
+      const ext = imageFile.name.split(".").pop() ?? "png";
+      const filename = `${crypto.randomUUID()}.${ext}`;
+      const { data: uploadData } = await supabase.storage.from("entry-images").upload(filename, imageFile);
+      if (uploadData) {
+        const { data: pub } = supabase.storage.from("entry-images").getPublicUrl(filename);
+        properties.image_url = pub.publicUrl;
+      } else {
+        properties.image_data = imagePreview;
+      }
+    }
+
+    try {
+      const { error: insertError } = await supabase.from("entries").insert({
+        name: name.trim(),
+        type: "table",
+        description: description.trim(),
+        tags: tags.tags,
+        properties,
+      });
+      if (insertError) throw insertError;
+      setSuccess(true);
+      setName("");
+      setDescription("");
+      tags.resetTags();
+      setDieType("");
+      setColumns([""]);
+      setCells([]);
+      setImageFile(null);
+      setImagePreview(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save entry");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const thCls =
+    "border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-dark)] px-2 py-1.5 text-xs font-bold font-[var(--font-title)] text-[#58180d]";
+  const tdCls =
+    "border border-[var(--color-gilding-dark)] p-0";
+  const cellInputCls =
+    "w-full border-0 bg-transparent px-2 py-1 text-xs font-[var(--font-phb)] text-[var(--color-ink)] focus:bg-[var(--color-parchment-light)] focus:outline-none";
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
+      {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
+
+      <div>
+        <label className={labelCls}>Name</label>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Random Encounters" className={inputCls} required />
+      </div>
+
+      <div>
+        <label className={labelCls}>Description</label>
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this table…" className={textareaCls} />
+      </div>
+
+      <div>
+        <label className={labelCls}>Die Type</label>
+        <CustomSelect value={dieType} onChange={(v) => { setDieType(v); }} options={DIE_OPTIONS} getLabel={(s) => s} placeholder="Select a die…" />
+      </div>
+
+      {/* ── Columns ── */}
+      <div>
+        <label className={labelCls}>Columns</label>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-dark)] px-3 py-2 text-sm font-bold font-[var(--font-title)] text-[#58180d]">Roll</span>
+            <span className="text-xs italic text-[#766649]">(always present)</span>
+          </div>
+          {columns.map((col, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input type="text" value={col} onChange={(e) => updColumn(i, e.target.value)} placeholder={`Column ${i + 2} name…`} className={`flex-1 ${inputCls}`} />
+              <button type="button" onClick={() => remColumn(i)} className="rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100">
+                <FontAwesomeIcon icon={faTimes} className="size-3" />
+              </button>
+            </div>
+          ))}
+          <button type="button" onClick={addColumn} className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-3 py-2 text-sm font-[var(--font-title)] font-bold text-[#766649] transition-colors hover:border-amber-600 hover:text-[#58180d]">
+            <FontAwesomeIcon icon={faPlus} className="size-3.5" /> Add Column
+          </button>
+        </div>
+      </div>
+
+      {/* ── Table ── */}
+      {dieType && columns.length > 0 && (
+        <div>
+          <label className={labelCls}>Table Rows ({rowCount} rows)</label>
+          <div className="overflow-x-auto rounded-lg border border-[var(--color-gilding-dark)]">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className={thCls}>Roll</th>
+                  {columns.map((col, i) => (
+                    <th key={i} className={thCls}>{col.trim() || `Column ${i + 2}`}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {cells.map((row, ri) => (
+                  <tr key={ri} className="even:bg-[var(--color-parchment)] odd:bg-[var(--color-parchment-light)]">
+                    {row.map((cell, ci) => (
+                      <td key={ci} className={tdCls}>
+                        {ci === 0 ? (
+                          <div className="px-2 py-1 text-xs font-bold font-[var(--font-phb)] text-[#58180d]">{ri + 1}</div>
+                        ) : (
+                          <input type="text" value={cell} onChange={(e) => updCell(ri, ci, e.target.value)} placeholder={columns[ci - 1]?.trim() || `Column ${ci + 1}`} className={cellInputCls} />
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <label className={labelCls}>Tags</label>
+        <div className="flex flex-wrap gap-1.5">
+          {tags.tags.map((tag) => (
+            <span key={tag} className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]">
+              {tag}
+              <button type="button" onClick={() => tags.removeTag(tag)} className="ml-0.5 text-[#766649] hover:text-[#58180d]">
+                <FontAwesomeIcon icon={faTimes} className="size-2.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <input type="text" value={tags.input} onChange={(e) => tags.setInput(e.target.value)} onKeyDown={tags.handleKeyDown} onBlur={() => { if (tags.input.trim()) tags.addTag(tags.input); }} placeholder="Type a tag and press Enter or comma…" className={`mt-1.5 ${inputCls}`} />
+      </div>
+
+      <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
+
+      <SaveButton saving={saving} disabled={!name.trim() || !dieType} />
     </form>
   );
 }
