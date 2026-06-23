@@ -141,6 +141,70 @@ const RARITY_LABELS: Record<string, string> = {
   artifact: "Artifact",
 };
 
+/* ──────── Custom dropdown ──────── */
+function RarityDropdown({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on click outside
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!ref.current?.contains(e.relatedTarget)) {
+      setOpen(false);
+    }
+  };
+
+  const selectedLabel = RARITY_LABELS[value] ?? "None";
+
+  return (
+    <div ref={ref} tabIndex={0} onBlur={handleBlur} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="flex w-full items-center justify-between rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] transition-colors focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600"
+      >
+        <span>{selectedLabel}</span>
+        <svg
+          className={`size-4 text-[#766649] transition-transform ${open ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] shadow-lg">
+          {RARITY_WITH_NONE.map((r) => (
+            <button
+              key={r}
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onChange(r);
+                setOpen(false);
+              }}
+              className={`w-full px-3 py-1.5 text-left text-sm font-[var(--font-phb)] transition-colors hover:bg-[var(--color-parchment-dark)] ${
+                r === value
+                  ? "bg-[var(--color-parchment-dark)] font-bold text-[#58180d]"
+                  : "text-[var(--color-ink)]"
+              }`}
+            >
+              {RARITY_LABELS[r]}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ──────── Which entry types get the treasure form ──────── */
 const TREASURE_TYPES: EntryType[] = [
   "magic_item", "wondrous_item", "weapon", "armour", "potion", "adventuring_gear", "trinket",
@@ -256,7 +320,6 @@ function TreasureForm({ entryType }: { entryType: EntryType }) {
   /* ────────── Shared label style ────────── */
   const labelCls = "mb-1 block font-[var(--font-title)] text-sm font-bold text-[#58180d]";
   const inputCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600";
-  const selectCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600";
   const textareaCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600 min-h-[100px] resize-y";
 
   return (
@@ -291,43 +354,35 @@ function TreasureForm({ entryType }: { entryType: EntryType }) {
       {/* ───── Rarity ───── */}
       <div>
         <label className={labelCls}>Rarity</label>
-        <select
-          value={rarity}
-          onChange={(e) => setRarity(e.target.value)}
-          className={selectCls}
-        >
-          {RARITY_WITH_NONE.map((r) => (
-            <option key={r} value={r}>
-              {RARITY_LABELS[r]}
-            </option>
-          ))}
-        </select>
+        <RarityDropdown value={rarity} onChange={setRarity} />
       </div>
 
       {/* ───── Attunement ───── */}
       <div>
         <label className={labelCls}>Attunement</label>
-        <div className="flex items-center gap-4">
-          <label className="flex cursor-pointer items-center gap-2">
-            <input
-              type="radio"
-              name="attunement"
-              checked={!attunement}
-              onChange={() => setAttunement(false)}
-              className="accent-amber-700"
-            />
-            <span className="text-sm font-[var(--font-phb)] text-[var(--color-ink)]">No</span>
-          </label>
-          <label className="flex cursor-pointer items-center gap-2">
-            <input
-              type="radio"
-              name="attunement"
-              checked={attunement}
-              onChange={() => setAttunement(true)}
-              className="accent-amber-700"
-            />
-            <span className="text-sm font-[var(--font-phb)] text-[var(--color-ink)]">Yes</span>
-          </label>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setAttunement(false)}
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-[var(--font-phb)] transition-colors ${
+              !attunement
+                ? "border-[var(--color-gilding-dark)] bg-[#58180d] font-bold text-[#eee5ce]"
+                : "border-[var(--color-parchment-dark)] bg-[var(--color-parchment)] text-[#766649] hover:border-[var(--color-gilding-dark)]"
+            }`}
+          >
+            No
+          </button>
+          <button
+            type="button"
+            onClick={() => setAttunement(true)}
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-[var(--font-phb)] transition-colors ${
+              attunement
+                ? "border-[var(--color-gilding-dark)] bg-[#58180d] font-bold text-[#eee5ce]"
+                : "border-[var(--color-parchment-dark)] bg-[var(--color-parchment)] text-[#766649] hover:border-[var(--color-gilding-dark)]"
+            }`}
+          >
+            Yes
+          </button>
         </div>
         {attunement && (
           <input
