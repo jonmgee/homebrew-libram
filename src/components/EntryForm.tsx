@@ -13,7 +13,7 @@ import {
 import { formatEntryType, CATEGORIES, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
 import type { EntryType } from "../types";
 import { supabase } from "../lib/supabase";
-import MonsterForm from "./MonsterForm";
+import MonsterForm, { abilMod, modStr, crToProf, CR_LIST, ABILITIES, SKILL_LIST, SKILL_ABIL, useTags as useMonsterTags, TagRow, RepeatBlock } from "./MonsterForm";
 
 /* ──────────── Props ──────────── */
 interface EntryFormProps {
@@ -581,6 +581,7 @@ const textareaCls = "w-full rounded-lg border border-[var(--color-gilding-dark)]
 
 /* ──────── Simple form (NPC, Background, Feat) ──────── */
 function SimpleForm({ entryType }: { entryType: EntryType }) {
+  const isNpc = entryType === "npc";
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const tags = useTagInput();
@@ -590,6 +591,67 @@ function SimpleForm({ entryType }: { entryType: EntryType }) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // ── Stat block state (NPC only) ──
+  const [showStatBlock, setShowStatBlock] = useState(false);
+  const [size, setSize] = useState("");
+  const [creatureType, setCreatureType] = useState("");
+  const [alignment, setAlignment] = useState("");
+  const [cr, setCr] = useState("");
+  const profBonus = crToProf(cr);
+  const [ac, setAc] = useState("");
+  const [hp, setHp] = useState("");
+  const [speed, setSpeed] = useState("");
+  const [str, setStr] = useState(10);
+  const [dex, setDex] = useState(10);
+  const [con, setCon] = useState(10);
+  const [intel, setIntel] = useState(10);
+  const [wis, setWis] = useState(10);
+  const [cha, setCha] = useState(10);
+  const abilScores: Record<string,number> = { STR:str, DEX:dex, CON:con, INT:intel, WIS:wis, CHA:cha };
+  const [saveProfs, setSaveProfs] = useState<Record<string,boolean>>({ STR:false, DEX:false, CON:false, INT:false, WIS:false, CHA:false });
+  const [skillProfs, setSkillProfs] = useState<string[]>([]);
+  const vuln = useMonsterTags(); const resist = useMonsterTags(); const immune = useMonsterTags(); const condImm = useMonsterTags();
+  const [senses, setSenses] = useState(""); const [languages, setLanguages] = useState("");
+  const [traits, setTraits] = useState<{name:string;desc:string}[]>([]);
+  const addTr = () => setTraits(p => [...p,{name:"",desc:""}]);
+  const updTr = (i:number,f:"name"|"desc",v:string) => setTraits(p => p.map((t,j) => j===i ? {...t,[f]:v} : t));
+  const remTr = (i:number) => setTraits(p => p.filter((_,j) => j!==i));
+  const [hasSpell, setHasSpell] = useState(false);
+  const [spellAbil, setSpellAbil] = useState("INT"); const [spellSave, setSpellSave] = useState(10);
+  const [spellAtk, setSpellAtk] = useState(0); const [spellList, setSpellList] = useState("");
+  const [actions, setActions] = useState<{name:string;desc:string}[]>([]);
+  const addAct = () => setActions(p => [...p,{name:"",desc:""}]);
+  const updAct = (i:number,f:"name"|"desc",v:string) => setActions(p => p.map((a,j) => j===i ? {...a,[f]:v} : a));
+  const remAct = (i:number) => setActions(p => p.filter((_,j) => j!==i));
+  const [bonusActions, setBonusActions] = useState<{name:string;desc:string}[]>([]);
+  const addBonus = () => setBonusActions(p => [...p,{name:"",desc:""}]);
+  const updBonus = (i:number,f:"name"|"desc",v:string) => setBonusActions(p => p.map((a,j) => j===i ? {...a,[f]:v} : a));
+  const remBonus = (i:number) => setBonusActions(p => p.filter((_,j) => j!==i));
+  const [reactions, setReactions] = useState<{name:string;desc:string}[]>([]);
+  const addReact = () => setReactions(p => [...p,{name:"",desc:""}]);
+  const updReact = (i:number,f:"name"|"desc",v:string) => setReactions(p => p.map((a,j) => j===i ? {...a,[f]:v} : a));
+  const remReact = (i:number) => setReactions(p => p.filter((_,j) => j!==i));
+  const [hasLeg, setHasLeg] = useState(false);
+  const [legPer, setLegPer] = useState(3);
+  const [legActs, setLegActs] = useState<{name:string;desc:string}[]>([]);
+  const addLeg = () => setLegActs(p => [...p,{name:"",desc:""}]);
+  const updLeg = (i:number,f:"name"|"desc",v:string) => setLegActs(p => p.map((a,j) => j===i ? {...a,[f]:v} : a));
+  const remLeg = (i:number) => setLegActs(p => p.filter((_,j) => j!==i));
+  const [hasLair, setHasLair] = useState(false);
+  const [lairActs, setLairActs] = useState<{name:string;desc:string}[]>([]);
+  const addLair = () => setLairActs(p => [...p,{name:"",desc:""}]);
+  const updLair = (i:number,f:"name"|"desc",v:string) => setLairActs(p => p.map((a,j) => j===i ? {...a,[f]:v} : a));
+  const remLair = (i:number) => setLairActs(p => p.filter((_,j) => j!==i));
+
+  const sbToggleCls = (active: boolean) =>
+    `rounded-lg border px-3 py-1 text-xs font-[var(--font-phb)] transition-colors ${active ? "border-[var(--color-gilding-dark)] bg-[#58180d] font-bold text-[#eee5ce]" : "border-[var(--color-parchment-dark)] bg-[var(--color-parchment)] text-[#766649] hover:border-[var(--color-gilding-dark)]"}`;
+
+  const numberCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-2 py-2 text-center text-sm font-[var(--font-phb)] text-[var(--color-ink)] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600";
+  const sbSection = "border-b border-[var(--color-gilding-dark)] pb-1 pt-5 text-base font-bold font-[var(--font-title)] text-[#58180d] first:pt-0";
+
+  const getSave = (a: string): number => { const m = abilMod(abilScores[a]??10); return saveProfs[a] ? m+profBonus : m; };
+  const getSkill = (s: string): number => { const abb = SKILL_ABIL[s]!; return skillProfs.includes(s) ? abilMod(abilScores[abb]??10)+profBonus : abilMod(abilScores[abb]??10); };
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -606,21 +668,44 @@ function SimpleForm({ entryType }: { entryType: EntryType }) {
     setError(null);
     setSuccess(false);
 
-    // Build properties
     const properties: Record<string, unknown> = {};
 
-    // Image
+    if (showStatBlock) {
+      if (size) properties.size = size;
+      if (creatureType.trim()) properties.creature_type = creatureType.trim();
+      if (alignment.trim()) properties.alignment = alignment.trim();
+      if (cr) properties.cr = cr;
+      if (ac.trim()) properties.ac = ac.trim();
+      if (hp.trim()) properties.hp = hp.trim();
+      if (speed.trim()) properties.speed = speed.trim();
+      properties.ability_str = str; properties.ability_dex = dex; properties.ability_con = con;
+      properties.ability_int = intel; properties.ability_wis = wis; properties.ability_cha = cha;
+      const sv = ABILITIES.filter(a => saveProfs[a]).map(a => `${a.toLowerCase()} +${getSave(a)}`).join(", ");
+      if (sv) properties.saving_throws = sv;
+      const sk = skillProfs.map(s => `${s} +${getSkill(s)}`).join(", ");
+      if (sk) properties.skills = sk;
+      if (vuln.tags.length) properties.damage_vulnerabilities = vuln.tags.join(", ");
+      if (resist.tags.length) properties.damage_resistances = resist.tags.join(", ");
+      if (immune.tags.length) properties.damage_immunities = immune.tags.join(", ");
+      if (condImm.tags.length) properties.condition_immunities = condImm.tags.join(", ");
+      if (senses.trim()) properties.senses = senses.trim();
+      if (languages.trim()) properties.languages = languages.trim();
+      if (traits.filter(t => t.name||t.desc).length) properties.traits = traits.filter(t => t.name||t.desc);
+      if (hasSpell) properties.spellcasting = { ability: spellAbil, save_dc: spellSave, attack_bonus: spellAtk, spells: spellList.trim() };
+      if (actions.filter(a => a.name||a.desc).length) properties.actions = actions.filter(a => a.name||a.desc);
+      if (bonusActions.filter(a => a.name||a.desc).length) properties.bonus_actions = bonusActions.filter(a => a.name||a.desc);
+      if (reactions.filter(a => a.name||a.desc).length) properties.reactions = reactions.filter(a => a.name||a.desc);
+      if (hasLeg) properties.legendary_actions = { per_round: legPer, actions: legActs.filter(a => a.name||a.desc) };
+      if (hasLair) properties.lair_actions = lairActs.filter(a => a.name||a.desc);
+    }
+
     if (imageFile) {
       const ext = imageFile.name.split(".").pop() ?? "png";
       const filename = `${crypto.randomUUID()}.${ext}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("entry-images")
-        .upload(filename, imageFile);
-      if (!uploadError && uploadData) {
-        const { data: publicUrl } = supabase.storage
-          .from("entry-images")
-          .getPublicUrl(filename);
-        properties.image_url = publicUrl.publicUrl;
+      const { data: uploadData } = await supabase.storage.from("entry-images").upload(filename, imageFile);
+      if (uploadData) {
+        const { data: pub } = supabase.storage.from("entry-images").getPublicUrl(filename);
+        properties.image_url = pub.publicUrl;
       } else {
         properties.image_data = imagePreview;
       }
@@ -628,22 +713,23 @@ function SimpleForm({ entryType }: { entryType: EntryType }) {
 
     try {
       const { error: insertError } = await supabase.from("entries").insert({
-        name: name.trim(),
-        type: entryType,
-        description: description.trim(),
-        tags: tags.tags,
-        properties,
+        name: name.trim(), type: entryType, description: description.trim(),
+        tags: tags.tags, properties,
       });
       if (insertError) throw insertError;
-
       setSuccess(true);
-      setName("");
-      setDescription("");
-      tags.resetTags();
-      setImageFile(null);
-      setImagePreview(null);
+      setName(""); setDescription(""); tags.resetTags(); setImageFile(null); setImagePreview(null);
+      setShowStatBlock(false); setSize(""); setCreatureType(""); setAlignment(""); setCr("");
+      setAc(""); setHp(""); setSpeed("");
+      setStr(10); setDex(10); setCon(10); setIntel(10); setWis(10); setCha(10);
+      setSaveProfs({STR:false,DEX:false,CON:false,INT:false,WIS:false,CHA:false});
+      setSkillProfs([]); vuln.reset(); resist.reset(); immune.reset(); condImm.reset();
+      setSenses(""); setLanguages("");
+      setTraits([]); setHasSpell(false); setSpellAbil("INT"); setSpellSave(10); setSpellAtk(0); setSpellList("");
+      setActions([]); setBonusActions([]); setReactions([]);
+      setHasLeg(false); setLegPer(3); setLegActs([]);
+      setHasLair(false); setLairActs([]);
     } catch (err) {
-      console.error("Save error:", err);
       setError(err instanceof Error ? err.message : "Failed to save entry");
     } finally {
       setSaving(false);
@@ -652,39 +738,149 @@ function SimpleForm({ entryType }: { entryType: EntryType }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {success && (
-        <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>
-      )}
-      {error && (
-        <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>
-      )}
+      {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
+      {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
 
       <div>
         <label className={labelCls}>Name</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Elara Moonshadow" className={inputCls} required />
+        <input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Elara Moonshadow" className={inputCls} required />
       </div>
 
       <div>
         <label className={labelCls}>Description</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this entry…" className={textareaCls} />
+        <textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="Describe this entry…" className={textareaCls} />
       </div>
 
       <div>
         <label className={labelCls}>Tags</label>
         <div className="flex flex-wrap gap-1.5">
-          {tags.tags.map((tag) => (
+          {tags.tags.map(tag => (
             <span key={tag} className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]">
               {tag}
-              <button type="button" onClick={() => tags.removeTag(tag)} className="ml-0.5 text-[#766649] hover:text-[#58180d]">
-                <FontAwesomeIcon icon={faTimes} className="size-2.5" />
-              </button>
+              <button type="button" onClick={()=>tags.removeTag(tag)} className="ml-0.5 text-[#766649] hover:text-[#58180d]"><FontAwesomeIcon icon={faTimes} className="size-2.5" /></button>
             </span>
           ))}
         </div>
-        <input type="text" value={tags.input} onChange={(e) => tags.setInput(e.target.value)} onKeyDown={tags.handleKeyDown} onBlur={() => { if (tags.input.trim()) tags.addTag(tags.input); }} placeholder="Type a tag and press Enter or comma…" className={`mt-1.5 ${inputCls}`} />
+        <input type="text" value={tags.input} onChange={e=>tags.setInput(e.target.value)} onKeyDown={tags.handleKeyDown} onBlur={()=>{if(tags.input.trim())tags.addTag(tags.input);}} placeholder="Type a tag and press Enter or comma…" className={`mt-1.5 ${inputCls}`} />
       </div>
 
       <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
+
+      {isNpc && (
+        <div className="rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-[var(--font-title)] text-sm font-bold text-[#58180d]">Include Full Stat Block</span>
+            <div className="flex gap-2">
+              <button type="button" onClick={()=>setShowStatBlock(false)} className={sbToggleCls(!showStatBlock)}>No</button>
+              <button type="button" onClick={()=>setShowStatBlock(true)} className={sbToggleCls(showStatBlock)}>Yes</button>
+            </div>
+          </div>
+
+          {showStatBlock && (
+            <div className="mt-4 space-y-1">
+              <h4 className={sbSection}>Core Identity</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className={labelCls}>Size</label><select value={size} onChange={e=>setSize(e.target.value)} className={inputCls}><option value="">Select…</option><option value="tiny">Tiny</option><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option><option value="huge">Huge</option><option value="gargantuan">Gargantuan</option></select></div>
+                <div><label className={labelCls}>Type</label><input type="text" value={creatureType} onChange={e=>setCreatureType(e.target.value)} placeholder="e.g. Humanoid" className={inputCls} /></div>
+                <div><label className={labelCls}>Alignment</label><input type="text" value={alignment} onChange={e=>setAlignment(e.target.value)} placeholder="e.g. Lawful Good" className={inputCls} /></div>
+                <div><label className={labelCls}>Challenge Rating</label><select value={cr} onChange={e=>setCr(e.target.value)} className={inputCls}><option value="">Select…</option>{CR_LIST.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+              </div>
+              <div className="rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-3 py-2 text-sm">
+                <span className="font-[var(--font-title)] font-bold text-[#58180d]">Proficiency Bonus: </span>
+                <span className="font-[var(--font-phb)] text-[var(--color-ink)]">+{profBonus}</span>
+              </div>
+
+              <h4 className={sbSection}>Defence</h4>
+              <div className="grid grid-cols-3 gap-4">
+                <div><label className={labelCls}>Armour Class</label><input type="text" value={ac} onChange={e=>setAc(e.target.value)} placeholder="e.g. 15 (chain shirt)" className={inputCls} /></div>
+                <div><label className={labelCls}>Hit Points</label><input type="text" value={hp} onChange={e=>setHp(e.target.value)} placeholder="e.g. 75 (10d10+20)" className={inputCls} /></div>
+                <div><label className={labelCls}>Speed</label><input type="text" value={speed} onChange={e=>setSpeed(e.target.value)} placeholder="e.g. 30ft" className={inputCls} /></div>
+              </div>
+
+              <h4 className={sbSection}>Ability Scores</h4>
+              <div className="grid grid-cols-6 gap-2">
+                {[{k:"STR",v:str,s:setStr},{k:"DEX",v:dex,s:setDex},{k:"CON",v:con,s:setCon},{k:"INT",v:intel,s:setIntel},{k:"WIS",v:wis,s:setWis},{k:"CHA",v:cha,s:setCha}].map(({k,v,s}) => (
+                  <div key={k} className="text-center">
+                    <label className="mb-1 block text-xs font-bold font-[var(--font-title)] text-[#58180d]">{k}</label>
+                    <input type="number" value={v} onChange={e=>s(Math.max(1,Math.min(30,parseInt(e.target.value)||1)))} className={numberCls} />
+                    <span className="mt-0.5 block text-xs font-[var(--font-phb)] text-[#766649]">{modStr(v)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <h4 className={sbSection}>Saving Throws</h4>
+              <div className="flex flex-wrap gap-2">{ABILITIES.map(a=><button key={a} type="button" onClick={()=>setSaveProfs(p=>({...p,[a]:!p[a]}))} className={sbToggleCls(saveProfs[a]!)}>{a} +{getSave(a)}</button>)}</div>
+
+              <h4 className={sbSection}>Skills</h4>
+              <div className="flex flex-wrap gap-2">{SKILL_LIST.map(s=><button key={s} type="button" onClick={()=>setSkillProfs(p=>p.includes(s)?p.filter(x=>x!==s):[...p,s])} className={sbToggleCls(skillProfs.includes(s))}>{s} +{getSkill(s)}</button>)}</div>
+
+              <h4 className={sbSection}>Damage &amp; Condition Modifiers</h4>
+              <div className="space-y-3">
+                <div><label className={labelCls}>Damage Vulnerabilities</label><TagRow hook={vuln} /></div>
+                <div><label className={labelCls}>Damage Resistances</label><TagRow hook={resist} /></div>
+                <div><label className={labelCls}>Damage Immunities</label><TagRow hook={immune} /></div>
+                <div><label className={labelCls}>Condition Immunities</label><TagRow hook={condImm} /></div>
+              </div>
+
+              <h4 className={sbSection}>Senses &amp; Languages</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className={labelCls}>Senses</label><input type="text" value={senses} onChange={e=>setSenses(e.target.value)} placeholder="e.g. darkvision 60ft, passive Perception 12" className={inputCls} /></div>
+                <div><label className={labelCls}>Languages</label><input type="text" value={languages} onChange={e=>setLanguages(e.target.value)} placeholder="e.g. Common, Elvish" className={inputCls} /></div>
+              </div>
+
+              <h4 className={sbSection}>Traits</h4>
+              <RepeatBlock items={traits} onChange={updTr} onRemove={remTr} onAdd={addTr} namePh="Trait name" descPh="Trait description…" addLabel="Add Trait" />
+
+              <h4 className={sbSection}>Spellcasting</h4>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-[var(--font-phb)] text-[var(--color-ink)]">Has spellcasting?</span>
+                <button type="button" onClick={()=>setHasSpell(false)} className={sbToggleCls(!hasSpell)}>No</button>
+                <button type="button" onClick={()=>setHasSpell(true)} className={sbToggleCls(hasSpell)}>Yes</button>
+              </div>
+              {hasSpell && (
+                <div className="mt-3 grid grid-cols-2 gap-4">
+                  <div><label className={labelCls}>Spellcasting Ability</label><select value={spellAbil} onChange={e=>setSpellAbil(e.target.value)} className={inputCls}>{ABILITIES.map(a=><option key={a} value={a}>{a}</option>)}</select></div>
+                  <div><label className={labelCls}>Spell Save DC</label><input type="number" value={spellSave} onChange={e=>setSpellSave(parseInt(e.target.value)||0)} className={inputCls} /></div>
+                  <div><label className={labelCls}>Spell Attack Bonus</label><input type="number" value={spellAtk} onChange={e=>setSpellAtk(parseInt(e.target.value)||0)} className={inputCls} /></div>
+                  <div className="col-span-2"><label className={labelCls}>Spell List</label><textarea value={spellList} onChange={e=>setSpellList(e.target.value)} placeholder="List spells or paste a spellcasting block…" className={textareaCls} /></div>
+                </div>
+              )}
+
+              <h4 className={sbSection}>Actions</h4>
+              <RepeatBlock items={actions} onChange={updAct} onRemove={remAct} onAdd={addAct} namePh="Action name" descPh="Action description…" addLabel="Add Action" />
+              <h4 className={sbSection}>Bonus Actions</h4>
+              <RepeatBlock items={bonusActions} onChange={updBonus} onRemove={remBonus} onAdd={addBonus} namePh="Bonus action name" descPh="Bonus action description…" addLabel="Add Bonus Action" />
+              <h4 className={sbSection}>Reactions</h4>
+              <RepeatBlock items={reactions} onChange={updReact} onRemove={remReact} onAdd={addReact} namePh="Reaction name" descPh="Reaction description…" addLabel="Add Reaction" />
+
+              <h4 className={sbSection}>Legendary Actions</h4>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-[var(--font-phb)] text-[var(--color-ink)]">Has legendary actions?</span>
+                <button type="button" onClick={()=>setHasLeg(false)} className={sbToggleCls(!hasLeg)}>No</button>
+                <button type="button" onClick={()=>setHasLeg(true)} className={sbToggleCls(hasLeg)}>Yes</button>
+              </div>
+              {hasLeg && (
+                <div className="mt-3 space-y-3">
+                  <div className="flex items-center gap-3"><label className={labelCls}>Uses per Round</label><input type="number" value={legPer} onChange={e=>setLegPer(parseInt(e.target.value)||1)} className="w-20 rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-center text-sm font-[var(--font-phb)] text-[var(--color-ink)]" /></div>
+                  <RepeatBlock items={legActs} onChange={updLeg} onRemove={remLeg} onAdd={addLeg} namePh="Legendary action name" descPh="Legendary action description…" addLabel="Add Legendary Action" />
+                </div>
+              )}
+
+              <h4 className={sbSection}>Lair Actions</h4>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-[var(--font-phb)] text-[var(--color-ink)]">Has lair actions?</span>
+                <button type="button" onClick={()=>setHasLair(false)} className={sbToggleCls(!hasLair)}>No</button>
+                <button type="button" onClick={()=>setHasLair(true)} className={sbToggleCls(hasLair)}>Yes</button>
+              </div>
+              {hasLair && (
+                <div className="mt-3">
+                  <RepeatBlock items={lairActs} onChange={updLair} onRemove={remLair} onAdd={addLair} namePh="Lair action name" descPh="Lair action description…" addLabel="Add Lair Action" />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <SaveButton saving={saving} disabled={!name.trim()} />
     </form>

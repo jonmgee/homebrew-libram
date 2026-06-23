@@ -13,10 +13,10 @@ const sectionHeadingCls = "border-b border-[var(--color-gilding-dark)] pb-1 pt-5
 const numberCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-2 py-2 text-center text-sm font-[var(--font-phb)] text-[var(--color-ink)] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600";
 
 /* ───── Helpers ───── */
-function abilMod(s: number) { return Math.floor((s - 10) / 2); }
-function modStr(s: number) { const m = abilMod(s); return m >= 0 ? `+${m}` : `${m}`; }
+export function abilMod(s: number) { return Math.floor((s - 10) / 2); }
+export function modStr(s: number) { const m = abilMod(s); return m >= 0 ? `+${m}` : `${m}`; }
 
-function crToProf(cr: string): number {
+export function crToProf(cr: string): number {
   const t: Record<string, number> = {
     "0":2,"1/8":2,"1/4":2,"1/2":2,"1":2,"2":2,"3":2,"4":2,
     "5":3,"6":3,"7":3,"8":3,"9":4,"10":4,"11":4,"12":4,
@@ -26,11 +26,11 @@ function crToProf(cr: string): number {
   return t[cr] ?? 2;
 }
 
-const CR_LIST = ["0","1/8","1/4","1/2","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"];
+export const CR_LIST = ["0","1/8","1/4","1/2","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"];
 const SIZE_LIST = ["Tiny","Small","Medium","Large","Huge","Gargantuan"];
-const ABILITIES = ["STR","DEX","CON","INT","WIS","CHA"] as const;
-const SKILL_LIST = ["Acrobatics","Animal Handling","Arcana","Athletics","Deception","History","Insight","Intimidation","Investigation","Medicine","Nature","Perception","Performance","Persuasion","Religion","Sleight of Hand","Stealth","Survival"];
-const SKILL_ABIL: Record<string,string> = {
+export const ABILITIES = ["STR","DEX","CON","INT","WIS","CHA"] as const;
+export const SKILL_LIST = ["Acrobatics","Animal Handling","Arcana","Athletics","Deception","History","Insight","Intimidation","Investigation","Medicine","Nature","Perception","Performance","Persuasion","Religion","Sleight of Hand","Stealth","Survival"];
+export const SKILL_ABIL: Record<string,string> = {
   Acrobatics:"DEX","Animal Handling":"WIS",Arcana:"INT",Athletics:"STR",Deception:"CHA",
   History:"INT",Insight:"WIS",Intimidation:"CHA",Investigation:"INT",Medicine:"WIS",
   Nature:"INT",Perception:"WIS",Performance:"CHA",Persuasion:"CHA",Religion:"INT",
@@ -38,7 +38,7 @@ const SKILL_ABIL: Record<string,string> = {
 };
 
 /* ───── Custom select (parchment/gold/maroon) ───── */
-function CustomSelect({ value, onChange, options, getLabel, placeholder }: {
+export function CustomSelect({ value, onChange, options, getLabel, placeholder }: {
   value: string;
   onChange: (v: string) => void;
   options: readonly string[];
@@ -71,7 +71,7 @@ function CustomSelect({ value, onChange, options, getLabel, placeholder }: {
 }
 
 /* ───── Tag input ───── */
-function useTags(initial: string[] = []) {
+export function useTags(initial: string[] = []) {
   const [tags, setTags] = useState(initial);
   const [input, setInput] = useState("");
   const add = (raw: string) => { const t = raw.trim(); if (t && !tags.includes(t)) setTags(p => [...p, t]); setInput(""); };
@@ -84,7 +84,7 @@ function useTags(initial: string[] = []) {
   return { tags, input, setInput, add, remove, reset, handleKey };
 }
 
-function TagRow({ hook }: { hook: ReturnType<typeof useTags> }) {
+export function TagRow({ hook }: { hook: ReturnType<typeof useTags> }) {
   return (
     <div>
       <div className="flex flex-wrap gap-1.5">
@@ -101,7 +101,7 @@ function TagRow({ hook }: { hook: ReturnType<typeof useTags> }) {
 }
 
 /* ───── Repeatable block ───── */
-function RepeatBlock({ items, onChange, onRemove, onAdd, namePh, descPh, addLabel }: {
+export function RepeatBlock({ items, onChange, onRemove, onAdd, namePh, descPh, addLabel }: {
   items: {name:string;desc:string}[];
   onChange: (i:number,f:"name"|"desc",v:string)=>void;
   onRemove: (i:number)=>void;
