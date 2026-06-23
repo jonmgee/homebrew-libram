@@ -10,7 +10,7 @@ import {
   faTimes,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons";
-import { formatEntryType, CATEGORIES } from "../types";
+import { formatEntryType, CATEGORIES, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
 import type { EntryType } from "../types";
 import { supabase } from "../lib/supabase";
 
@@ -233,24 +233,28 @@ const TREASURE_TYPES: EntryType[] = [
   "magic_item", "wondrous_item", "weapon", "armour", "potion", "adventuring_gear", "trinket",
 ];
 
+/* ──────── Simple types (NPC, Background, Feat) ──────── */
+const SIMPLE_TYPES: EntryType[] = ["npc", "background", "feat"];
+
+/* ──────── Arcana types (Spell, Scroll) ──────── */
+const ARCANA_TYPES: EntryType[] = ["spell", "scroll"];
+
 /* ──────── Manual Entry tab ──────── */
 function ManualEntryTab({ entryType }: { entryType: EntryType }) {
-  const isTreasure = TREASURE_TYPES.includes(entryType);
+  if (TREASURE_TYPES.includes(entryType)) return <TreasureForm entryType={entryType} />;
+  if (SIMPLE_TYPES.includes(entryType)) return <SimpleForm entryType={entryType} />;
+  if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} />;
 
-  if (!isTreasure) {
-    return (
-      <div className="min-h-[120px]">
-        <h2 className="font-[var(--font-title)] text-lg font-bold text-[#58180d]">
-          {formatEntryType(entryType)}
-        </h2>
-        <p className="mt-2 text-sm italic text-[#766649]">
-          Form fields for this entry type coming soon
-        </p>
-      </div>
-    );
-  }
-
-  return <TreasureForm entryType={entryType} />;
+  return (
+    <div className="min-h-[120px]">
+      <h2 className="font-[var(--font-title)] text-lg font-bold text-[#58180d]">
+        {formatEntryType(entryType)}
+      </h2>
+      <p className="mt-2 text-sm italic text-[#766649]">
+        Form fields for this entry type coming soon
+      </p>
+    </div>
+  );
 }
 
 /* ──────── Shared form for Magic Item / Weapon / Armour / Potion / Adventuring Gear / Trinket ──────── */
@@ -566,10 +570,439 @@ function ImportTab({
   );
 }
 
+/* ────────── Shared field styles (module-level) ────────── */
+const labelCls = "mb-1 block font-[var(--font-title)] text-sm font-bold text-[#58180d]";
+const inputCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600";
+const textareaCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600 min-h-[100px] resize-y";
+
+/* ──────── Simple form (NPC, Background, Feat) ──────── */
+function SimpleForm({ entryType }: { entryType: EntryType }) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const tags = useTagInput();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+
+    // Build properties
+    const properties: Record<string, unknown> = {};
+
+    // Image
+    if (imageFile) {
+      const ext = imageFile.name.split(".").pop() ?? "png";
+      const filename = `${crypto.randomUUID()}.${ext}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("entry-images")
+        .upload(filename, imageFile);
+      if (!uploadError && uploadData) {
+        const { data: publicUrl } = supabase.storage
+          .from("entry-images")
+          .getPublicUrl(filename);
+        properties.image_url = publicUrl.publicUrl;
+      } else {
+        properties.image_data = imagePreview;
+      }
+    }
+
+    try {
+      const { error: insertError } = await supabase.from("entries").insert({
+        name: name.trim(),
+        type: entryType,
+        description: description.trim(),
+        tags: tags.tags,
+        properties,
+      });
+      if (insertError) throw insertError;
+
+      setSuccess(true);
+      setName("");
+      setDescription("");
+      tags.resetTags();
+      setImageFile(null);
+      setImagePreview(null);
+    } catch (err) {
+      console.error("Save error:", err);
+      setError(err instanceof Error ? err.message : "Failed to save entry");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {success && (
+        <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>
+      )}
+      {error && (
+        <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>
+      )}
+
+      <div>
+        <label className={labelCls}>Name</label>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Elara Moonshadow" className={inputCls} required />
+      </div>
+
+      <div>
+        <label className={labelCls}>Description</label>
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this entry…" className={textareaCls} />
+      </div>
+
+      <div>
+        <label className={labelCls}>Tags</label>
+        <div className="flex flex-wrap gap-1.5">
+          {tags.tags.map((tag) => (
+            <span key={tag} className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]">
+              {tag}
+              <button type="button" onClick={() => tags.removeTag(tag)} className="ml-0.5 text-[#766649] hover:text-[#58180d]">
+                <FontAwesomeIcon icon={faTimes} className="size-2.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <input type="text" value={tags.input} onChange={(e) => tags.setInput(e.target.value)} onKeyDown={tags.handleKeyDown} onBlur={() => { if (tags.input.trim()) tags.addTag(tags.input); }} placeholder="Type a tag and press Enter or comma…" className={`mt-1.5 ${inputCls}`} />
+      </div>
+
+      <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
+
+      <SaveButton saving={saving} disabled={!name.trim()} />
+    </form>
+  );
+}
+
+/* ──────── Spell/Scroll combined form ──────── */
+function SpellScrollForm({ entryType }: { entryType: EntryType }) {
+  const [isSpell, setIsSpell] = useState(entryType === "spell");
+  const [name, setName] = useState("");
+  const [level, setLevel] = useState("");
+  const [school, setSchool] = useState("");
+  const [castingTime, setCastingTime] = useState("");
+  const [range, setRange] = useState("");
+  const [compV, setCompV] = useState(false);
+  const [compS, setCompS] = useState(false);
+  const [compM, setCompM] = useState(false);
+  const [materialDesc, setMaterialDesc] = useState("");
+  const [duration, setDuration] = useState("");
+  const [concentration, setConcentration] = useState(false);
+  const [rarity, setRarity] = useState("");
+  const [description, setDescription] = useState("");
+  const tags = useTagInput();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const components: string[] = [];
+  if (compV) components.push("V");
+  if (compS) components.push("S");
+  if (compM) components.push("M");
+
+  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+
+    const properties: Record<string, unknown> = {};
+    if (isSpell) {
+      properties.level = level;
+      properties.school = school;
+      properties.casting_time = castingTime.trim();
+      properties.range = range.trim();
+      properties.components = components;
+      if (compM && materialDesc.trim()) properties.material = materialDesc.trim();
+      properties.duration = duration.trim();
+      properties.concentration = concentration;
+    } else {
+      if (rarity) properties.rarity = rarity;
+      if (level) properties.level = level;
+      if (school) properties.school = school;
+      if (castingTime.trim()) properties.casting_time = castingTime.trim();
+      if (range.trim()) properties.range = range.trim();
+      if (components.length > 0) properties.components = components;
+      if (compM && materialDesc.trim()) properties.material = materialDesc.trim();
+      if (duration.trim()) properties.duration = duration.trim();
+      properties.concentration = concentration;
+    }
+
+    if (imageFile) {
+      const ext = imageFile.name.split(".").pop() ?? "png";
+      const filename = `${crypto.randomUUID()}.${ext}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("entry-images")
+        .upload(filename, imageFile);
+      if (!uploadError && uploadData) {
+        const { data: publicUrl } = supabase.storage
+          .from("entry-images")
+          .getPublicUrl(filename);
+        properties.image_url = publicUrl.publicUrl;
+      } else {
+        properties.image_data = imagePreview;
+      }
+    }
+
+    try {
+      const actualType: EntryType = isSpell ? "spell" : "scroll";
+      const { error: insertError } = await supabase.from("entries").insert({
+        name: name.trim(),
+        type: actualType,
+        description: description.trim(),
+        tags: tags.tags,
+        properties,
+      });
+      if (insertError) throw insertError;
+
+      setSuccess(true);
+      setName("");
+      setLevel("");
+      setSchool("");
+      setCastingTime("");
+      setRange("");
+      setCompV(false);
+      setCompS(false);
+      setCompM(false);
+      setMaterialDesc("");
+      setDuration("");
+      setConcentration(false);
+      setRarity("");
+      setDescription("");
+      tags.resetTags();
+      setImageFile(null);
+      setImagePreview(null);
+    } catch (err) {
+      console.error("Save error:", err);
+      setError(err instanceof Error ? err.message : "Failed to save entry");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleCls = (active: boolean) =>
+    `flex-1 rounded-lg border px-3 py-2 text-sm font-[var(--font-phb)] transition-colors ${
+      active
+        ? "border-[var(--color-gilding-dark)] bg-[#58180d] font-bold text-[#eee5ce]"
+        : "border-[var(--color-parchment-dark)] bg-[var(--color-parchment)] text-[#766649] hover:border-[var(--color-gilding-dark)]"
+    }`;
+
+  const SpellSchoolLabel: Record<string, string> = {
+    abjuration: "Abjuration",
+    conjuration: "Conjuration",
+    divination: "Divination",
+    enchantment: "Enchantment",
+    evocation: "Evocation",
+    illusion: "Illusion",
+    necromancy: "Necromancy",
+    transmutation: "Transmutation",
+  };
+
+  const LevelLabel: Record<string, string> = {
+    cantrip: "Cantrip",
+    "1": "1st",
+    "2": "2nd",
+    "3": "3rd",
+    "4": "4th",
+    "5": "5th",
+    "6": "6th",
+    "7": "7th",
+    "8": "8th",
+    "9": "9th",
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
+      {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
+
+      {/* ───── Type toggle ───── */}
+      <div>
+        <label className={labelCls}>Type</label>
+        <div className="flex gap-3">
+          <button type="button" onClick={() => setIsSpell(true)} className={toggleCls(isSpell)}>Spell</button>
+          <button type="button" onClick={() => setIsSpell(false)} className={toggleCls(!isSpell)}>Scroll</button>
+        </div>
+      </div>
+
+      <div>
+        <label className={labelCls}>Name</label>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Fireball" className={inputCls} required />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className={labelCls}>Level</label>
+          <select value={level} onChange={(e) => setLevel(e.target.value)} className={inputCls}>
+            <option value="">Select…</option>
+            {SPELL_LEVEL_OPTIONS.map((l) => (
+              <option key={l} value={l}>{LevelLabel[l] ?? l}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls}>School</label>
+          <select value={school} onChange={(e) => setSchool(e.target.value)} className={inputCls}>
+            <option value="">Select…</option>
+            {SCHOOL_OPTIONS.map((s) => (
+              <option key={s} value={s}>{SpellSchoolLabel[s] ?? s}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className={labelCls}>Casting Time</label>
+          <input type="text" value={castingTime} onChange={(e) => setCastingTime(e.target.value)} placeholder="e.g. 1 action" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Range</label>
+          <input type="text" value={range} onChange={(e) => setRange(e.target.value)} placeholder="e.g. 60 ft" className={inputCls} />
+        </div>
+      </div>
+
+      {/* ───── Components ───── */}
+      <div>
+        <label className={labelCls}>Components</label>
+        <div className="flex flex-wrap gap-4">
+          {COMPONENT_OPTIONS.map((c) => (
+            <label key={c} className="flex cursor-pointer items-center gap-1.5">
+              <input type="checkbox" checked={
+                c === "V" ? compV : c === "S" ? compS : compM
+              } onChange={() => {
+                if (c === "V") setCompV(!compV);
+                else if (c === "S") setCompS(!compS);
+                else setCompM(!compM);
+              }} className="accent-amber-700" />
+              <span className="text-sm font-[var(--font-phb)] text-[var(--color-ink)]">{c}</span>
+            </label>
+          ))}
+        </div>
+        {compM && (
+          <input type="text" value={materialDesc} onChange={(e) => setMaterialDesc(e.target.value)} placeholder="Material component description…" className={`mt-2 ${inputCls}`} />
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className={labelCls}>Duration</label>
+          <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. Instantaneous" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Concentration</label>
+          <div className="flex gap-3">
+            <button type="button" onClick={() => setConcentration(false)} className={toggleCls(!concentration)}>No</button>
+            <button type="button" onClick={() => setConcentration(true)} className={toggleCls(concentration)}>Yes</button>
+          </div>
+        </div>
+      </div>
+
+      {!isSpell && (
+        <div>
+          <label className={labelCls}>Rarity</label>
+          <RarityDropdown value={rarity} onChange={setRarity} />
+        </div>
+      )}
+
+      <div>
+        <label className={labelCls}>Description</label>
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the spell's effect…" className={textareaCls} />
+      </div>
+
+      <div>
+        <label className={labelCls}>Tags</label>
+        <div className="flex flex-wrap gap-1.5">
+          {tags.tags.map((tag) => (
+            <span key={tag} className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]">
+              {tag}
+              <button type="button" onClick={() => tags.removeTag(tag)} className="ml-0.5 text-[#766649] hover:text-[#58180d]">
+                <FontAwesomeIcon icon={faTimes} className="size-2.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <input type="text" value={tags.input} onChange={(e) => tags.setInput(e.target.value)} onKeyDown={tags.handleKeyDown} onBlur={() => { if (tags.input.trim()) tags.addTag(tags.input); }} placeholder="Type a tag and press Enter or comma…" className={`mt-1.5 ${inputCls}`} />
+      </div>
+
+      <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
+
+      <SaveButton saving={saving} disabled={!name.trim()} />
+    </form>
+  );
+}
+
+/* ──────── Shared ImageUpload component ──────── */
+function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImagePreview, handleImage }: {
+  fileRef: React.RefObject<HTMLInputElement | null>;
+  imageFile: File | null;
+  imagePreview: string | null;
+  setImageFile: (f: File | null) => void;
+  setImagePreview: (s: string | null) => void;
+  handleImage: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <div>
+      <label className={labelCls}>Image</label>
+      <div onClick={() => fileRef.current?.click()} className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6 text-center transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)]">
+        {imagePreview ? (
+          <img src={imagePreview} alt="Preview" className="max-h-40 rounded object-contain" />
+        ) : (
+          <>
+            <FontAwesomeIcon icon={faUpload} className="text-2xl text-[#766649]" />
+            <span className="font-[var(--font-phb)] text-sm text-[#766649]">Click to upload an image</span>
+          </>
+        )}
+        {imageFile && (
+          <button type="button" onClick={(e) => { e.stopPropagation(); setImageFile(null); setImagePreview(null); if (fileRef.current) fileRef.current.value = ""; }} className="text-xs text-red-600 hover:text-red-800">Remove</button>
+        )}
+      </div>
+      <input ref={fileRef} type="file" accept="image/*" onChange={handleImage} className="hidden" />
+    </div>
+  );
+}
+
+/* ──────── Shared SaveButton component ──────── */
+function SaveButton({ saving, disabled }: { saving: boolean; disabled: boolean }) {
+  return (
+    <div className="pt-2">
+      <button type="submit" disabled={saving || disabled} className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-4 py-2.5 text-sm font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a] disabled:cursor-not-allowed disabled:opacity-50">
+        <FontAwesomeIcon icon={faSave} />
+        {saving ? "Saving…" : "Save Entry"}
+      </button>
+    </div>
+  );
+}
+
 /* ──────── Helper ──────── */
-function getParentCategory(type: EntryType): string {
+function getParentCategory(type: string): string {
   for (const cat of CATEGORIES) {
-    if (cat.types.includes(type)) return cat.label;
+    if (cat.types.includes(type as EntryType)) return cat.label;
   }
   return "";
 }
