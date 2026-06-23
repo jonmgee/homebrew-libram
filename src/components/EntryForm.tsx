@@ -858,21 +858,23 @@ function SpellScrollForm({ entryType }: { entryType: EntryType }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={labelCls}>Level</label>
-          <select value={level} onChange={(e) => setLevel(e.target.value)} className={inputCls}>
-            <option value="">Select…</option>
-            {SPELL_LEVEL_OPTIONS.map((l) => (
-              <option key={l} value={l}>{LevelLabel[l] ?? l}</option>
-            ))}
-          </select>
+          <CustomSelect
+            value={level}
+            onChange={setLevel}
+            options={SPELL_LEVEL_OPTIONS}
+            getLabel={(l) => LevelLabel[l] ?? l}
+            placeholder="Select…"
+          />
         </div>
         <div>
           <label className={labelCls}>School</label>
-          <select value={school} onChange={(e) => setSchool(e.target.value)} className={inputCls}>
-            <option value="">Select…</option>
-            {SCHOOL_OPTIONS.map((s) => (
-              <option key={s} value={s}>{SpellSchoolLabel[s] ?? s}</option>
-            ))}
-          </select>
+          <CustomSelect
+            value={school}
+            onChange={setSchool}
+            options={SCHOOL_OPTIONS}
+            getLabel={(s) => SpellSchoolLabel[s] ?? s}
+            placeholder="Select…"
+          />
         </div>
       </div>
 
