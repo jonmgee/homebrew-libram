@@ -43,7 +43,7 @@ const ALL_TYPES: EntryType[] = [
 /* ──────────── Component ──────────── */
 export default function EntryForm({ entryType }: EntryFormProps) {
   const [activeTab, setActiveTab] = useState<TabId>("manual");
-  const [importType, setImportType] = useState<string>(entryType);
+  const [importType, setImportType] = useState<EntryType>(entryType);
 
   return (
     <div>
@@ -128,38 +128,30 @@ function useTagInput(initial: string[] = []) {
   return { tags, input, setInput, addTag, removeTag, handleKeyDown, resetTags };
 }
 
-/* ──────── Rarity values (with None) ──────── */
-const RARITY_WITH_NONE = ["", "common", "uncommon", "rare", "very rare", "legendary", "artifact"] as const;
-
-const RARITY_LABELS: Record<string, string> = {
-  "": "None",
-  common: "Common",
-  uncommon: "Uncommon",
-  rare: "Rare",
-  "very rare": "Very Rare",
-  legendary: "Legendary",
-  artifact: "Artifact",
-};
-
-/* ──────── Custom dropdown ──────── */
-function RarityDropdown({
+/* ──────── Generic custom dropdown ──────── */
+function CustomSelect<T extends string>({
   value,
   onChange,
+  options,
+  getLabel,
+  placeholder,
 }: {
-  value: string;
-  onChange: (v: string) => void;
+  value: T;
+  onChange: (v: T) => void;
+  options: readonly T[];
+  getLabel: (v: T) => string;
+  placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close on click outside
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
     if (!ref.current?.contains(e.relatedTarget)) {
       setOpen(false);
     }
   };
 
-  const selectedLabel = RARITY_LABELS[value] ?? "None";
+  const selectedLabel = value ? getLabel(value) : (placeholder ?? "Select…");
 
   return (
     <div ref={ref} tabIndex={0} onBlur={handleBlur} className="relative">
@@ -180,28 +172,59 @@ function RarityDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] shadow-lg">
-          {RARITY_WITH_NONE.map((r) => (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] shadow-lg">
+          {options.map((opt) => (
             <button
-              key={r}
+              key={opt}
               type="button"
               onMouseDown={(e) => {
                 e.preventDefault();
-                onChange(r);
+                onChange(opt);
                 setOpen(false);
               }}
               className={`w-full px-3 py-1.5 text-left text-sm font-[var(--font-phb)] transition-colors hover:bg-[var(--color-parchment-dark)] ${
-                r === value
+                opt === value
                   ? "bg-[var(--color-parchment-dark)] font-bold text-[#58180d]"
                   : "text-[var(--color-ink)]"
               }`}
             >
-              {RARITY_LABELS[r]}
+              {getLabel(opt)}
             </button>
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+/* ──────── Rarity values (with None) ──────── */
+const RARITY_WITH_NONE = ["", "common", "uncommon", "rare", "very rare", "legendary", "artifact"] as const;
+
+const RARITY_LABELS: Record<string, string> = {
+  "": "None",
+  common: "Common",
+  uncommon: "Uncommon",
+  rare: "Rare",
+  "very rare": "Very Rare",
+  legendary: "Legendary",
+  artifact: "Artifact",
+};
+
+/* ──────── Rarity dropdown (uses CustomSelect) ──────── */
+function RarityDropdown({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <CustomSelect
+      value={value}
+      onChange={onChange}
+      options={RARITY_WITH_NONE}
+      getLabel={(v) => RARITY_LABELS[v] ?? "None"}
+    />
   );
 }
 
@@ -498,8 +521,8 @@ function ImportTab({
   importType,
   setImportType,
 }: {
-  importType: string;
-  setImportType: (v: string) => void;
+  importType: EntryType;
+  setImportType: (v: EntryType) => void;
 }) {
   return (
     <div>
@@ -531,18 +554,13 @@ function ImportTab({
         <label className="mb-1 block text-xs font-medium text-[#766649]">
           Entry Type <span className="italic">(optional)</span>
         </label>
-        <select
+        <CustomSelect
           value={importType}
-          onChange={(e) => setImportType(e.target.value)}
-          className="w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600"
-        >
-          <option value="auto">Auto-detect</option>
-          {ALL_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {formatEntryType(t)} — {getParentCategory(t)}
-            </option>
-          ))}
-        </select>
+          onChange={setImportType}
+          options={ALL_TYPES}
+          getLabel={(t) => `${formatEntryType(t)} — ${getParentCategory(t)}`}
+          placeholder="Auto-detect"
+        />
       </div>
     </div>
   );
