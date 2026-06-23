@@ -38,9 +38,9 @@ export default function EntryForm({ entryType }: EntryFormProps) {
     <div className="relative">
       {/* ───── wax seal ───── */}
       <img
-        src="/assets/wax-seal.png"
+        src="/assets/wax-seal-large.png"
         alt=""
-        className="pointer-events-none absolute -top-2 right-0 z-10 size-14 rotate-12 opacity-80 sm:size-16"
+        className="pointer-events-none absolute -right-6 -top-6 z-10 size-24 rotate-12 opacity-85 sm:size-28"
       />
 
       {/* ───── tabs ───── */}
