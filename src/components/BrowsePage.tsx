@@ -138,7 +138,7 @@ export default function BrowsePage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or description\u2026"
+          placeholder="Search by name or description…"
           className="parchment-input min-w-0 flex-1 rounded-lg px-4 py-2 text-sm"
         />
 
@@ -155,7 +155,7 @@ export default function BrowsePage() {
 
       {loadState === "loading" && (
         <p className="phb-description py-12 text-center">
-          Loading entries\u2026
+          Loading entries…
         </p>
       )}
 
