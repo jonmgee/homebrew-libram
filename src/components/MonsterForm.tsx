@@ -37,6 +37,39 @@ const SKILL_ABIL: Record<string,string> = {
   "Sleight of Hand":"DEX",Stealth:"DEX",Survival:"WIS",
 };
 
+/* ───── Custom select (parchment/gold/maroon) ───── */
+function CustomSelect({ value, onChange, options, getLabel, placeholder }: {
+  value: string;
+  onChange: (v: string) => void;
+  options: readonly string[];
+  getLabel: (v: string) => string;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!ref.current?.contains(e.relatedTarget)) setOpen(false);
+  };
+  const selectedLabel = value ? getLabel(value) : (placeholder ?? "Select…");
+  return (
+    <div ref={ref} tabIndex={0} onBlur={handleBlur} className="relative">
+      <button type="button" onClick={() => setOpen(p => !p)} className="flex w-full items-center justify-between rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] transition-colors focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600">
+        <span>{selectedLabel}</span>
+        <svg className={`size-4 text-[#766649] transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] shadow-lg">
+          {options.map(opt => (
+            <button key={opt} type="button" onMouseDown={e => { e.preventDefault(); onChange(opt); setOpen(false); }}
+              className={`w-full px-3 py-1.5 text-left text-sm font-[var(--font-phb)] transition-colors hover:bg-[var(--color-parchment-dark)] ${opt === value ? "bg-[var(--color-parchment-dark)] font-bold text-[#58180d]" : "text-[var(--color-ink)]"}`}
+            >{getLabel(opt)}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ───── Tag input ───── */
 function useTags(initial: string[] = []) {
   const [tags, setTags] = useState(initial);
@@ -274,10 +307,10 @@ export default function MonsterForm() {
       <h3 className={sectionHeadingCls}>Core Identity</h3>
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2"><label className={labelCls}>Name</label><input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Ancient Red Dragon" className={inputCls} required /></div>
-        <div><label className={labelCls}>Size</label><select value={size} onChange={e=>setSize(e.target.value)} className={inputCls}><option value="">Select…</option>{SIZE_LIST.map(s=><option key={s} value={s.toLowerCase()}>{s}</option>)}</select></div>
+        <div><label className={labelCls}>Size</label><CustomSelect value={size} onChange={setSize} options={SIZE_LIST} getLabel={s=>s.charAt(0).toUpperCase()+s.slice(1)} placeholder="Select…" /></div>
         <div><label className={labelCls}>Type</label><input type="text" value={creatureType} onChange={e=>setCreatureType(e.target.value)} placeholder="e.g. Dragon" className={inputCls} /></div>
         <div><label className={labelCls}>Alignment</label><input type="text" value={alignment} onChange={e=>setAlignment(e.target.value)} placeholder="e.g. Chaotic Evil" className={inputCls} /></div>
-        <div><label className={labelCls}>Challenge Rating</label><select value={cr} onChange={e=>setCr(e.target.value)} className={inputCls}><option value="">Select…</option>{CR_LIST.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+        <div><label className={labelCls}>Challenge Rating</label><CustomSelect value={cr} onChange={setCr} options={CR_LIST} getLabel={c=>c} placeholder="Select…" /></div>
       </div>
       <div className="rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-3 py-2 text-sm">
         <span className="font-[var(--font-title)] font-bold text-[#58180d]">Proficiency Bonus: </span>
@@ -342,8 +375,7 @@ export default function MonsterForm() {
       {hasSpell && (
         <div className="mt-3 grid grid-cols-2 gap-4">
           <div><label className={labelCls}>Spellcasting Ability</label>
-            <select value={spellAbil} onChange={e=>setSpellAbil(e.target.value)} className={inputCls}>{ABILITIES.map(a=><option key={a} value={a}>{a}</option>)}</select>
-          </div>
+            <CustomSelect value={spellAbil} onChange={setSpellAbil} options={ABILITIES} getLabel={a=>a} /></div>
           <div><label className={labelCls}>Spell Save DC</label><input type="number" value={spellSave} onChange={e=>setSpellSave(parseInt(e.target.value)||0)} className={inputCls} /></div>
           <div><label className={labelCls}>Spell Attack Bonus</label><input type="number" value={spellAtk} onChange={e=>setSpellAtk(parseInt(e.target.value)||0)} className={inputCls} /></div>
           <div className="col-span-2"><label className={labelCls}>Spell List</label><textarea value={spellList} onChange={e=>setSpellList(e.target.value)} placeholder="List spells or paste a full spellcasting block…" className={textareaCls} /></div>
