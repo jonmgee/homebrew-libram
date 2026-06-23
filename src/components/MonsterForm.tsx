@@ -301,7 +301,7 @@ export default function MonsterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-1">
-      {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Saved!</div>}
+      {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
       {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
 
       <h3 className={sectionHeadingCls}>Core Identity</h3>
