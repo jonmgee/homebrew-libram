@@ -13,7 +13,7 @@ import {
 import { formatEntryType, CATEGORIES, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
 import type { EntryType } from "../types";
 import { supabase } from "../lib/supabase";
-import MonsterForm, { abilMod, modStr, crToProf, CR_LIST, ABILITIES, SKILL_LIST, SKILL_ABIL, useTags as useMonsterTags, TagRow, RepeatBlock } from "./MonsterForm";
+import MonsterForm, { abilMod, modStr, crToProf, CR_LIST, SIZE_LIST, ABILITIES, SKILL_LIST, SKILL_ABIL, useTags as useMonsterTags, TagRow, RepeatBlock } from "./MonsterForm";
 
 /* ──────────── Props ──────────── */
 interface EntryFormProps {
@@ -780,10 +780,10 @@ function SimpleForm({ entryType }: { entryType: EntryType }) {
             <div className="mt-4 space-y-1">
               <h4 className={sbSection}>Core Identity</h4>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className={labelCls}>Size</label><select value={size} onChange={e=>setSize(e.target.value)} className={inputCls}><option value="">Select…</option><option value="tiny">Tiny</option><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option><option value="huge">Huge</option><option value="gargantuan">Gargantuan</option></select></div>
+                <div><label className={labelCls}>Size</label><CustomSelect value={size} onChange={setSize} options={SIZE_LIST} getLabel={s=>s} placeholder="Select…" /></div>
                 <div><label className={labelCls}>Type</label><input type="text" value={creatureType} onChange={e=>setCreatureType(e.target.value)} placeholder="e.g. Humanoid" className={inputCls} /></div>
                 <div><label className={labelCls}>Alignment</label><input type="text" value={alignment} onChange={e=>setAlignment(e.target.value)} placeholder="e.g. Lawful Good" className={inputCls} /></div>
-                <div><label className={labelCls}>Challenge Rating</label><select value={cr} onChange={e=>setCr(e.target.value)} className={inputCls}><option value="">Select…</option>{CR_LIST.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+                <div><label className={labelCls}>Challenge Rating</label><CustomSelect value={cr} onChange={setCr} options={CR_LIST} getLabel={s=>s} placeholder="Select…" /></div>
               </div>
               <div className="rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-3 py-2 text-sm">
                 <span className="font-[var(--font-title)] font-bold text-[#58180d]">Proficiency Bonus: </span>
@@ -839,7 +839,7 @@ function SimpleForm({ entryType }: { entryType: EntryType }) {
               </div>
               {hasSpell && (
                 <div className="mt-3 grid grid-cols-2 gap-4">
-                  <div><label className={labelCls}>Spellcasting Ability</label><select value={spellAbil} onChange={e=>setSpellAbil(e.target.value)} className={inputCls}>{ABILITIES.map(a=><option key={a} value={a}>{a}</option>)}</select></div>
+                  <div><label className={labelCls}>Spellcasting Ability</label><CustomSelect value={spellAbil} onChange={setSpellAbil} options={ABILITIES} getLabel={s=>s} /></div>
                   <div><label className={labelCls}>Spell Save DC</label><input type="number" value={spellSave} onChange={e=>setSpellSave(parseInt(e.target.value)||0)} className={inputCls} /></div>
                   <div><label className={labelCls}>Spell Attack Bonus</label><input type="number" value={spellAtk} onChange={e=>setSpellAtk(parseInt(e.target.value)||0)} className={inputCls} /></div>
                   <div className="col-span-2"><label className={labelCls}>Spell List</label><textarea value={spellList} onChange={e=>setSpellList(e.target.value)} placeholder="List spells or paste a spellcasting block…" className={textareaCls} /></div>

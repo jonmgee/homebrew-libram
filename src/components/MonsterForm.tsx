@@ -27,7 +27,7 @@ export function crToProf(cr: string): number {
 }
 
 export const CR_LIST = ["0","1/8","1/4","1/2","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"];
-const SIZE_LIST = ["Tiny","Small","Medium","Large","Huge","Gargantuan"];
+export const SIZE_LIST = ["Tiny","Small","Medium","Large","Huge","Gargantuan"];
 export const ABILITIES = ["STR","DEX","CON","INT","WIS","CHA"] as const;
 export const SKILL_LIST = ["Acrobatics","Animal Handling","Arcana","Athletics","Deception","History","Insight","Intimidation","Investigation","Medicine","Nature","Perception","Performance","Persuasion","Religion","Sleight of Hand","Stealth","Survival"];
 export const SKILL_ABIL: Record<string,string> = {
