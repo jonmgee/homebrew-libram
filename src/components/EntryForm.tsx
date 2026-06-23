@@ -42,14 +42,7 @@ export default function EntryForm({ entryType }: EntryFormProps) {
   const [importType, setImportType] = useState<string>(entryType);
 
   return (
-    <div className="relative">
-      {/* ───── wax seal ───── */}
-      <img
-        src="/assets/wax-seal-large.png"
-        alt=""
-        className="pointer-events-none absolute -right-6 -top-6 z-10 size-24 rotate-12 opacity-85 mix-blend-multiply sm:size-28"
-      />
-
+    <div>
       {/* ───── tabs ───── */}
       <div className="flex gap-0 pl-2">
         {TABS.map((tab) => {
