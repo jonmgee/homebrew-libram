@@ -1,5 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faClipboard,
+  faImage,
+  faFilePdf,
+  faFileAlt,
+} from "@fortawesome/free-solid-svg-icons";
 import { formatEntryType, CATEGORIES } from "../types";
 import type { EntryType } from "../types";
 
@@ -17,10 +24,10 @@ const TABS: { id: TabId; label: string }[] = [
 
 /* ──────────── Import card config ──────────── */
 const IMPORT_METHODS = [
-  { label: "Paste Text", icon: "📋" },
-  { label: "Upload Image", icon: "🖼️" },
-  { label: "Upload PDF", icon: "📄" },
-  { label: "Upload Document", icon: "📁" },
+  { label: "Paste Text", icon: faClipboard },
+  { label: "Upload Image", icon: faImage },
+  { label: "Upload PDF", icon: faFilePdf },
+  { label: "Upload Document", icon: faFileAlt },
 ];
 
 /* ──────────── All entry types for the dropdown ──────────── */
@@ -40,7 +47,7 @@ export default function EntryForm({ entryType }: EntryFormProps) {
       <img
         src="/assets/wax-seal-large.png"
         alt=""
-        className="pointer-events-none absolute -right-6 -top-6 z-10 size-24 rotate-12 opacity-85 sm:size-28"
+        className="pointer-events-none absolute -right-6 -top-6 z-10 size-24 rotate-12 opacity-85 mix-blend-multiply sm:size-28"
       />
 
       {/* ───── tabs ───── */}
@@ -132,7 +139,7 @@ function ImportTab({
             type="button"
             className="gilded-border flex flex-col items-center gap-2 px-4 py-5 text-center transition-colors hover:bg-[var(--color-parchment)]"
           >
-            <span className="text-2xl">{method.icon}</span>
+            <FontAwesomeIcon icon={method.icon} className="text-3xl text-[#58180d]" />
             <span className="font-[var(--font-title)] text-sm font-bold text-[#58180d]">
               {method.label}
             </span>
