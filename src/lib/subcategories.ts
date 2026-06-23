@@ -11,8 +11,8 @@ import { getCategory } from "../types";
 const SUBCATEGORY_MAP: Record<string, string> = {
   weapon: "Weapons",
   armour: "Armour",
-  wondrous_item: "Wondrous Items",
-  magic_item: "Wondrous Items",
+  wondrous_item: "Magic Items",
+  magic_item: "Magic Items",
   potion: "Potions",
   adventuring_gear: "Adventuring Gear",
   trinket: "Trinkets",

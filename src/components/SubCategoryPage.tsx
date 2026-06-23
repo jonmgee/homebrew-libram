@@ -22,7 +22,7 @@ const hoverTransition = { type: "spring" as const, stiffness: 300, damping: 15, 
 const SUBCAT_IMAGES: Record<string, string> = {
   weapons: "/assets/weapons.webp",
   armour: "/assets/armour.webp",
-  wondrous_items: "/assets/wondrous_items.webp",
+  magic_items: "/assets/wondrous_items.webp",
   potions: "/assets/potions.webp",
   adventuring_gear: "/assets/adventuring_gear.webp",
   trinkets: "/assets/trinkets.webp",

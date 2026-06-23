@@ -102,7 +102,7 @@ export default function HomePage() {
               </h2>
               <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
                 {cat.label === "Treasure"
-                  ? "Armour, weapons, wondrous items, potions, gear, trinkets"
+                  ? "Armour, weapons, magic items, potions, gear, trinkets"
                   : cat.label === "Arcana"
                     ? "Spells and scrolls"
                     : cat.label === "Creatures"

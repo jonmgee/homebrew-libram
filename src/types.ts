@@ -78,7 +78,7 @@ export function getCategory(slug: string): Category | undefined {
 const ENTRY_TYPE_LABELS: Record<string, string> = {
   armour: "Armour",
   weapon: "Weapon",
-  wondrous_item: "Wondrous Item",
+  wondrous_item: "Magic Item",
   potion: "Potion",
   adventuring_gear: "Adventuring Gear",
   trinket: "Trinket",
