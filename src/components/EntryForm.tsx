@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -6,9 +6,13 @@ import {
   faImage,
   faFilePdf,
   faFileAlt,
+  faSave,
+  faTimes,
+  faUpload,
 } from "@fortawesome/free-solid-svg-icons";
 import { formatEntryType, CATEGORIES } from "../types";
 import type { EntryType } from "../types";
+import { supabase } from "../lib/supabase";
 
 /* ──────────── Props ──────────── */
 interface EntryFormProps {
@@ -93,17 +97,344 @@ export default function EntryForm({ entryType }: EntryFormProps) {
   );
 }
 
+/* ──────── Simple tag input hook ──────── */
+function useTagInput(initial: string[] = []) {
+  const [tags, setTags] = useState<string[]>(initial);
+  const [input, setInput] = useState("");
+
+  const addTag = (raw: string) => {
+    const tag = raw.trim();
+    if (tag && !tags.includes(tag)) {
+      setTags((prev) => [...prev, tag]);
+    }
+    setInput("");
+  };
+
+  const removeTag = (tag: string) => {
+    setTags((prev) => prev.filter((t) => t !== tag));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      addTag(input);
+    }
+    if (e.key === "Backspace" && !input && tags.length > 0) {
+      removeTag(tags[tags.length - 1]!);
+    }
+  };
+
+  const resetTags = () => setTags([]);
+  return { tags, input, setInput, addTag, removeTag, handleKeyDown, resetTags };
+}
+
+/* ──────── Rarity values (with None) ──────── */
+const RARITY_WITH_NONE = ["", "common", "uncommon", "rare", "very rare", "legendary", "artifact"] as const;
+
+const RARITY_LABELS: Record<string, string> = {
+  "": "None",
+  common: "Common",
+  uncommon: "Uncommon",
+  rare: "Rare",
+  "very rare": "Very Rare",
+  legendary: "Legendary",
+  artifact: "Artifact",
+};
+
+/* ──────── Which entry types get the treasure form ──────── */
+const TREASURE_TYPES: EntryType[] = [
+  "magic_item", "wondrous_item", "weapon", "armour", "potion", "adventuring_gear", "trinket",
+];
+
 /* ──────── Manual Entry tab ──────── */
 function ManualEntryTab({ entryType }: { entryType: EntryType }) {
+  const isTreasure = TREASURE_TYPES.includes(entryType);
+
+  if (!isTreasure) {
+    return (
+      <div className="min-h-[120px]">
+        <h2 className="font-[var(--font-title)] text-lg font-bold text-[#58180d]">
+          {formatEntryType(entryType)}
+        </h2>
+        <p className="mt-2 text-sm italic text-[#766649]">
+          Form fields for this entry type coming soon
+        </p>
+      </div>
+    );
+  }
+
+  return <TreasureForm entryType={entryType} />;
+}
+
+/* ──────── Shared form for Magic Item / Weapon / Armour / Potion / Adventuring Gear / Trinket ──────── */
+function TreasureForm({ entryType }: { entryType: EntryType }) {
+  const [name, setName] = useState("");
+  const [rarity, setRarity] = useState("");
+  const [attunement, setAttunement] = useState(false);
+  const [attunementBy, setAttunementBy] = useState("");
+  const [description, setDescription] = useState("");
+  const tags = useTagInput();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      // Build properties object
+      const properties: Record<string, unknown> = {};
+      if (rarity) properties.rarity = rarity;
+      properties.requires_attunement = attunement;
+      if (attunement && attunementBy.trim()) {
+        properties.attunement_by = attunementBy.trim();
+      }
+
+      // Image: try to upload to Supabase Storage
+      let imageUrl: string | null = null;
+      if (imageFile) {
+        const ext = imageFile.name.split(".").pop() ?? "png";
+        const filename = `${crypto.randomUUID()}.${ext}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("entry-images")
+          .upload(filename, imageFile);
+        if (!uploadError && uploadData) {
+          const { data: publicUrl } = supabase.storage
+            .from("entry-images")
+            .getPublicUrl(filename);
+          imageUrl = publicUrl.publicUrl;
+          properties.image_url = imageUrl;
+        } else {
+          // Fallback: store as data URL in properties
+          properties.image_data = imagePreview;
+        }
+      }
+
+      const { error: insertError } = await supabase.from("entries").insert({
+        name: name.trim(),
+        type: entryType,
+        description: description.trim(),
+        tags: tags.tags,
+        properties,
+      });
+
+      if (insertError) throw insertError;
+
+      setSuccess(true);
+      // Reset form
+      setName("");
+      setRarity("");
+      setAttunement(false);
+      setAttunementBy("");
+      setDescription("");
+      tags.resetTags();
+      setImageFile(null);
+      setImagePreview(null);
+    } catch (err) {
+      console.error("Save error:", err);
+      setError(err instanceof Error ? err.message : "Failed to save entry");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /* ────────── Shared label style ────────── */
+  const labelCls = "mb-1 block font-[var(--font-title)] text-sm font-bold text-[#58180d]";
+  const inputCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600";
+  const selectCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600";
+  const textareaCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600 min-h-[100px] resize-y";
+
   return (
-    <div className="min-h-[200px]">
-      <h2 className="font-[var(--font-title)] text-lg font-bold text-[#58180d]">
-        {formatEntryType(entryType)}
-      </h2>
-      <p className="mt-2 text-sm italic text-[#766649]">
-        Form fields coming soon
-      </p>
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* ───── Success banner ───── */}
+      {success && (
+        <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">
+          Entry saved successfully!
+        </div>
+      )}
+
+      {/* ───── Error banner ───── */}
+      {error && (
+        <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">
+          {error}
+        </div>
+      )}
+
+      {/* ───── Name ───── */}
+      <div>
+        <label className={labelCls}>Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="e.g. Flame Tongue Longsword"
+          className={inputCls}
+          required
+        />
+      </div>
+
+      {/* ───── Rarity ───── */}
+      <div>
+        <label className={labelCls}>Rarity</label>
+        <select
+          value={rarity}
+          onChange={(e) => setRarity(e.target.value)}
+          className={selectCls}
+        >
+          {RARITY_WITH_NONE.map((r) => (
+            <option key={r} value={r}>
+              {RARITY_LABELS[r]}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* ───── Attunement ───── */}
+      <div>
+        <label className={labelCls}>Attunement</label>
+        <div className="flex items-center gap-4">
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="radio"
+              name="attunement"
+              checked={!attunement}
+              onChange={() => setAttunement(false)}
+              className="accent-amber-700"
+            />
+            <span className="text-sm font-[var(--font-phb)] text-[var(--color-ink)]">No</span>
+          </label>
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="radio"
+              name="attunement"
+              checked={attunement}
+              onChange={() => setAttunement(true)}
+              className="accent-amber-700"
+            />
+            <span className="text-sm font-[var(--font-phb)] text-[var(--color-ink)]">Yes</span>
+          </label>
+        </div>
+        {attunement && (
+          <input
+            type="text"
+            value={attunementBy}
+            onChange={(e) => setAttunementBy(e.target.value)}
+            placeholder="Attunement by whom (optional)"
+            className={`mt-2 ${inputCls}`}
+          />
+        )}
+      </div>
+
+      {/* ───── Description ───── */}
+      <div>
+        <label className={labelCls}>Description</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Describe the item, its history, and any special properties…"
+          className={textareaCls}
+        />
+      </div>
+
+      {/* ───── Tags ───── */}
+      <div>
+        <label className={labelCls}>Tags</label>
+        <div className="flex flex-wrap gap-1.5">
+          {tags.tags.map((tag) => (
+            <span
+              key={tag}
+              className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => tags.removeTag(tag)}
+                className="ml-0.5 text-[#766649] hover:text-[#58180d]"
+              >
+                <FontAwesomeIcon icon={faTimes} className="size-2.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <input
+          type="text"
+          value={tags.input}
+          onChange={(e) => tags.setInput(e.target.value)}
+          onKeyDown={tags.handleKeyDown}
+          onBlur={() => { if (tags.input.trim()) tags.addTag(tags.input); }}
+          placeholder="Type a tag and press Enter or comma…"
+          className={`mt-1.5 ${inputCls}`}
+        />
+      </div>
+
+      {/* ───── Image upload ───── */}
+      <div>
+        <label className={labelCls}>Image</label>
+        <div
+          onClick={() => fileRef.current?.click()}
+          className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6 text-center transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)]"
+        >
+          {imagePreview ? (
+            <img src={imagePreview} alt="Preview" className="max-h-40 rounded object-contain" />
+          ) : (
+            <>
+              <FontAwesomeIcon icon={faUpload} className="text-2xl text-[#766649]" />
+              <span className="font-[var(--font-phb)] text-sm text-[#766649]">
+                Click to upload an image
+              </span>
+            </>
+          )}
+          {imageFile && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setImageFile(null);
+                setImagePreview(null);
+                if (fileRef.current) fileRef.current.value = "";
+              }}
+              className="text-xs text-red-600 hover:text-red-800"
+            >
+              Remove
+            </button>
+          )}
+        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImage}
+          className="hidden"
+        />
+      </div>
+
+      {/* ───── Save button ───── */}
+      <div className="pt-2">
+        <button
+          type="submit"
+          disabled={saving || !name.trim()}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-4 py-2.5 text-sm font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <FontAwesomeIcon icon={faSave} />
+          {saving ? "Saving…" : "Save Entry"}
+        </button>
+      </div>
+    </form>
   );
 }
 
