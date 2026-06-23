@@ -13,6 +13,7 @@ import {
 import { formatEntryType, CATEGORIES, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
 import type { EntryType } from "../types";
 import { supabase } from "../lib/supabase";
+import MonsterForm from "./MonsterForm";
 
 /* ──────────── Props ──────────── */
 interface EntryFormProps {
@@ -239,11 +240,14 @@ const SIMPLE_TYPES: EntryType[] = ["npc", "background", "feat"];
 /* ──────── Arcana types (Spell, Scroll) ──────── */
 const ARCANA_TYPES: EntryType[] = ["spell", "scroll"];
 
+const MONSTER_TYPES: EntryType[] = ["monster"];
+
 /* ──────── Manual Entry tab ──────── */
 function ManualEntryTab({ entryType }: { entryType: EntryType }) {
   if (TREASURE_TYPES.includes(entryType)) return <TreasureForm entryType={entryType} />;
   if (SIMPLE_TYPES.includes(entryType)) return <SimpleForm entryType={entryType} />;
   if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} />;
+  if (MONSTER_TYPES.includes(entryType)) return <MonsterForm />;
 
   return (
     <div className="min-h-[120px]">
