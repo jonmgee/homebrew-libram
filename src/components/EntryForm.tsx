@@ -40,7 +40,7 @@ export default function EntryForm({ entryType }: EntryFormProps) {
       <img
         src="/assets/wax-seal.png"
         alt=""
-        className="pointer-events-none absolute -right-3 -top-3 z-10 size-10 rotate-12 opacity-80 sm:size-12"
+        className="pointer-events-none absolute -top-2 right-0 z-10 size-14 rotate-12 opacity-80 sm:size-16"
       />
 
       {/* ───── tabs ───── */}
@@ -148,7 +148,7 @@ function ImportTab({
         <select
           value={importType}
           onChange={(e) => setImportType(e.target.value)}
-          className="w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-3 py-2 text-sm text-[#1a1a1a] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600"
+          className="w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600"
         >
           <option value="auto">Auto-detect</option>
           {ALL_TYPES.map((t) => (
