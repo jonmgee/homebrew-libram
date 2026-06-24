@@ -42,10 +42,28 @@ const ALL_TYPES: EntryType[] = [
   "spell", "scroll", "monster", "npc", "background", "feat", "subclass", "table",
 ];
 
+/* ──────────── Magic item parse result shape ──────────── */
+interface MagicItemParseResult {
+  name: string | null;
+  rarity: string;
+  attunement: boolean;
+  attunement_by: string | null;
+  description: string | null;
+  tags: string[];
+}
+
 /* ──────────── Component ──────────── */
 export default function EntryForm({ entryType }: EntryFormProps) {
   const [activeTab, setActiveTab] = useState<TabId>("manual");
   const [importType, setImportType] = useState<EntryType>(entryType);
+  const [parsedData, setParsedData] = useState<MagicItemParseResult | null>(null);
+  const [prepopKey, setPrepopKey] = useState(0);
+
+  const handleParsed = (data: MagicItemParseResult) => {
+    setParsedData(data);
+    setPrepopKey((k) => k + 1);
+    setActiveTab("manual");
+  };
 
   return (
     <div>
@@ -88,9 +106,17 @@ export default function EntryForm({ entryType }: EntryFormProps) {
             exit={{ opacity: 0, transition: { duration: 0.15 } }}
           >
             {activeTab === "manual" ? (
-              <ManualEntryTab entryType={entryType} />
+              <ManualEntryTab
+                key={prepopKey}
+                entryType={entryType}
+                parsedData={parsedData}
+              />
             ) : (
-              <ImportTab importType={importType} setImportType={setImportType} />
+              <ImportTab
+                importType={importType}
+                setImportType={setImportType}
+                onParsed={handleParsed}
+              />
             )}
           </motion.div>
         </AnimatePresence>
@@ -248,8 +274,8 @@ const SUBCLASS_TYPES: EntryType[] = ["subclass"];
 const TABLE_TYPES: EntryType[] = ["table"];
 
 /* ──────── Manual Entry tab ──────── */
-function ManualEntryTab({ entryType }: { entryType: EntryType }) {
-  if (TREASURE_TYPES.includes(entryType)) return <TreasureForm entryType={entryType} />;
+function ManualEntryTab({ entryType, parsedData }: { entryType: EntryType; parsedData?: MagicItemParseResult | null }) {
+  if (TREASURE_TYPES.includes(entryType)) return <TreasureForm entryType={entryType} parsedData={parsedData} />;
   if (SIMPLE_TYPES.includes(entryType)) return <SimpleForm entryType={entryType} />;
   if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} />;
   if (MONSTER_TYPES.includes(entryType)) return <MonsterForm />;
@@ -638,7 +664,7 @@ function TableForm() {
 }
 
 /* ──────── Shared form for Magic Item / Weapon / Armour / Potion / Adventuring Gear / Trinket ──────── */
-function TreasureForm({ entryType }: { entryType: EntryType }) {
+function TreasureForm({ entryType, parsedData }: { entryType: EntryType; parsedData?: MagicItemParseResult | null }) {
   const [name, setName] = useState("");
   const [rarity, setRarity] = useState("");
   const [attunement, setAttunement] = useState(false);
@@ -650,7 +676,27 @@ function TreasureForm({ entryType }: { entryType: EntryType }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [prepopNotice, setPrepopNotice] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Pre-populate from parsed data
+  useEffect(() => {
+    if (parsedData) {
+      setName(parsedData.name ?? "");
+      setRarity(parsedData.rarity ?? "");
+      setAttunement(parsedData.attunement);
+      setAttunementBy(parsedData.attunement_by ?? "");
+      setDescription(parsedData.description ?? "");
+      // Reset tags then add parsed ones
+      tags.resetTags();
+      for (const t of parsedData.tags) {
+        tags.addTag(t);
+      }
+      setPrepopNotice(true);
+      setTimeout(() => setPrepopNotice(false), 6000);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parsedData]);
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -742,6 +788,13 @@ function TreasureForm({ entryType }: { entryType: EntryType }) {
       {error && (
         <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">
           {error}
+        </div>
+      )}
+
+      {/* ───── Pre-population notice ───── */}
+      {prepopNotice && (
+        <div className="rounded-lg border border-amber-600/30 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          ✨ Fields pre-populated from import. Please review and correct before saving.
         </div>
       )}
 
@@ -901,13 +954,129 @@ function TreasureForm({ entryType }: { entryType: EntryType }) {
 }
 
 /* ──────── Import tab ──────── */
+/* ──────── Client-side helpers ──────── */
+async function extractPdfText(file: File): Promise<string> {
+  const pdfjsLib = await import("pdfjs-dist");
+  const version = (await import("pdfjs-dist/package.json")).version;
+  /* v8 ignore next 3 */
+  if (typeof window !== "undefined") {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.mjs`;
+  }
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text +=
+      content.items
+        .map((item) => ("str" in item ? item.str ?? "" : ""))
+        .join(" ") + "\n";
+  }
+  return text;
+}
+
+async function extractDocText(file: File): Promise<string> {
+  const mammoth = await import("mammoth");
+  const arrayBuffer = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer });
+  return result.value;
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const comma = result.indexOf(",");
+      resolve(comma !== -1 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function callParseApi(payload: {
+  text?: string;
+  image?: string;
+  entryType: EntryType;
+}): Promise<MagicItemParseResult> {
+  const res = await fetch("/api/parse-entry", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(err.error ?? "Parse request failed");
+  }
+  return res.json();
+}
+
+/* ──────── Import tab ──────── */
 function ImportTab({
   importType,
   setImportType,
+  onParsed,
 }: {
   importType: EntryType;
   setImportType: (v: EntryType) => void;
+  onParsed: (data: MagicItemParseResult) => void;
 }) {
+  const [activeMethod, setActiveMethod] = useState<string | null>(null);
+  const [pasteText, setPasteText] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
+
+  const handleParse = async () => {
+    setParsing(true);
+    setParseError(null);
+
+    try {
+      const payload: { text?: string; image?: string; entryType: EntryType } = {
+        entryType: importType,
+      };
+
+      switch (activeMethod) {
+        case "Paste Text":
+          if (!pasteText.trim()) throw new Error("Please paste some content first");
+          payload.text = pasteText.trim();
+          break;
+        case "Upload Image":
+          if (!imageFile) throw new Error("Please select an image first");
+          payload.image = await fileToBase64(imageFile);
+          break;
+        case "Upload PDF":
+          if (!pdfInputRef.current?.files?.length) throw new Error("Please select a PDF first");
+          payload.text = await extractPdfText(pdfInputRef.current.files[0]!);
+          break;
+        case "Upload Document":
+          if (!docInputRef.current?.files?.length) throw new Error("Please select a document first");
+          payload.text = await extractDocText(docInputRef.current.files[0]!);
+          break;
+        default:
+          throw new Error("Select an import method first");
+      }
+
+      const result = await callParseApi(payload);
+      onParsed(result);
+    } catch (err) {
+      setParseError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setImageFile(file);
+  };
+
   return (
     <div>
       <h2 className="font-[var(--font-title)] text-base font-bold text-[#58180d]">
@@ -919,19 +1088,123 @@ function ImportTab({
 
       {/* ───── method cards ───── */}
       <div className="grid grid-cols-2 gap-3">
-        {IMPORT_METHODS.map((method) => (
-          <button
-            key={method.label}
-            type="button"
-            className="gilded-border flex flex-col items-center gap-2 px-4 py-5 text-center transition-colors hover:bg-[var(--color-parchment)]"
-          >
-            <FontAwesomeIcon icon={method.icon} className="text-3xl text-[#58180d]" />
-            <span className="font-[var(--font-title)] text-sm font-bold text-[#58180d]">
-              {method.label}
-            </span>
-          </button>
-        ))}
+        {IMPORT_METHODS.map((method) => {
+          const isActive = activeMethod === method.label;
+          return (
+            <button
+              key={method.label}
+              type="button"
+              disabled={parsing}
+              onClick={() => {
+                setActiveMethod(isActive ? null : method.label);
+                setParseError(null);
+              }}
+              className={`gilded-border flex flex-col items-center gap-2 px-4 py-5 text-center transition-colors ${
+                isActive
+                  ? "border-amber-600 bg-[var(--color-parchment)] ring-1 ring-amber-600"
+                  : "hover:bg-[var(--color-parchment)]"
+              } disabled:opacity-50`}
+            >
+              <FontAwesomeIcon icon={method.icon} className="text-3xl text-[#58180d]" />
+              <span className="font-[var(--font-title)] text-sm font-bold text-[#58180d]">
+                {method.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
+
+      {/* ───── active method input area ───── */}
+      {activeMethod === "Paste Text" && (
+        <div className="mt-4">
+          <label className="mb-1 block text-xs font-medium text-[#766649]">
+            Paste your magic item description below
+          </label>
+          <textarea
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+            placeholder="Paste item description, stat block, or flavour text…"
+            className="w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600 min-h-[120px] resize-y"
+          />
+        </div>
+      )}
+
+      {activeMethod === "Upload Image" && (
+        <div className="mt-4">
+          <label className="mb-1 block text-xs font-medium text-[#766649]">
+            Upload an image of a magic item description
+          </label>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="w-full text-sm font-[var(--font-phb)] text-[#58180d] file:mr-3 file:rounded-lg file:border file:border-[var(--color-gilding-dark)] file:bg-[var(--color-parchment)] file:px-3 file:py-1.5 file:text-sm file:font-[var(--font-phb)] file:text-[#58180d] hover:file:bg-[var(--color-parchment-light)]"
+          />
+          {imageFile && (
+            <p className="mt-1 text-xs text-[#766649]">
+              Selected: {imageFile.name} ({(imageFile.size / 1024).toFixed(0)} KB)
+            </p>
+          )}
+        </div>
+      )}
+
+      {activeMethod === "Upload PDF" && (
+        <div className="mt-4">
+          <label className="mb-1 block text-xs font-medium text-[#766649]">
+            Upload a PDF containing a magic item description
+          </label>
+          <input
+            ref={pdfInputRef}
+            type="file"
+            accept=".pdf"
+            className="w-full text-sm font-[var(--font-phb)] text-[#58180d] file:mr-3 file:rounded-lg file:border file:border-[var(--color-gilding-dark)] file:bg-[var(--color-parchment)] file:px-3 file:py-1.5 file:text-sm file:font-[var(--font-phb)] file:text-[#58180d] hover:file:bg-[var(--color-parchment-light)]"
+          />
+        </div>
+      )}
+
+      {activeMethod === "Upload Document" && (
+        <div className="mt-4">
+          <label className="mb-1 block text-xs font-medium text-[#766649]">
+            Upload a Word document (.docx) containing a magic item description
+          </label>
+          <input
+            ref={docInputRef}
+            type="file"
+            accept=".docx"
+            className="w-full text-sm font-[var(--font-phb)] text-[#58180d] file:mr-3 file:rounded-lg file:border file:border-[var(--color-gilding-dark)] file:bg-[var(--color-parchment)] file:px-3 file:py-1.5 file:text-sm file:font-[var(--font-phb)] file:text-[#58180d] hover:file:bg-[var(--color-parchment-light)]"
+          />
+        </div>
+      )}
+
+      {/* ───── parse error ───── */}
+      {parseError && (
+        <div className="mt-4 rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">
+          {parseError}
+        </div>
+      )}
+
+      {/* ───── parse button ───── */}
+      {activeMethod && (
+        <button
+          type="button"
+          disabled={parsing}
+          onClick={handleParse}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-4 py-2.5 text-sm font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {parsing ? (
+            <>
+              <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Parsing…
+            </>
+          ) : (
+            "Parse & Pre-fill"
+          )}
+        </button>
+      )}
 
       {/* ───── entry type dropdown ───── */}
       <div className="mt-5">
