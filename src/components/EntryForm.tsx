@@ -1118,7 +1118,7 @@ function ImportTab({
       {activeMethod === "Paste Text" && (
         <div className="mt-4">
           <label className="mb-1 block text-xs font-medium text-[#766649]">
-            Paste your magic item description below
+            Paste your {formatEntryType(importType).toLowerCase()} description below
           </label>
           <textarea
             value={pasteText}
@@ -1132,7 +1132,7 @@ function ImportTab({
       {activeMethod === "Upload Image" && (
         <div className="mt-4">
           <label className="mb-1 block text-xs font-medium text-[#766649]">
-            Upload an image of a magic item description
+            Upload an image of a {formatEntryType(importType).toLowerCase()} description
           </label>
           <input
             ref={imageInputRef}
@@ -1152,7 +1152,7 @@ function ImportTab({
       {activeMethod === "Upload PDF" && (
         <div className="mt-4">
           <label className="mb-1 block text-xs font-medium text-[#766649]">
-            Upload a PDF containing a magic item description
+            Upload a PDF containing a {formatEntryType(importType).toLowerCase()} description
           </label>
           <input
             ref={pdfInputRef}
@@ -1166,7 +1166,7 @@ function ImportTab({
       {activeMethod === "Upload Document" && (
         <div className="mt-4">
           <label className="mb-1 block text-xs font-medium text-[#766649]">
-            Upload a Word document (.docx) containing a magic item description
+            Upload a Word document (.docx) containing a {formatEntryType(importType).toLowerCase()} description
           </label>
           <input
             ref={docInputRef}
@@ -1198,10 +1198,10 @@ function ImportTab({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Parsing…
+              Transcribing…
             </>
           ) : (
-            "Parse & Pre-fill"
+            "Transcribe"
           )}
         </button>
       )}
