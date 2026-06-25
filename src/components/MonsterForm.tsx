@@ -1,4 +1,4 @@
-import { useState, useRef, type FormEvent } from "react";
+import { useState, useRef, useEffect, type FormEvent } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSave, faTimes, faUpload, faPlus, faTrash,
@@ -125,7 +125,7 @@ export function RepeatBlock({ items, onChange, onRemove, onAdd, namePh, descPh, 
 }
 
 /* ───── MonsterForm ───── */
-export default function MonsterForm() {
+export default function MonsterForm({ parsedData }: { parsedData?: Record<string, unknown> | null } = {}) {
   /* Core */
   const [name, setName] = useState("");
   const [size, setSize] = useState("");
@@ -212,7 +212,68 @@ export default function MonsterForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string|null>(null);
   const [success, setSuccess] = useState(false);
+  const [prepopNotice, setPrepopNotice] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Pre-populate from parsed data
+  useEffect(() => {
+    if (!parsedData) return;
+    if (typeof parsedData.name === "string") setName(parsedData.name);
+    if (typeof parsedData.size === "string") setSize(parsedData.size);
+    if (typeof parsedData.creature_type === "string") setCreatureType(parsedData.creature_type);
+    if (typeof parsedData.alignment === "string") setAlignment(parsedData.alignment);
+    if (typeof parsedData.cr === "string") setCr(parsedData.cr);
+    if (typeof parsedData.ac === "string") setAc(parsedData.ac);
+    if (typeof parsedData.hp === "string") setHp(parsedData.hp);
+    if (typeof parsedData.speed === "string") setSpeed(parsedData.speed);
+    if (typeof parsedData.ability_str === "number") setStr(parsedData.ability_str);
+    if (typeof parsedData.ability_dex === "number") setDex(parsedData.ability_dex);
+    if (typeof parsedData.ability_con === "number") setCon(parsedData.ability_con);
+    if (typeof parsedData.ability_int === "number") setIntel(parsedData.ability_int);
+    if (typeof parsedData.ability_wis === "number") setWis(parsedData.ability_wis);
+    if (typeof parsedData.ability_cha === "number") setCha(parsedData.ability_cha);
+    if (typeof parsedData.saving_throws === "string") {
+      // Parse save proficiencies from comma-separated string
+      const savesStr = typeof parsedData!.saving_throws === 'string' ? parsedData!.saving_throws.toLowerCase() : '';
+      setSaveProfs(prev => ({ ...prev, ...Object.fromEntries(ABILITIES.map(a => [a, savesStr.includes(a.toLowerCase())])) }));
+    }
+    if (typeof parsedData.skills === "string") {
+      // Parse skill proficiencies
+      setSkillProfs(parsedData.skills.split(",").map(s => s.trim().split(" ").slice(0, -1).join(" ")).filter(s => SKILL_LIST.includes(s)));
+    }
+    if (typeof parsedData.damage_vulnerabilities === "string") vuln.tags.forEach(() => {}); // tag handling below
+    if (typeof parsedData.damage_resistances === "string") resist.tags.forEach(() => {});
+    if (typeof parsedData.damage_immunities === "string") immune.tags.forEach(() => {});
+    if (typeof parsedData.condition_immunities === "string") condImm.tags.forEach(() => {});
+    if (typeof parsedData.damage_vulnerabilities === "string") parsedData.damage_vulnerabilities.split(",").forEach((t: string) => vuln.add(t.trim()));
+    if (typeof parsedData.damage_resistances === "string") parsedData.damage_resistances.split(",").forEach((t: string) => resist.add(t.trim()));
+    if (typeof parsedData.damage_immunities === "string") parsedData.damage_immunities.split(",").forEach((t: string) => immune.add(t.trim()));
+    if (typeof parsedData.condition_immunities === "string") parsedData.condition_immunities.split(",").forEach((t: string) => condImm.add(t.trim()));
+    if (typeof parsedData.senses === "string") setSenses(parsedData.senses);
+    if (typeof parsedData.languages === "string") setLanguages(parsedData.languages);
+    if (Array.isArray(parsedData.traits)) setTraits(parsedData.traits as {name:string;desc:string}[]);
+    if (Array.isArray(parsedData.actions)) setActions(parsedData.actions as {name:string;desc:string}[]);
+    if (Array.isArray(parsedData.bonus_actions)) setBonusActions(parsedData.bonus_actions as {name:string;desc:string}[]);
+    if (Array.isArray(parsedData.reactions)) setReactions(parsedData.reactions as {name:string;desc:string}[]);
+    if (typeof parsedData.legendary_actions === "object" && parsedData.legendary_actions !== null) {
+      const la = parsedData.legendary_actions as {per_round?: number; actions?: {name:string;desc:string}[]};
+      if (typeof la.per_round === "number") setLegPer(la.per_round);
+      if (Array.isArray(la.actions) && la.actions.length > 0) {
+        setLegActs(la.actions as {name:string;desc:string}[]);
+        setHasLeg(true);
+      }
+    }
+    if (typeof parsedData.description === "string") setDescription(parsedData.description);
+    if (Array.isArray(parsedData.tags)) {
+      tags.reset();
+      for (const t of parsedData.tags) {
+        if (typeof t === "string") tags.add(t);
+      }
+    }
+    setPrepopNotice(true);
+    setTimeout(() => setPrepopNotice(false), 6000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parsedData]);
 
   const getSave = (a: string): number => { const m = abilMod(abilScores[a]??10); return saveProfs[a] ? m+profBonus : m; };
   const getSkill = (s: string): number => { const abb = SKILL_ABIL[s]!; return skillProfs.includes(s) ? abilMod(abilScores[abb]??10)+profBonus : abilMod(abilScores[abb]??10); };
@@ -303,6 +364,11 @@ export default function MonsterForm() {
     <form onSubmit={handleSubmit} className="space-y-1">
       {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
       {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
+      {prepopNotice && (
+        <div className="rounded-lg border border-amber-600/30 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          ✨ Fields pre-populated from import. Please review and correct before saving.
+        </div>
+      )}
 
       <h3 className={sectionHeadingCls}>Core Identity</h3>
       <div className="grid grid-cols-2 gap-4">

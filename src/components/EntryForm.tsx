@@ -42,24 +42,17 @@ const ALL_TYPES: EntryType[] = [
   "spell", "scroll", "monster", "npc", "background", "feat", "subclass", "table",
 ];
 
-/* ──────────── Magic item parse result shape ──────────── */
-interface MagicItemParseResult {
-  name: string | null;
-  rarity: string;
-  attunement: boolean;
-  attunement_by: string | null;
-  description: string | null;
-  tags: string[];
-}
+/* ──────────── Generic parse result from API — any type-specific fields ──────────── */
+type ParseResult = Record<string, unknown>;
 
 /* ──────────── Component ──────────── */
 export default function EntryForm({ entryType }: EntryFormProps) {
   const [activeTab, setActiveTab] = useState<TabId>("manual");
   const [importType, setImportType] = useState<EntryType>(entryType);
-  const [parsedData, setParsedData] = useState<MagicItemParseResult | null>(null);
+  const [parsedData, setParsedData] = useState<ParseResult | null>(null);
   const [prepopKey, setPrepopKey] = useState(0);
 
-  const handleParsed = (data: MagicItemParseResult) => {
+  const handleParsed = (data: ParseResult) => {
     setParsedData(data);
     setPrepopKey((k) => k + 1);
     setActiveTab("manual");
@@ -274,13 +267,13 @@ const SUBCLASS_TYPES: EntryType[] = ["subclass"];
 const TABLE_TYPES: EntryType[] = ["table"];
 
 /* ──────── Manual Entry tab ──────── */
-function ManualEntryTab({ entryType, parsedData }: { entryType: EntryType; parsedData?: MagicItemParseResult | null }) {
+function ManualEntryTab({ entryType, parsedData }: { entryType: EntryType; parsedData?: ParseResult | null }) {
   if (TREASURE_TYPES.includes(entryType)) return <TreasureForm entryType={entryType} parsedData={parsedData} />;
-  if (SIMPLE_TYPES.includes(entryType)) return <SimpleForm entryType={entryType} />;
-  if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} />;
-  if (MONSTER_TYPES.includes(entryType)) return <MonsterForm />;
-  if (SUBCLASS_TYPES.includes(entryType)) return <SubclassForm />;
-  if (TABLE_TYPES.includes(entryType)) return <TableForm />;
+  if (SIMPLE_TYPES.includes(entryType)) return <SimpleForm entryType={entryType} parsedData={parsedData} />;
+  if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} parsedData={parsedData} />;
+  if (MONSTER_TYPES.includes(entryType)) return <MonsterForm parsedData={parsedData ?? undefined} />;
+  if (SUBCLASS_TYPES.includes(entryType)) return <SubclassForm parsedData={parsedData} />;
+  if (TABLE_TYPES.includes(entryType)) return <TableForm parsedData={parsedData} />;
 
   return (
     <div className="min-h-[120px]">
@@ -295,7 +288,7 @@ function ManualEntryTab({ entryType, parsedData }: { entryType: EntryType; parse
 }
 
 /* ──────── Subclass form ──────── */
-function SubclassForm() {
+function SubclassForm({ parsedData }: { parsedData?: ParseResult | null }) {
   const [name, setName] = useState("");
   const [parentClass, setParentClass] = useState("");
   const [description, setDescription] = useState("");
@@ -305,7 +298,31 @@ function SubclassForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [prepopNotice, setPrepopNotice] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Pre-populate from parsed data
+  useEffect(() => {
+    if (!parsedData) return;
+    if (typeof parsedData.name === "string") setName(parsedData.name);
+    if (typeof parsedData.parent_class === "string") setParentClass(parsedData.parent_class);
+    if (typeof parsedData.description === "string") setDescription(parsedData.description);
+    if (Array.isArray(parsedData.level_features)) {
+      setFeatures(parsedData.level_features.map((f: unknown) => ({
+        level: typeof (f as any).level === "number" ? (f as any).level : 1,
+        desc: typeof (f as any).desc === "string" ? (f as any).desc : "",
+      })));
+    }
+    if (Array.isArray(parsedData.tags)) {
+      tags.resetTags();
+      for (const t of parsedData.tags) {
+        if (typeof t === "string") tags.addTag(t);
+      }
+    }
+    setPrepopNotice(true);
+    setTimeout(() => setPrepopNotice(false), 6000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parsedData]);
 
   // ── Level Features ──
   const [features, setFeatures] = useState<{ level: number; desc: string }[]>([]);
@@ -377,6 +394,16 @@ function SubclassForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
       {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
+      {prepopNotice && (
+        <div className="rounded-lg border border-amber-600/30 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          ✨ Fields pre-populated from import. Please review and correct before saving.
+        </div>
+      )}
+
+      <div>
+        <label className={labelCls}>Name</label>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. School of Evocation" className={inputCls} required />
+      </div>
 
       <div>
         <label className={labelCls}>Name</label>
@@ -446,7 +473,7 @@ function dieRowCount(die: string): number {
 }
 
 /* ──────── Table form ──────── */
-function TableForm() {
+function TableForm({ parsedData }: { parsedData?: ParseResult | null }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [dieType, setDieType] = useState("");
@@ -457,7 +484,35 @@ function TableForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [prepopNotice, setPrepopNotice] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Pre-populate from parsed data
+  useEffect(() => {
+    if (!parsedData) return;
+    if (typeof parsedData.name === "string") setName(parsedData.name);
+    if (typeof parsedData.description === "string") setDescription(parsedData.description);
+    if (typeof parsedData.die_type === "string") setDieType(parsedData.die_type);
+    if (Array.isArray(parsedData.columns)) setColumns(parsedData.columns.filter((c): c is string => typeof c === "string"));
+    if (Array.isArray(parsedData.rows)) {
+      const colCount = 1 + (Array.isArray(parsedData.columns) ? parsedData.columns.length : 0);
+      setCells(parsedData.rows.map((row: unknown) => {
+        if (!Array.isArray(row)) return [];
+        const r = row.map((c: unknown) => typeof c === "string" ? c : String(c));
+        while (r.length < colCount) r.push("");
+        return r;
+      }));
+    }
+    if (Array.isArray(parsedData.tags)) {
+      tags.resetTags();
+      for (const t of parsedData.tags) {
+        if (typeof t === "string") tags.addTag(t);
+      }
+    }
+    setPrepopNotice(true);
+    setTimeout(() => setPrepopNotice(false), 6000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parsedData]);
 
   const rowCount = dieType ? dieRowCount(dieType) : 0;
 
@@ -569,6 +624,11 @@ function TableForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
       {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
+      {prepopNotice && (
+        <div className="rounded-lg border border-amber-600/30 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          ✨ Fields pre-populated from import. Please review and correct before saving.
+        </div>
+      )}
 
       <div>
         <label className={labelCls}>Name</label>
@@ -664,7 +724,7 @@ function TableForm() {
 }
 
 /* ──────── Shared form for Magic Item / Weapon / Armour / Potion / Adventuring Gear / Trinket ──────── */
-function TreasureForm({ entryType, parsedData }: { entryType: EntryType; parsedData?: MagicItemParseResult | null }) {
+function TreasureForm({ entryType, parsedData }: { entryType: EntryType; parsedData?: ParseResult | null }) {
   const [name, setName] = useState("");
   const [rarity, setRarity] = useState("");
   const [attunement, setAttunement] = useState(false);
@@ -682,15 +742,18 @@ function TreasureForm({ entryType, parsedData }: { entryType: EntryType; parsedD
   // Pre-populate from parsed data
   useEffect(() => {
     if (parsedData) {
-      setName(parsedData.name ?? "");
-      setRarity(parsedData.rarity ?? "");
-      setAttunement(parsedData.attunement);
-      setAttunementBy(parsedData.attunement_by ?? "");
-      setDescription(parsedData.description ?? "");
+      setName(typeof parsedData.name === "string" ? parsedData.name : "");
+      setRarity(typeof parsedData.rarity === "string" ? parsedData.rarity : "");
+      setAttunement(typeof parsedData.attunement === "boolean" ? parsedData.attunement : false);
+      setAttunementBy(typeof parsedData.attunement_by === "string" ? parsedData.attunement_by : "");
+      setDescription(typeof parsedData.description === "string" ? parsedData.description : "");
       // Reset tags then add parsed ones
       tags.resetTags();
-      for (const t of parsedData.tags) {
-        tags.addTag(t);
+      const parsedTags = parsedData.tags;
+      if (Array.isArray(parsedTags)) {
+        for (const t of parsedTags) {
+          if (typeof t === "string") tags.addTag(t);
+        }
       }
       setPrepopNotice(true);
       setTimeout(() => setPrepopNotice(false), 6000);
@@ -1001,7 +1064,7 @@ async function callParseApi(payload: {
   text?: string;
   image?: string;
   entryType: EntryType;
-}): Promise<MagicItemParseResult> {
+}): Promise<ParseResult> {
   const res = await fetch("/api/parse-entry", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -1022,7 +1085,7 @@ function ImportTab({
 }: {
   importType: EntryType;
   setImportType: (v: EntryType) => void;
-  onParsed: (data: MagicItemParseResult) => void;
+  onParsed: (data: ParseResult) => void;
 }) {
   const [activeMethod, setActiveMethod] = useState<string | null>(null);
   const [pasteText, setPasteText] = useState("");
@@ -1236,7 +1299,7 @@ const inputCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg
 const textareaCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600 min-h-[100px] resize-y";
 
 /* ──────── Simple form (NPC, Background, Feat) ──────── */
-function SimpleForm({ entryType }: { entryType: EntryType }) {
+function SimpleForm({ entryType, parsedData }: { entryType: EntryType; parsedData?: ParseResult | null }) {
   const isNpc = entryType === "npc";
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -1246,7 +1309,24 @@ function SimpleForm({ entryType }: { entryType: EntryType }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [prepopNotice, setPrepopNotice] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Pre-populate from parsed data
+  useEffect(() => {
+    if (!parsedData) return;
+    if (typeof parsedData.name === "string") setName(parsedData.name);
+    if (typeof parsedData.description === "string") setDescription(parsedData.description);
+    if (Array.isArray(parsedData.tags)) {
+      tags.resetTags();
+      for (const t of parsedData.tags) {
+        if (typeof t === "string") tags.addTag(t);
+      }
+    }
+    setPrepopNotice(true);
+    setTimeout(() => setPrepopNotice(false), 6000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parsedData]);
 
   // ── Stat block state (NPC only) ──
   const [showStatBlock, setShowStatBlock] = useState(false);
@@ -1396,6 +1476,11 @@ function SimpleForm({ entryType }: { entryType: EntryType }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
       {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
+      {prepopNotice && (
+        <div className="rounded-lg border border-amber-600/30 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          ✨ Fields pre-populated from import. Please review and correct before saving.
+        </div>
+      )}
 
       <div>
         <label className={labelCls}>Name</label>
@@ -1544,7 +1629,7 @@ function SimpleForm({ entryType }: { entryType: EntryType }) {
 }
 
 /* ──────── Spell/Scroll combined form ──────── */
-function SpellScrollForm({ entryType }: { entryType: EntryType }) {
+function SpellScrollForm({ entryType, parsedData }: { entryType: EntryType; parsedData?: ParseResult | null }) {
   const [isSpell, setIsSpell] = useState(entryType === "spell");
   const [name, setName] = useState("");
   const [level, setLevel] = useState("");
@@ -1565,7 +1650,39 @@ function SpellScrollForm({ entryType }: { entryType: EntryType }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [prepopNotice, setPrepopNotice] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Pre-populate from parsed data
+  useEffect(() => {
+    if (!parsedData) return;
+    if (typeof parsedData.name === "string") setName(parsedData.name);
+    if (typeof parsedData.description === "string") setDescription(parsedData.description);
+    if (typeof parsedData.level === "string") setLevel(parsedData.level);
+    if (typeof parsedData.school === "string") setSchool(parsedData.school);
+    if (typeof parsedData.casting_time === "string") setCastingTime(parsedData.casting_time);
+    if (typeof parsedData.range === "string") setRange(parsedData.range);
+    if (typeof parsedData.duration === "string") setDuration(parsedData.duration);
+    if (typeof parsedData.concentration === "boolean") setConcentration(parsedData.concentration);
+    if (Array.isArray(parsedData.components)) {
+      setCompV(parsedData.components.includes("V"));
+      setCompS(parsedData.components.includes("S"));
+      setCompM(parsedData.components.includes("M"));
+      if (parsedData.components.includes("M") && typeof parsedData.material === "string") {
+        setMaterialDesc(parsedData.material);
+      }
+    }
+    if (typeof parsedData.rarity === "string") setRarity(parsedData.rarity);
+    if (Array.isArray(parsedData.tags)) {
+      tags.resetTags();
+      for (const t of parsedData.tags) {
+        if (typeof t === "string") tags.addTag(t);
+      }
+    }
+    setPrepopNotice(true);
+    setTimeout(() => setPrepopNotice(false), 6000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parsedData]);
 
   const components: string[] = [];
   if (compV) components.push("V");
@@ -1696,6 +1813,11 @@ function SpellScrollForm({ entryType }: { entryType: EntryType }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
       {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
+      {prepopNotice && (
+        <div className="rounded-lg border border-amber-600/30 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          ✨ Fields pre-populated from import. Please review and correct before saving.
+        </div>
+      )}
 
       {/* ───── Type toggle ───── */}
       <div>
