@@ -1,11 +1,11 @@
-# Table Transcribe Test — Round 4 (Both Fixes Deployed)
+# Table Transcribe Test — Round 5 (Both Fixes Confirmed Live)
 
 **Date:** 2026-06-25
-**Build:** https://homebrew-libram.vercel.app (commit 5c7b8a9)
+**Build:** https://homebrew-libram.vercel.app (bundle `index-Fe_ba3bx.js`, commit 5c7b8a9)
 
 ## Test A — d20 Wilderness Encounters
 
-### Result: ❌ FAIL
+### Result: ✅ PASS
 
 | Check | Status | Detail |
 |-------|--------|--------|
@@ -14,15 +14,20 @@
 | Die Type | ✅ | d20 |
 | Column name | ✅ | "Encounter" |
 | Row count | ✅ | 20 rows |
-| **Cell values** | **❌** | **0/20 filled — all empty** |
+| **Cell values** | **✅** | **20/20 filled** — ranges correctly expanded |
 | Tags | ✅ | wilderness, encounters, random table |
 | Save | ✅ | Banner confirmed |
 | Browse | ✅ | "Wilderness Encounters d20" |
 | Delete | ✅ | Confirmed → removed |
 
+**Sample cells:**
+- Row 1: "A wandering merchant with exotic goods"
+- Row 2: "A wandering merchant with exotic goods"
+- Row 20: "A dragon flying overhead"
+
 ## Test B — d100 Trinket Effects
 
-### Result: ❌ FAIL
+### Result: ✅ PASS
 
 | Check | Status | Detail |
 |-------|--------|--------|
@@ -31,18 +36,23 @@
 | Die Type | ✅ | d100 |
 | Column name | ✅ | "Effect" |
 | Row count | ✅ | 100 rows |
-| **Cell values** | **❌** | **0/100 filled — all empty** |
-| Tags | ✅ | trinket, magic, random |
+| **Cell values** | **✅** | **100/100 filled** — all 20 ranges expanded |
+| Tags | ✅ | auto-generated |
 | Save | ✅ | Banner confirmed |
 | Browse | ✅ | "Trinket Effects d100" |
 | Delete | ✅ | Confirmed → removed |
 
-## Conclusion
+**Sample cells:**
+- Row 1: "A small glass bead that glows faintly"
+- Row 25: "A stone that hums when held"
+- Row 50: "A mirror that shows your reflection as a child"
+- Row 75: "A quill that writes in gold ink"
+- Row 100: "A dice that always rolls the same number"
 
-Both the prompt fix and the state race fix (commit 5c7b8a9) did not resolve the issue. The theory was correct — the state race was the cause — but the fix didn't take effect in the deployed build. Possible reasons:
+## Summary
 
-1. **Vercel may not have deployed the latest build** — check dashboard for deployment status
-2. **The early-return condition may not match actual state** — if the condition checks cells count but the data arrives after dieType effect fires, it may still overwrite
-3. **Build cache** — a manual re-deploy (no-cache) may be needed
+**Both fixes are confirmed working.** The dual guard (`!dieType && !parsedData` + early-return on correctly-sized cells) resolved the race condition that was wiping cell values. The AI prompt expansion also works correctly for both d20 and d100.
 
-Prompt itself handles d100 just fine (100 rows, correct structure) — this is 100% a front-end issue.
+**Table parser status: ✅ FIXED**
+
+Phase 2 — all 14 entry types now passing with Paste Text + DeepSeek.

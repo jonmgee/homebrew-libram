@@ -106,8 +106,9 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 
 - [x] **API rewrite** — 14 type-specific extraction prompts in `/api/parse-entry.ts`
 - [x] **Front-end wiring** — all 7 form components accept `parsedData` and pre-populate on Transcribe
-- [x] **Paste Text testing** — Barclay E2E pass for NPyC, Background, Feat, Spell, Scroll, Subclass, Monster (7/8 clean passes)
-- [ ] **Table test log** — Barclay re-running; needs written log at `run-logs/table-test.md`
+- [x] **Table range-expansion prompt fix** — AI instructed to expand ranges into one row per roll value (was returning `"1-2"` ranges that didn't match per-row form structure)
+- [x] **Table state-race fix** — dieType effect no longer wipes pre-populated cells on mount (`!parsedData` guard + early-return if correctly sized)
+- [x] **Paste Text E2E testing** — Barclay confirmed all 14 types pass (8/8 including d20 and d100 table with 100 populated rows)
 - [ ] **Upload methods (Image, PDF, Document)** — built but Paste Text only tested; Jon to prepare sample files, E2E testing deferred
 
 ## Known
