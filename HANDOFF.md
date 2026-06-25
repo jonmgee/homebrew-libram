@@ -111,18 +111,50 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] **Paste Text E2E testing** — Barclay confirmed all 14 types pass (8/8 including d20 and d100 table with 100 populated rows)
 - [ ] **Upload methods (Image, PDF, Document)** — built but Paste Text only tested; Jon to prepare sample files, E2E testing deferred
 
+### Phase 3: Detail-view rendering (2026-06-25)
+
+- [x] Detail pages for Spell, Scroll, Monster, Subclass, Table render all structured metadata
+- [x] All renderers in separate components (SpellDetail, MonsterDetail, SubclassDetail, TableDetail)
+- [x] Barclay E2E confirmed Monster and Table 100% pass; Spell/Subclass render all available DB data
+
+### Phase 4: Import tab redesign + save flow + create page overhaul (2026-06-25)
+
+#### Save redirects
+- [x] All 14 forms redirect to `/entry/:id?saved=1` after successful save
+- [x] Detail page shows green "Entry saved successfully!" banner (auto-dismisses after 4s, clears URL param)
+- [x] Fixed React hook ordering bug that blanked the page on first deploy
+
+#### Import tab redesign
+- [x] Replaced 4-card method selector with unified paste area (text + clipboard images)
+- [x] Single Upload File button accepting .jpg, .jpeg, .png, .pdf, .docx
+- [x] Backend auto-detects file type from mime — user doesn't pre-select
+- [x] One Transcribe button for whichever input has content
+- [x] Removed redundant "Entry Type (optional)" dropdown at bottom of Import tab (subtype dropdown at top determines type)
+
+#### Clipboard paste for images
+- [x] Screenshots and other clipboard images auto-populate preview thumbnail
+- [x] Works via Cmd+V anywhere on the Import tab
+
+#### Drag-and-drop file upload
+- [x] Drag images, PDFs, or Word docs onto Import tab paste area
+- [x] Counter-based overlay eliminates flickering from child-element enter/leave
+- [x] Document-level dragover+drop preventDefault stops browser from opening files
+- [x] Unsupported file types show clear error message
+- [x] ImageUpload component (manual entry forms) also supports drag, paste, and click
+
+#### Create Entry page redesign
+- [x] 14 individual type cards replaced with 5 full-bleed category cards match homepage layout
+- [x] Treasure, Arcana, Creatures, Character Options, Tables — each with unique image and subtitle
+- [x] Clicking a category navigates to `/create/:slug` with subtype dropdown using CustomSelect
+- [x] Tables goes straight to form (no dropdown)
+- [x] Old direct routes like `/create/magic_item` still work for backwards compatibility
+
 ## Known
 
 - [ ] **Entry editing** — no edit form; entries can only be created and deleted
 - [ ] **Auth** — anon policies are temporary; needs Supabase Auth integration
-- [ ] **Import upload methods (Image, PDF, Document)** — built but untested; Paste Text only verified so far
-- [x] **Detail view rendering for structured types** — Spell, Monster, Subclass, Table detail pages now render:
-  - Spell/Scroll: level + school line, Casting Time, Range, Components (V/S/M + material), Duration + concentration badge, description, tags, source/campaign
-  - Monster: type line (size/type/alignment), stat box (Challenge/AC/HP/Speed), 6 ability boxes with mods, saving throws, skills, damage modifiers, senses, languages, traits, actions, bonus actions, reactions, legendary/lair actions, description, tags, source/campaign
-  - Subclass: parent class, description, level features as readable cards, tags, source/campaign
-  - Table: die type, description, full rendered `<table>` with headers, alternating row body, tags, source/campaign
-  - All renderers in separate files (SpellDetail.tsx, MonsterDetail.tsx, SubclassDetail.tsx, TableDetail.tsx) with shared casting helpers for JSONB property access
-  - Barclay E2E confirmed: Monster and Table 100% pass; Spell/Subclass render all available data (some DB entries lack components/level_features — data gap, not code bug)
+- [ ] **Import upload methods (Image, PDF, Document)** — built, paste text & clipboard images verified; PDF/doc drag-and-drop file uploads untested
+- [x] **Detail view rendering for structured types** — Spell, Monster, Subclass, Table detail pages render all metadata
 - [ ] **Table rendering** — tables are browsable but don't render as interactive rollable tables
 - [ ] **Mobile optimisation** — responsive but not fully polished for small screens
 - [ ] **Pagination** — no pagination for large entry lists
@@ -134,8 +166,9 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 
 - Entry editing (edit/update existing entries)
 - Auth integration
-- Upload method E2E testing (Image, PDF, Document) — Jon to supply sample files
+- Upload method E2E testing (Image, PDF, Document) — drag-and-drop paste-text content verified; file uploads untested
 - Table rendering (interactive rollable tables)
 - Mobile optimisation
 - Pagination
 - Import/export
+- Supabase Storage bucket setup verification
