@@ -3,10 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faClipboard,
-  faImage,
-  faFilePdf,
-  faFileAlt,
   faSave,
   faTimes,
   faUpload,
@@ -30,12 +26,6 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 /* ──────────── Import card config ──────────── */
-const IMPORT_METHODS = [
-  { label: "Paste Text", icon: faClipboard },
-  { label: "Upload Image", icon: faImage },
-  { label: "Upload PDF", icon: faFilePdf },
-  { label: "Upload Document", icon: faFileAlt },
-];
 
 /* ──────────── All entry types for the dropdown ──────────── */
 const ALL_TYPES: EntryType[] = [
@@ -1084,48 +1074,53 @@ function ImportTab({
   setImportType: (v: EntryType) => void;
   onParsed: (data: ParseResult) => void;
 }) {
-  const [activeMethod, setActiveMethod] = useState<string | null>(null);
   const [pasteText, setPasteText] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const pdfInputRef = useRef<HTMLInputElement>(null);
-  const docInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Build payload from whichever input is active
+  const getPayload = async (): Promise<{ text?: string; image?: string; entryType: EntryType }> => {
+    const payload: { text?: string; image?: string; entryType: EntryType } = { entryType: importType };
+
+    // Uploaded file takes priority
+    if (uploadFile) {
+      if (uploadFile.type.startsWith("image/")) {
+        payload.image = await fileToBase64(uploadFile);
+      } else if (uploadFile.type === "application/pdf" || uploadFile.name.endsWith(".pdf")) {
+        payload.text = await extractPdfText(uploadFile);
+      } else {
+        payload.text = await extractDocText(uploadFile);
+      }
+      return payload;
+    }
+
+    // Pasted image
+    if (imageFile) {
+      payload.image = await fileToBase64(imageFile);
+      return payload;
+    }
+
+    // Pasted text
+    if (pasteText.trim()) {
+      payload.text = pasteText.trim();
+      return payload;
+    }
+
+    throw new Error("Paste some text, paste an image, or upload a file to transcribe");
+  };
 
   const handleParse = async () => {
     setParsing(true);
     setParseError(null);
 
     try {
-      const payload: { text?: string; image?: string; entryType: EntryType } = {
-        entryType: importType,
-      };
-
-      switch (activeMethod) {
-        case "Paste Text":
-          if (!pasteText.trim()) throw new Error("Please paste some content first");
-          payload.text = pasteText.trim();
-          break;
-        case "Upload Image":
-          if (!imageFile) throw new Error("Please select an image first");
-          payload.image = await fileToBase64(imageFile);
-          break;
-        case "Upload PDF":
-          if (!pdfInputRef.current?.files?.length) throw new Error("Please select a PDF first");
-          payload.text = await extractPdfText(pdfInputRef.current.files[0]!);
-          break;
-        case "Upload Document":
-          if (!docInputRef.current?.files?.length) throw new Error("Please select a document first");
-          payload.text = await extractDocText(docInputRef.current.files[0]!);
-          break;
-        default:
-          throw new Error("Select an import method first");
-      }
-
+      const payload = await getPayload();
       const result = await callParseApi(payload);
 
-      // Detect empty parse: no usable name or description returned
       if (!result.name && !result.description) {
         setParseError("Couldn't extract anything from that content — try again, or switch to Manual Entry.");
         return;
@@ -1139,12 +1134,24 @@ function ImportTab({
     }
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // File upload handler — supports images, PDFs, and Word docs
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setImageFile(file);
+    if (!file) return;
+    setUploadFile(file);
+    setParseError(null);
+
+    // If it's an image, show a preview
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
   };
 
-  // Handle paste of image data from clipboard
+  // Paste handler: image data → thumbnail, text → textarea
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     const items = Array.from(e.clipboardData.items);
     for (const item of items) {
@@ -1154,19 +1161,18 @@ function ImportTab({
         if (!blob) continue;
         const file = new File([blob], "clipboard-image.png", { type: blob.type });
         setImageFile(file);
-        setActiveMethod("Upload Image");
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = () => setImagePreview(reader.result as string);
+        reader.readAsDataURL(file);
         setParseError(null);
-
-        // Sync the file input so the native UI reflects the selection
-        if (imageInputRef.current) {
-          const dt = new DataTransfer();
-          dt.items.add(file);
-          imageInputRef.current.files = dt.files;
-        }
         return;
       }
     }
+    // If no image, let the textarea handle the text paste normally
   };
+
+  const hasContent = !!pasteText.trim() || !!imageFile || !!uploadFile;
 
   return (
     <div onPaste={handlePaste}>
@@ -1174,99 +1180,50 @@ function ImportTab({
         Import Content
       </h2>
       <p className="mb-4 mt-1 text-xs italic text-[#766649]">
-        Choose how you'd like to add your content
+        Paste or type text below, or paste a screenshot (Cmd+V)
       </p>
 
-      {/* ───── method cards ───── */}
-      <div className="grid grid-cols-2 gap-3">
-        {IMPORT_METHODS.map((method) => {
-          const isActive = activeMethod === method.label;
-          return (
-            <button
-              key={method.label}
-              type="button"
-              disabled={parsing}
-              onClick={() => {
-                setActiveMethod(isActive ? null : method.label);
-                setParseError(null);
-              }}
-              className={`gilded-border flex flex-col items-center gap-2 px-4 py-5 text-center transition-colors ${
-                isActive
-                  ? "border-amber-600 bg-[var(--color-parchment)] ring-1 ring-amber-600"
-                  : "hover:bg-[var(--color-parchment)]"
-              } disabled:opacity-50`}
-            >
-              <FontAwesomeIcon icon={method.icon} className="text-3xl text-[#58180d]" />
-              <span className="font-[var(--font-title)] text-sm font-bold text-[#58180d]">
-                {method.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      {/* ───── unified paste / text area ───── */}
+      <textarea
+        value={pasteText}
+        onChange={(e) => {
+          setPasteText(e.target.value);
+          setParseError(null);
+        }}
+        placeholder="Paste item description, stat block, or flavour text…"
+        className="w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600 min-h-[120px] resize-y"
+      />
 
-      {/* ───── active method input area ───── */}
-      {activeMethod === "Paste Text" && (
-        <div className="mt-4">
-          <label className="mb-1 block text-xs font-medium text-[#766649]">
-            Paste your {formatEntryType(importType).toLowerCase()} description below
-          </label>
-          <textarea
-            value={pasteText}
-            onChange={(e) => setPasteText(e.target.value)}
-            placeholder="Paste item description, stat block, or flavour text…"
-            className="w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600 min-h-[120px] resize-y"
-          />
-        </div>
-      )}
-
-      {activeMethod === "Upload Image" && (
-        <div className="mt-4">
-          <label className="mb-1 block text-xs font-medium text-[#766649]">
-            Upload an image of a {formatEntryType(importType).toLowerCase()} description
-          </label>
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageSelect}
-            className="w-full text-sm font-[var(--font-phb)] text-[#58180d] file:mr-3 file:rounded-lg file:border file:border-[var(--color-gilding-dark)] file:bg-[var(--color-parchment)] file:px-3 file:py-1.5 file:text-sm file:font-[var(--font-phb)] file:text-[#58180d] hover:file:bg-[var(--color-parchment-light)]"
-          />
-          {imageFile && (
+      {/* image preview for pasted / uploaded image */}
+      {(imageFile || (uploadFile && uploadFile.type.startsWith("image/"))) && imagePreview && (
+        <div className="mt-3">
+          <div className="relative inline-block">
+            <img src={imagePreview} alt="Preview" className="max-h-48 rounded-lg border border-[var(--color-gilding-dark)] object-contain" />
             <p className="mt-1 text-xs text-[#766649]">
-              Selected: {imageFile.name} ({(imageFile.size / 1024).toFixed(0)} KB)
+              {(imageFile?.name ?? uploadFile?.name ?? "")} ({(imageFile?.size ?? uploadFile?.size ?? 0) / 1024 > 0 ? ((imageFile?.size ?? uploadFile?.size ?? 0) / 1024).toFixed(0) : 0} KB)
             </p>
-          )}
+          </div>
         </div>
       )}
 
-      {activeMethod === "Upload PDF" && (
-        <div className="mt-4">
-          <label className="mb-1 block text-xs font-medium text-[#766649]">
-            Upload a PDF containing a {formatEntryType(importType).toLowerCase()} description
-          </label>
-          <input
-            ref={pdfInputRef}
-            type="file"
-            accept=".pdf"
-            className="w-full text-sm font-[var(--font-phb)] text-[#58180d] file:mr-3 file:rounded-lg file:border file:border-[var(--color-gilding-dark)] file:bg-[var(--color-parchment)] file:px-3 file:py-1.5 file:text-sm file:font-[var(--font-phb)] file:text-[#58180d] hover:file:bg-[var(--color-parchment-light)]"
-          />
-        </div>
-      )}
-
-      {activeMethod === "Upload Document" && (
-        <div className="mt-4">
-          <label className="mb-1 block text-xs font-medium text-[#766649]">
-            Upload a Word document (.docx) containing a {formatEntryType(importType).toLowerCase()} description
-          </label>
-          <input
-            ref={docInputRef}
-            type="file"
-            accept=".docx"
-            className="w-full text-sm font-[var(--font-phb)] text-[#58180d] file:mr-3 file:rounded-lg file:border file:border-[var(--color-gilding-dark)] file:bg-[var(--color-parchment)] file:px-3 file:py-1.5 file:text-sm file:font-[var(--font-phb)] file:text-[#58180d] hover:file:bg-[var(--color-parchment-light)]"
-          />
-        </div>
-      )}
+      {/* ───── file upload button ───── */}
+      <div className="mt-4">
+        <label className="mb-1 block text-xs font-medium text-[#766649]">
+          Or choose a file to upload
+        </label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".jpg,.jpeg,.png,.pdf,.docx"
+          onChange={handleFileChange}
+          className="w-full text-sm font-[var(--font-phb)] text-[#58180d] file:mr-3 file:rounded-lg file:border file:border-[var(--color-gilding-dark)] file:bg-[var(--color-parchment)] file:px-3 file:py-1.5 file:text-sm file:font-[var(--font-phb)] file:text-[#58180d] hover:file:bg-[var(--color-parchment-light)]"
+        />
+        {uploadFile && !uploadFile.type.startsWith("image/") && (
+          <p className="mt-1 text-xs text-[#766649]">
+            Selected: {uploadFile.name} ({(uploadFile.size / 1024).toFixed(0)} KB)
+          </p>
+        )}
+      </div>
 
       {/* ───── parse error ───── */}
       {parseError && (
@@ -1275,27 +1232,25 @@ function ImportTab({
         </div>
       )}
 
-      {/* ───── parse button ───── */}
-      {activeMethod && (
-        <button
-          type="button"
-          disabled={parsing}
-          onClick={handleParse}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-4 py-2.5 text-sm font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {parsing ? (
-            <>
-              <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              Transcribing…
-            </>
-          ) : (
-            "Transcribe"
-          )}
-        </button>
-      )}
+      {/* ───── transcribe button ───── */}
+      <button
+        type="button"
+        disabled={parsing || !hasContent}
+        onClick={handleParse}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-4 py-2.5 text-sm font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a] disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {parsing ? (
+          <>
+            <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Transcribing…
+          </>
+        ) : (
+          "Transcribe"
+        )}
+      </button>
 
       {/* ───── entry type dropdown ───── */}
       <div className="mt-5">
