@@ -520,6 +520,7 @@ function TableForm({ parsedData }: { parsedData?: ParseResult | null }) {
   const [cells, setCells] = useState<string[][]>([]);
 
   // Keep cells sized as 1 + columns.length (index 0 = Roll read-only, rest = user cols)
+  // If already correctly sized, preserve existing data (covers pre-pop from transcribe)
   useEffect(() => {
     if (!dieType) {
       setCells([]);
@@ -528,6 +529,7 @@ function TableForm({ parsedData }: { parsedData?: ParseResult | null }) {
     const n = dieRowCount(dieType);
     const colCount = 1 + columns.length;
     setCells((prev) => {
+      if (prev.length === n && (prev[0]?.length ?? 0) === colCount) return prev;
       const next: string[][] = [];
       for (let r = 0; r < n; r++) {
         const row: string[] = [];

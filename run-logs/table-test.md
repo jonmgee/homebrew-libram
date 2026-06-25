@@ -1,7 +1,7 @@
-# Table Transcribe Test — Phase 2
+# Table Transcribe Test — Round 2
 
 **Date:** 2026-06-25
-**Build:** https://homebrew-libram.vercel.app
+**Build:** https://homebrew-libram.vercel.app (commit 475359e)
 
 ## Test: Paste Text → Transcribe → Save → Browse → Delete
 
@@ -24,28 +24,22 @@ Column: Encounter
 2. Pasted the wilderness encounters text
 3. Clicked **Transcribe**
 
-### Result: ✅ PASS (Partial)
+### Result: ⚠️ STILL FAILING
 
-#### Transcribe output — structure populated:
-- **Name**: "Wilderness Encounters"
-- **Description**: "A table of random wilderness encounters for a d20 system."
-- **Die Type**: d20
-- **Columns**: Roll (auto), Encounter (named)
-- **Rows**: 20 rows created with roll numbers 1–20
-- **Tags**: wilderness, encounters, random table
+**Transcribe output:**
+- **Name**: "Wilderness Encounters" ✅
+- **Description**: "A table of random wilderness encounters." ✅
+- **Die Type**: d20 ✅
+- **Columns**: Roll (auto), Encounter (named) ✅
+- **Rows**: 20 rows created ✅
+- **Tags**: wilderness, encounters, random table ✅
+- **Save**: Success banner confirmed ✅
+- **Browse**: "Wilderness Encounters d20" ✅
+- **Detail**: Name, description, tags shown (no table rows rendered — pre-existing) ✅
+- **Delete**: Confirmed → removed ✅
 
-#### Range parsing — ⚠️ ISSUE:
-The range notation in the input (`1-2`, `3-5`, etc.) was expanded into correct individual rows (rows 1–20), but **the encounter text values were not populated into the textboxes**. All 20 encounter cells were empty textboxes after transcription.
+#### Cell values: ❌ ALL EMPTY
+All 20 encounter textboxes remain empty after transcription. The fix to prompt the AI to expand ranges didn't take effect — the AI is still returning results without individual row texts.
 
-Despite this, the **Save** action still succeeded:
-- Banner: "Entry saved successfully!" ✅
-- Browse view: "Wilderness Encounters d20" ✅
-- Detail view: Shows name, type ("Table"), description, tags — but **no table rows rendered** (pre-existing detail rendering gap)
-
-#### Delete: ✅
-- Confirmed → removed from browse
-
-### Issues Found
-1. **Range parsing doesn't populate cell values** — rows are created at correct count (20) but encounter text is empty. The parser creates the structure but doesn't fill the textbox values for ranged entries.
-2. **Detail view doesn't render table rows** — same pre-existing rendering gap as other structured types
-3. **Delete buttons target the same position** — clicking the first Delete button affected a different entry than expected due to list position; clean-up worked but navigation was slightly confusing
+### Summary
+The prompt change (commit 475359e) wasn't enough. The AI response does not include expanded row values. This may be a deployment/regeneration issue (Vercel still serving old function), or the prompt change needs to be more explicit about the JSON schema for individual rows.
