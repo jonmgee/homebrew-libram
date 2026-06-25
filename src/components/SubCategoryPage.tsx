@@ -25,7 +25,7 @@ const SUBCAT_IMAGES: Record<string, string> = {
   magic_items: "/assets/wondrous_items.webp",
   potions: "/assets/potions.webp",
   adventuring_gear: "/assets/adventuring_gear.webp",
-  trinkets: "/assets/trinkets.webp",
+  trinket: "/assets/trinket.webp",
   spells: "/assets/spells.webp",
   scrolls: "/assets/scrolls.webp",
   monsters: "/assets/monsters.webp",

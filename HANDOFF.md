@@ -111,7 +111,20 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] Table type missing from `ENTRY_TYPES` array — button wasn't rendering
 - [x] Form state bleeding on type switch — reset to EMPTY_FORM
 
-## Known gaps
+### AI Import pipeline (2026-06-24)
+
+- [x] **`/api/parse-entry` serverless function** — calls OpenRouter `google/gemini-3.1-flash-lite` with configurable prompt
+- [x] **Import tab** — 4 input methods: Paste Text, Upload Image (vision), Upload PDF (pdf.js), Upload Document (mammoth)
+- [x] **Paste Text** — sends raw text to parser, auto-populates TreasureForm fields, switches to Manual Entry tab with pre-population banner
+- [x] **Upload Image** — converts to base64, sends via vision API with extraction prompt
+- [x] **Upload PDF** — extracts text page-by-page via pdfjs-dist@6.0.227
+- [x] **Upload Document** — extracts text via mammoth@1.12.0
+- [x] **Barclay E2E test (paste text)** — confirmed pipeline works: Staff of Storms → Name/Description/Tags populated correctly
+- [x] **Type-aware labels** — import method labels now reflect current entry type (e.g. "weapon description", "spell description") instead of hardcoded "magic item"
+- [x] **Transcribe button** — renamed from "Parse & Pre-fill" to "Transcribe"; loading text "Transcribing…"
+- [x] **OPENROUTER_API_KEY** — set in Vercel env vars (confirmed; live app works). Not needed locally — serverless function reads it at runtime.
+
+## Known
 
 - [ ] **Entry editing** — no edit form; entries can only be created and deleted
 - [ ] **Auth** — anon policies are temporary; needs Supabase Auth integration
@@ -121,6 +134,15 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [ ] **Import/export** — no bulk import or export of entries
 - [ ] **Supabase Storage bucket** — `entry-images` bucket may need manual creation in dashboard
 - [ ] **CRUD** — no edit/delete of existing entries from browse page
+
+### 2026-06-25 — Three Phase 1 fixes
+
+- [x] **Trinket route consistency** — subcategory label changed from "Trinkets" to "Trinket" (singular), slug from `trinkets` to `trinket`.
+  - `/create/trinket` and `/browse/treasure/trinket` now use the same singular form
+  - Asset renamed `trinkets.webp` → `trinket.webp`; all image references updated in CreateEntryPage, SubCategoryPage
+  - Trinket is now consistent with Armour (singular route/slug)
+- [x] **Silent parse-failure error handling** — when Transcribe returns no usable data (empty name + description), the import tab now shows: *"Couldn't extract anything from that content — try again, or switch to Manual Entry."* instead of sitting blank
+- [x] **Audit test data cleared** — 19 entries deleted (all "Test *" entries, "Humanoid", "Test Monster Debug", and duplicate Barclay/audit runs across all 14 types). 17 genuine entries remain.
 
 ## Next tasks
 

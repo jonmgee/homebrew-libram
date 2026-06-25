@@ -1064,6 +1064,13 @@ function ImportTab({
       }
 
       const result = await callParseApi(payload);
+
+      // Detect empty parse: no usable name or description returned
+      if (!result.name && !result.description) {
+        setParseError("Couldn't extract anything from that content — try again, or switch to Manual Entry.");
+        return;
+      }
+
       onParsed(result);
     } catch (err) {
       setParseError(err instanceof Error ? err.message : "Something went wrong");

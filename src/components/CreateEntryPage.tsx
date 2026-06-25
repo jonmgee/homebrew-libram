@@ -47,7 +47,7 @@ const TYPE_IMAGES: Record<string, string> = {
   armour: "/assets/armour.webp",
   potion: "/assets/potions.webp",
   adventuring_gear: "/assets/adventuring_gear.webp",
-  trinket: "/assets/trinkets.webp",
+  trinket: "/assets/trinket.webp",
   spell: "/assets/spells.webp",
   scroll: "/assets/scrolls.webp",
   monster: "/assets/monsters.webp",
