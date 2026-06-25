@@ -1080,7 +1080,28 @@ function ImportTab({
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const ACCEPTED_TYPES = ".jpg,.jpeg,.png,.pdf,.docx";
+  const ACCEPTED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp", "application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+
+  const isAcceptedFile = (file: File) =>
+    ACCEPTED_MIME.includes(file.type) ||
+    file.name.endsWith(".pdf") ||
+    file.name.endsWith(".docx");
+
+  const acceptFile = (file: File) => {
+    setUploadFile(file);
+    setParseError(null);
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
+  };
 
   // Build payload from whichever input is active
   const getPayload = async (): Promise<{ text?: string; image?: string; entryType: EntryType }> => {
@@ -1138,16 +1159,42 @@ function ImportTab({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadFile(file);
-    setParseError(null);
+    acceptFile(file);
+  };
 
-    // If it's an image, show a preview
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = () => setImagePreview(reader.result as string);
-      reader.readAsDataURL(file);
-    } else {
-      setImagePreview(null);
+  // Drag-and-drop handlers
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    if (!isAcceptedFile(file)) {
+      setParseError("Unsupported file type. Accepted: images, PDFs, and Word documents.");
+      return;
+    }
+
+    acceptFile(file);
+
+    // Sync the file input so the UI reflects the selection
+    if (fileInputRef.current) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInputRef.current.files = dt.files;
     }
   };
 
@@ -1175,12 +1222,32 @@ function ImportTab({
   const hasContent = !!pasteText.trim() || !!imageFile || !!uploadFile;
 
   return (
-    <div onPaste={handlePaste}>
+    <div
+      onPaste={handlePaste}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className="relative"
+    >
+      {/* drag-over overlay */}
+      {dragOver && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg border-2 border-dashed border-amber-600 bg-[var(--color-parchment)]/90"
+          onDragEnter={(e) => e.preventDefault()}
+          onDragOver={(e) => e.preventDefault()}
+          onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
+          onDrop={handleDrop}
+        >
+          <p className="font-[var(--font-title)] text-lg font-bold text-[#58180d]">
+            Drop file here
+          </p>
+        </div>
+      )}
       <h2 className="font-[var(--font-title)] text-base font-bold text-[#58180d]">
         Import Content
       </h2>
       <p className="mb-4 mt-1 text-xs italic text-[#766649]">
-        Paste or type text below, or paste a screenshot (Cmd+V)
+        Paste or type text below, paste a screenshot (Cmd+V), or drag a file here
       </p>
 
       {/* ───── unified paste / text area ───── */}
@@ -1214,7 +1281,7 @@ function ImportTab({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".jpg,.jpeg,.png,.pdf,.docx"
+          accept={ACCEPTED_TYPES}
           onChange={handleFileChange}
           className="w-full text-sm font-[var(--font-phb)] text-[#58180d] file:mr-3 file:rounded-lg file:border file:border-[var(--color-gilding-dark)] file:bg-[var(--color-parchment)] file:px-3 file:py-1.5 file:text-sm file:font-[var(--font-phb)] file:text-[#58180d] hover:file:bg-[var(--color-parchment-light)]"
         />
