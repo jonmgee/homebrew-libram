@@ -523,7 +523,7 @@ function TableForm({ parsedData }: { parsedData?: ParseResult | null }) {
   // If already correctly sized, preserve existing data (covers pre-pop from transcribe)
   useEffect(() => {
     if (!dieType) {
-      setCells([]);
+      if (!parsedData) setCells([]);
       return;
     }
     const n = dieRowCount(dieType);

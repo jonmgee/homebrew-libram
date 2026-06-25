@@ -1,45 +1,48 @@
-# Table Transcribe Test — Round 2
+# Table Transcribe Test — Round 4 (Both Fixes Deployed)
 
 **Date:** 2026-06-25
-**Build:** https://homebrew-libram.vercel.app (commit 475359e)
+**Build:** https://homebrew-libram.vercel.app (commit 5c7b8a9)
 
-## Test: Paste Text → Transcribe → Save → Browse → Delete
+## Test A — d20 Wilderness Encounters
 
-### Input
-```
-d20 Wilderness Encounters
-Column: Encounter
-1-2: A wandering merchant with exotic goods
-3-5: A pack of wolves hunting for food
-6-8: An abandoned campsite with useful supplies
-9-11: A mysterious standing stone circle
-12-14: A travelling bard with tales from distant lands
-15-17: A wounded griffon needing aid
-18-19: A territorial owlbear
-20: A dragon flying overhead
-```
+### Result: ❌ FAIL
 
-### Steps
-1. Navigate `/create/table` → **Import** tab → **Paste Text**
-2. Pasted the wilderness encounters text
-3. Clicked **Transcribe**
+| Check | Status | Detail |
+|-------|--------|--------|
+| Name | ✅ | "Wilderness Encounters" |
+| Description | ✅ | Auto-generated |
+| Die Type | ✅ | d20 |
+| Column name | ✅ | "Encounter" |
+| Row count | ✅ | 20 rows |
+| **Cell values** | **❌** | **0/20 filled — all empty** |
+| Tags | ✅ | wilderness, encounters, random table |
+| Save | ✅ | Banner confirmed |
+| Browse | ✅ | "Wilderness Encounters d20" |
+| Delete | ✅ | Confirmed → removed |
 
-### Result: ⚠️ STILL FAILING
+## Test B — d100 Trinket Effects
 
-**Transcribe output:**
-- **Name**: "Wilderness Encounters" ✅
-- **Description**: "A table of random wilderness encounters." ✅
-- **Die Type**: d20 ✅
-- **Columns**: Roll (auto), Encounter (named) ✅
-- **Rows**: 20 rows created ✅
-- **Tags**: wilderness, encounters, random table ✅
-- **Save**: Success banner confirmed ✅
-- **Browse**: "Wilderness Encounters d20" ✅
-- **Detail**: Name, description, tags shown (no table rows rendered — pre-existing) ✅
-- **Delete**: Confirmed → removed ✅
+### Result: ❌ FAIL
 
-#### Cell values: ❌ ALL EMPTY
-All 20 encounter textboxes remain empty after transcription. The fix to prompt the AI to expand ranges didn't take effect — the AI is still returning results without individual row texts.
+| Check | Status | Detail |
+|-------|--------|--------|
+| Name | ✅ | "Trinket Effects" |
+| Description | ✅ | Auto-generated |
+| Die Type | ✅ | d100 |
+| Column name | ✅ | "Effect" |
+| Row count | ✅ | 100 rows |
+| **Cell values** | **❌** | **0/100 filled — all empty** |
+| Tags | ✅ | trinket, magic, random |
+| Save | ✅ | Banner confirmed |
+| Browse | ✅ | "Trinket Effects d100" |
+| Delete | ✅ | Confirmed → removed |
 
-### Summary
-The prompt change (commit 475359e) wasn't enough. The AI response does not include expanded row values. This may be a deployment/regeneration issue (Vercel still serving old function), or the prompt change needs to be more explicit about the JSON schema for individual rows.
+## Conclusion
+
+Both the prompt fix and the state race fix (commit 5c7b8a9) did not resolve the issue. The theory was correct — the state race was the cause — but the fix didn't take effect in the deployed build. Possible reasons:
+
+1. **Vercel may not have deployed the latest build** — check dashboard for deployment status
+2. **The early-return condition may not match actual state** — if the condition checks cells count but the data arrives after dieType effect fires, it may still overwrite
+3. **Build cache** — a manual re-deploy (no-cache) may be needed
+
+Prompt itself handles d100 just fine (100 rows, correct structure) — this is 100% a front-end issue.
