@@ -116,7 +116,13 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [ ] **Entry editing** — no edit form; entries can only be created and deleted
 - [ ] **Auth** — anon policies are temporary; needs Supabase Auth integration
 - [ ] **Import upload methods (Image, PDF, Document)** — built but untested; Paste Text only verified so far
-- [ ] **Detail view rendering for structured types** — Spell, Monster, Subclass, Table data saves to DB but detail page only displays name/type/description/tags; structured fields (level, school, AC, HP, abilities, traits, etc.) invisible to user
+- [x] **Detail view rendering for structured types** — Spell, Monster, Subclass, Table detail pages now render:
+  - Spell/Scroll: level + school line, Casting Time, Range, Components (V/S/M + material), Duration + concentration badge, description, tags, source/campaign
+  - Monster: type line (size/type/alignment), stat box (Challenge/AC/HP/Speed), 6 ability boxes with mods, saving throws, skills, damage modifiers, senses, languages, traits, actions, bonus actions, reactions, legendary/lair actions, description, tags, source/campaign
+  - Subclass: parent class, description, level features as readable cards, tags, source/campaign
+  - Table: die type, description, full rendered `<table>` with headers, alternating row body, tags, source/campaign
+  - All renderers in separate files (SpellDetail.tsx, MonsterDetail.tsx, SubclassDetail.tsx, TableDetail.tsx) with shared casting helpers for JSONB property access
+  - Barclay E2E confirmed: Monster and Table 100% pass; Spell/Subclass render all available data (some DB entries lack components/level_features — data gap, not code bug)
 - [ ] **Table rendering** — tables are browsable but don't render as interactive rollable tables
 - [ ] **Mobile optimisation** — responsive but not fully polished for small screens
 - [ ] **Pagination** — no pagination for large entry lists
@@ -126,7 +132,6 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 
 ## Next tasks
 
-- Detail view for structured types (render spell stats, monster stat blocks, subclass features, table rows on detail pages)
 - Entry editing (edit/update existing entries)
 - Auth integration
 - Upload method E2E testing (Image, PDF, Document) — Jon to supply sample files
