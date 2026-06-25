@@ -38,6 +38,21 @@ export default function SpellDetail({ entry }: { entry: DbEntry }) {
         )}
         {dur && <><span className="phb-small-sc font-bold uppercase tracking-wider text-caption">Duration</span><span className="phb-body">{dur}{conc && <span className="ml-1 text-caption">(concentration)</span>}</span></>}
       </div>
+
+      {entry.description && <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">{entry.description}</div>}
+
+      {entry.tags && entry.tags.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {entry.tags.map(t => <span key={t} className="phb-tag">{t}</span>)}
+        </div>
+      )}
+
+      {(entry.source || entry.campaign) && (
+        <div className="mt-8 flex flex-wrap gap-x-6 gap-y-1 border-t border-parchment-dark pt-4">
+          {entry.source && <span className="phb-description text-sm">Source: {entry.source}</span>}
+          {entry.campaign && <span className="phb-description text-sm">Campaign: {entry.campaign}</span>}
+        </div>
+      )}
     </>
   );
 }

@@ -151,6 +151,18 @@ export default function MonsterDetail({ entry }: { entry: DbEntry }) {
       <NamedItems label="Reactions" items={reactions} />
       <NamedItems label="Legendary Actions" items={(ld?.actions as unknown[]) ?? null} />
       <NamedItems label="Lair Actions" items={lair} />
+
+      {entry.tags && entry.tags.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {entry.tags.map(t => <span key={t} className="phb-tag">{t}</span>)}
+        </div>
+      )}
+      {(entry.source || entry.campaign) && (
+        <div className="mt-8 flex flex-wrap gap-x-6 gap-y-1 border-t border-parchment-dark pt-4">
+          {entry.source && <span className="phb-description text-sm">Source: {entry.source}</span>}
+          {entry.campaign && <span className="phb-description text-sm">Campaign: {entry.campaign}</span>}
+        </div>
+      )}
     </>
   );
 }
