@@ -1164,12 +1164,19 @@ function ImportTab({
 
   // Prevent browser from opening dropped files at document level
   useEffect(() => {
-    const prevent = (e: DragEvent) => e.preventDefault();
-    document.addEventListener("dragover", prevent);
-    document.addEventListener("drop", prevent);
+    const preventAll = (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    document.addEventListener("dragover", preventAll);
+    document.addEventListener("dragenter", preventAll);
+    document.addEventListener("dragleave", preventAll);
+    document.addEventListener("drop", preventAll);
     return () => {
-      document.removeEventListener("dragover", prevent);
-      document.removeEventListener("drop", prevent);
+      document.removeEventListener("dragover", preventAll);
+      document.removeEventListener("dragenter", preventAll);
+      document.removeEventListener("dragleave", preventAll);
+      document.removeEventListener("drop", preventAll);
     };
   }, []);
 
@@ -1278,7 +1285,7 @@ function ImportTab({
           <div className="relative inline-block">
             <button
               type="button"
-              onClick={() => { setImageFile(null); setImagePreview(null); setUploadFile(null); }}
+              onClick={() => { setImageFile(null); setImagePreview(null); setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
               className="absolute -right-2 -top-2 z-10 flex size-5 items-center justify-center rounded-full bg-[#58180d] text-[#eee5ce] hover:bg-[#6e2a1a] shadow-sm"
               title="Remove image"
             >
