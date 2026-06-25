@@ -1144,8 +1144,32 @@ function ImportTab({
     if (file) setImageFile(file);
   };
 
+  // Handle paste of image data from clipboard
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const items = Array.from(e.clipboardData.items);
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const blob = item.getAsFile();
+        if (!blob) continue;
+        const file = new File([blob], "clipboard-image.png", { type: blob.type });
+        setImageFile(file);
+        setActiveMethod("Upload Image");
+        setParseError(null);
+
+        // Sync the file input so the native UI reflects the selection
+        if (imageInputRef.current) {
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          imageInputRef.current.files = dt.files;
+        }
+        return;
+      }
+    }
+  };
+
   return (
-    <div>
+    <div onPaste={handlePaste}>
       <h2 className="font-[var(--font-title)] text-base font-bold text-[#58180d]">
         Import Content
       </h2>
