@@ -15,7 +15,7 @@ const SUBCATEGORY_MAP: Record<string, string> = {
   magic_item: "Magic Items",
   potion: "Potions",
   adventuring_gear: "Adventuring Gear",
-  trinket: "Trinket",
+  trinket: "Trinkets",
   spell: "Spells",
   scroll: "Scrolls",
   monster: "Monsters",
