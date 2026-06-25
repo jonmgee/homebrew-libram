@@ -8,7 +8,7 @@ import {
   faUpload,
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
-import { formatEntryType, CATEGORIES, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
+import { formatEntryType, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
 import type { EntryType } from "../types";
 import { supabase } from "../lib/supabase";
 import MonsterForm, { abilMod, modStr, crToProf, CR_LIST, SIZE_LIST, ABILITIES, SKILL_LIST, SKILL_ABIL, useTags as useMonsterTags, TagRow, RepeatBlock } from "./MonsterForm";
@@ -28,18 +28,13 @@ const TABS: { id: TabId; label: string }[] = [
 /* ──────────── Import card config ──────────── */
 
 /* ──────────── All entry types for the dropdown ──────────── */
-const ALL_TYPES: EntryType[] = [
-  "magic_item", "weapon", "armour", "potion", "adventuring_gear", "trinket",
-  "spell", "scroll", "monster", "npc", "background", "feat", "subclass", "table",
-];
-
 /* ──────────── Generic parse result from API — any type-specific fields ──────────── */
 type ParseResult = Record<string, unknown>;
 
 /* ──────────── Component ──────────── */
 export default function EntryForm({ entryType }: EntryFormProps) {
   const [activeTab, setActiveTab] = useState<TabId>("import");
-  const [importType, setImportType] = useState<EntryType>(entryType);
+  const [importType] = useState<EntryType>(entryType);
   const [parsedData, setParsedData] = useState<ParseResult | null>(null);
   const [prepopKey, setPrepopKey] = useState(0);
 
@@ -98,7 +93,6 @@ export default function EntryForm({ entryType }: EntryFormProps) {
             ) : (
               <ImportTab
                 importType={importType}
-                setImportType={setImportType}
                 onParsed={handleParsed}
               />
             )}
@@ -1067,11 +1061,9 @@ async function callParseApi(payload: {
 /* ──────── Import tab ──────── */
 function ImportTab({
   importType,
-  setImportType,
   onParsed,
 }: {
   importType: EntryType;
-  setImportType: (v: EntryType) => void;
   onParsed: (data: ParseResult) => void;
 }) {
   const [pasteText, setPasteText] = useState("");
@@ -1337,19 +1329,6 @@ function ImportTab({
         )}
       </button>
 
-      {/* ───── entry type dropdown ───── */}
-      <div className="mt-5">
-        <label className="mb-1 block text-xs font-medium text-[#766649]">
-          Entry Type <span className="italic">(optional)</span>
-        </label>
-        <CustomSelect
-          value={importType}
-          onChange={setImportType}
-          options={ALL_TYPES}
-          getLabel={(t) => `${formatEntryType(t)} — ${getParentCategory(t)}`}
-          placeholder="Auto-detect"
-        />
-      </div>
     </div>
   );
 }
@@ -2075,10 +2054,3 @@ function SaveButton({ saving, disabled }: { saving: boolean; disabled: boolean }
   );
 }
 
-/* ──────── Helper ──────── */
-function getParentCategory(type: string): string {
-  for (const cat of CATEGORIES) {
-    if (cat.types.includes(type as EntryType)) return cat.label;
-  }
-  return "";
-}

@@ -1,7 +1,8 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getCategory, formatEntryType } from "../types";
 import type { EntryType } from "../types";
+import { CustomSelect } from "./MonsterForm";
 import EntryForm from "./EntryForm";
 
 const CATEGORY_ORDER: Record<string, EntryType[]> = {
@@ -14,7 +15,6 @@ const CATEGORY_ORDER: Record<string, EntryType[]> = {
 export default function CreateEntryInputPage() {
   const { type } = useParams<{ type: string }>();
   const [selectedType, setSelectedType] = useState<EntryType | null>(null);
-  const selectRef = useRef<HTMLSelectElement>(null);
 
   // Determine if the param is a category slug or an individual entry type
   const categorySlug = useMemo(() => {
@@ -90,19 +90,13 @@ export default function CreateEntryInputPage() {
 
         {showSubtypePicker && (
           <div className="mt-4 mx-auto max-w-xs">
-            <label className="sr-only" htmlFor="entry-subtype">Select entry subtype</label>
-            <select
-              ref={selectRef}
-              id="entry-subtype"
+            <CustomSelect
               value={selectedType ?? ""}
-              onChange={(e) => setSelectedType(e.target.value ? (e.target.value as EntryType) : null)}
-              className="w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600"
-            >
-              <option value="">Select subtype…</option>
-              {catTypes.map((t) => (
-                <option key={t} value={t}>{formatEntryType(t)}</option>
-              ))}
-            </select>
+              onChange={(v) => setSelectedType(v ? (v as EntryType) : null)}
+              options={catTypes}
+              getLabel={formatEntryType}
+              placeholder="Select subtype…"
+            />
           </div>
         )}
       </div>
