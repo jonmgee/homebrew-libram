@@ -1,0 +1,53 @@
+# Spell Transcribe Test — Phase 2
+
+**Date:** 2026-06-25
+**Build:** https://homebrew-libram.vercel.app
+
+## Test: Paste Text → Transcribe → Save → Browse → Delete
+
+### Input
+```
+Fireball
+3rd-level evocation
+Casting Time: 1 action
+Range: 150 feet
+Components: V, S, M (a tiny ball of bat guano and sulfur)
+Duration: Instantaneous
+
+A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame. Each creature in a 20-foot-radius sphere centered on that point must make a Dexterity saving throw. A target takes 8d6 fire damage on a failed save, or half as much on a successful one.
+
+The fire spreads around corners. It ignites flammable objects in the area that aren't being worn or carried.
+
+At Higher Levels: When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd.
+```
+
+### Steps
+1. Navigate `/create/spell` → **Import** tab → **Paste Text**
+2. Pasted full Fireball description into textarea
+3. Clicked **Transcribe**
+
+### Result: ✅ PASS
+
+#### Transcribe output — all fields correctly populated:
+- **Type toggle**: Spell (default)
+- **Name**: "Fireball"
+- **Level**: "3rd"
+- **School**: "Evocation"
+- **Casting Time**: "1 action"
+- **Range**: "150 feet"
+- **Components**: V ✅, S ✅, M ✅ (checkboxed)
+- **Material**: "a tiny ball of bat guano and sulfur"
+- **Duration**: "Instantaneous"
+- **Concentration**: "No" (correct)
+- **Description**: Full multi-paragraph Fireball description preserved
+- **Tags**: `damage`, `fire`, `area of effect`
+- **Save** → banner "Entry saved successfully!" ✅
+- **Browse view**: "Fireball — Level 3 — evocation" ✅
+- **Detail view**: Shows name, type (Spell), description, tags ✅
+- **Detail structured metadata**: Level, school, components, casting time, range, duration NOT visible in detail view (rendering gap — data saved correctly but detail display may not show structured spell fields)
+
+### Delete
+- Confirmed → removed (count 2→1) ✅
+
+### Issues Found
+1. **Detail view doesn't render structured spell metadata** (level, school, components, casting time, range/range/duration) — only shows description and tags. The data is saved and browse shows "Level 3 — evocation", but the full detail card is sparse. This may be a pre-existing detail rendering issue, not a transcribe problem.

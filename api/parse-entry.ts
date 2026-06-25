@@ -171,7 +171,11 @@ Content:\n`,
   "rows": [ ["roll", "cell", "cell"], ... ],
   "tags": ["array of strings"]
 }
-Each row first cell = roll range, rest match columns. Cells = 1 + columns.length. die_type matches row count. Use null/[].
+CRITICAL: Expand roll ranges into one row per individual roll value.
+Example: input "1-2: A merchant" → rows [["1", "A merchant"], ["2", "A merchant"]].
+Input "20: A dragon" → rows [["20", "A dragon"]].
+Each row first cell = single roll number (not a range), rest match columns.
+Cells per row = 1 + columns.length. die_type matches total row count. Use null/[] if no value.
 Content:
 `,
 };
