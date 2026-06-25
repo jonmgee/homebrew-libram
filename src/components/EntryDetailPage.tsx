@@ -201,6 +201,20 @@ export default function EntryDetailPage() {
     return () => { cancelled = true; };
   }, [id]);
 
+  const showSaved = sp.get("saved") === "1";
+
+  // Auto-dismiss saved indicator after 4 seconds
+  useEffect(() => {
+    if (showSaved) {
+      const t = setTimeout(() => {
+        const u = new URL(window.location.href);
+        u.searchParams.delete("saved");
+        window.history.replaceState({}, "", u.toString());
+      }, 4000);
+      return () => clearTimeout(t);
+    }
+  }, [showSaved]);
+
   if (loadState === "loading") return <div className="mx-auto max-w-4xl px-4 py-12"><p className="phb-description text-center">Loading entry\u2026</p></div>;
 
   if (loadState === "error") return (
@@ -218,21 +232,6 @@ export default function EntryDetailPage() {
   );
 
   const C = RENDERERS[entry.type] ?? SimpleDetail;
-
-  const showSaved = sp.get("saved") === "1";
-
-  // Auto-dismiss saved indicator after 4 seconds
-  useEffect(() => {
-    if (showSaved) {
-      const t = setTimeout(() => {
-        // remove ?saved=1 from URL without reload
-        const u = new URL(window.location.href);
-        u.searchParams.delete("saved");
-        window.history.replaceState({}, "", u.toString());
-      }, 4000);
-      return () => clearTimeout(t);
-    }
-  }, [showSaved]);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
