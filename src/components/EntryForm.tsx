@@ -21,8 +21,8 @@ interface EntryFormProps {
 /* ──────────── Tab config ──────────── */
 type TabId = "manual" | "import";
 const TABS: { id: TabId; label: string }[] = [
-  { id: "manual", label: "Manual Entry" },
   { id: "import", label: "Import" },
+  { id: "manual", label: "Manual Entry" },
 ];
 
 /* ──────────── Import card config ──────────── */
@@ -38,7 +38,7 @@ type ParseResult = Record<string, unknown>;
 
 /* ──────────── Component ──────────── */
 export default function EntryForm({ entryType }: EntryFormProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("manual");
+  const [activeTab, setActiveTab] = useState<TabId>("import");
   const [importType, setImportType] = useState<EntryType>(entryType);
   const [parsedData, setParsedData] = useState<ParseResult | null>(null);
   const [prepopKey, setPrepopKey] = useState(0);
@@ -1162,6 +1162,17 @@ function ImportTab({
     acceptFile(file);
   };
 
+  // Prevent browser from opening dropped files at document level
+  useEffect(() => {
+    const prevent = (e: DragEvent) => e.preventDefault();
+    document.addEventListener("dragover", prevent);
+    document.addEventListener("drop", prevent);
+    return () => {
+      document.removeEventListener("dragover", prevent);
+      document.removeEventListener("drop", prevent);
+    };
+  }, []);
+
   // Drag-and-drop handlers
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -1265,6 +1276,14 @@ function ImportTab({
       {(imageFile || (uploadFile && uploadFile.type.startsWith("image/"))) && imagePreview && (
         <div className="mt-3">
           <div className="relative inline-block">
+            <button
+              type="button"
+              onClick={() => { setImageFile(null); setImagePreview(null); setUploadFile(null); }}
+              className="absolute -right-2 -top-2 z-10 flex size-5 items-center justify-center rounded-full bg-[#58180d] text-[#eee5ce] hover:bg-[#6e2a1a] shadow-sm"
+              title="Remove image"
+            >
+              <FontAwesomeIcon icon={faTimes} className="size-2.5" />
+            </button>
             <img src={imagePreview} alt="Preview" className="max-h-48 rounded-lg border border-[var(--color-gilding-dark)] object-contain" />
             <p className="mt-1 text-xs text-[#766649]">
               {(imageFile?.name ?? uploadFile?.name ?? "")} ({(imageFile?.size ?? uploadFile?.size ?? 0) / 1024 > 0 ? ((imageFile?.size ?? uploadFile?.size ?? 0) / 1024).toFixed(0) : 0} KB)
