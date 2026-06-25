@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -299,6 +300,7 @@ function SubclassForm({ parsedData }: { parsedData?: ParseResult | null }) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [prepopNotice, setPrepopNotice] = useState(false);
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Pre-populate from parsed data
@@ -364,15 +366,15 @@ function SubclassForm({ parsedData }: { parsedData?: ParseResult | null }) {
     }
 
     try {
-      const { error: insertError } = await supabase.from("entries").insert({
+      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
         name: name.trim(),
         type: "subclass",
         description: description.trim(),
         tags: tags.tags,
         properties,
-      });
+      }).select('id').single();
       if (insertError) throw insertError;
-      setSuccess(true);
+      navigate(`/entry/${insertedData.id}?saved=1`);
       setName("");
       setParentClass("");
       setDescription("");
@@ -485,6 +487,7 @@ function TableForm({ parsedData }: { parsedData?: ParseResult | null }) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [prepopNotice, setPrepopNotice] = useState(false);
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Pre-populate from parsed data
@@ -591,15 +594,15 @@ function TableForm({ parsedData }: { parsedData?: ParseResult | null }) {
     }
 
     try {
-      const { error: insertError } = await supabase.from("entries").insert({
+      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
         name: name.trim(),
         type: "table",
         description: description.trim(),
         tags: tags.tags,
         properties,
-      });
+      }).select('id').single();
       if (insertError) throw insertError;
-      setSuccess(true);
+      navigate(`/entry/${insertedData.id}?saved=1`);
       setName("");
       setDescription("");
       tags.resetTags();
@@ -739,6 +742,7 @@ function TreasureForm({ entryType, parsedData }: { entryType: EntryType; parsedD
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [prepopNotice, setPrepopNotice] = useState(false);
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Pre-populate from parsed data
@@ -807,26 +811,17 @@ function TreasureForm({ entryType, parsedData }: { entryType: EntryType; parsedD
         }
       }
 
-      const { error: insertError } = await supabase.from("entries").insert({
+      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
         name: name.trim(),
         type: entryType,
         description: description.trim(),
         tags: tags.tags,
         properties,
-      });
+      }).select('id').single();
 
       if (insertError) throw insertError;
 
-      setSuccess(true);
-      // Reset form
-      setName("");
-      setRarity("");
-      setAttunement(false);
-      setAttunementBy("");
-      setDescription("");
-      tags.resetTags();
-      setImageFile(null);
-      setImagePreview(null);
+      navigate(`/entry/${insertedData.id}?saved=1`);
     } catch (err) {
       console.error("Save error:", err);
       setError(err instanceof Error ? err.message : "Failed to save entry");
@@ -1312,6 +1307,7 @@ function SimpleForm({ entryType, parsedData }: { entryType: EntryType; parsedDat
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [prepopNotice, setPrepopNotice] = useState(false);
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Pre-populate from parsed data
@@ -1450,12 +1446,12 @@ function SimpleForm({ entryType, parsedData }: { entryType: EntryType; parsedDat
     }
 
     try {
-      const { error: insertError } = await supabase.from("entries").insert({
+      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
         name: name.trim(), type: entryType, description: description.trim(),
         tags: tags.tags, properties,
-      });
+      }).select('id').single();
       if (insertError) throw insertError;
-      setSuccess(true);
+      navigate(`/entry/${insertedData.id}?saved=1`);
       setName(""); setDescription(""); tags.resetTags(); setImageFile(null); setImagePreview(null);
       setShowStatBlock(false); setSize(""); setCreatureType(""); setAlignment(""); setCr("");
       setAc(""); setHp(""); setSpeed("");
@@ -1653,6 +1649,7 @@ function SpellScrollForm({ entryType, parsedData }: { entryType: EntryType; pars
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [prepopNotice, setPrepopNotice] = useState(false);
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Pre-populate from parsed data
@@ -1746,32 +1743,16 @@ function SpellScrollForm({ entryType, parsedData }: { entryType: EntryType; pars
 
     try {
       const actualType: EntryType = isSpell ? "spell" : "scroll";
-      const { error: insertError } = await supabase.from("entries").insert({
+      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
         name: name.trim(),
         type: actualType,
         description: description.trim(),
         tags: tags.tags,
         properties,
-      });
+      }).select('id').single();
       if (insertError) throw insertError;
 
-      setSuccess(true);
-      setName("");
-      setLevel("");
-      setSchool("");
-      setCastingTime("");
-      setRange("");
-      setCompV(false);
-      setCompS(false);
-      setCompM(false);
-      setMaterialDesc("");
-      setDuration("");
-      setConcentration(false);
-      setRarity("");
-      setDescription("");
-      tags.resetTags();
-      setImageFile(null);
-      setImagePreview(null);
+      navigate(`/entry/${insertedData.id}?saved=1`);
     } catch (err) {
       console.error("Save error:", err);
       setError(err instanceof Error ? err.message : "Failed to save entry");

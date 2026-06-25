@@ -219,9 +219,29 @@ export default function EntryDetailPage() {
 
   const C = RENDERERS[entry.type] ?? SimpleDetail;
 
+  const showSaved = sp.get("saved") === "1";
+
+  // Auto-dismiss saved indicator after 4 seconds
+  useEffect(() => {
+    if (showSaved) {
+      const t = setTimeout(() => {
+        // remove ?saved=1 from URL without reload
+        const u = new URL(window.location.href);
+        u.searchParams.delete("saved");
+        window.history.replaceState({}, "", u.toString());
+      }, 4000);
+      return () => clearTimeout(t);
+    }
+  }, [showSaved]);
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <Link to={from} className="phb-small-sc text-sm font-bold text-crimson underline underline-offset-4 hover:text-crimson-light">&larr; Back</Link>
+      {showSaved && (
+        <div className="mt-4 rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800 text-center">
+          Entry saved successfully!
+        </div>
+      )}
       <div className="parchment-card gilded-border mt-4 p-6 sm:p-8">
         <div className="overflow-hidden">
           <PortraitPlaceholder />

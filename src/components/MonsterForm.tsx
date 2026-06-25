@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSave, faTimes, faUpload, faPlus, faTrash,
@@ -213,6 +214,7 @@ export default function MonsterForm({ parsedData }: { parsedData?: Record<string
   const [error, setError] = useState<string|null>(null);
   const [success, setSuccess] = useState(false);
   const [prepopNotice, setPrepopNotice] = useState(false);
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Pre-populate from parsed data
@@ -322,27 +324,15 @@ export default function MonsterForm({ parsedData }: { parsedData?: Record<string
     }
 
     try {
-      const { error: insertError } = await supabase.from("entries").insert({
+      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
         name: name.trim(),
         type: "monster",
         description: description.trim(),
         tags: tags.tags,
         properties: props,
-      });
+      }).select('id').single();
       if (insertError) throw insertError;
-      setSuccess(true);
-      setName(""); setSize(""); setCreatureType(""); setAlignment(""); setCr("");
-      setAc(""); setHp(""); setSpeed("");
-      setStr(10); setDex(10); setCon(10); setIntel(10); setWis(10); setCha(10);
-      setSaveProfs({ STR:false, DEX:false, CON:false, INT:false, WIS:false, CHA:false });
-      setSkillProfs([]);
-      vuln.reset(); resist.reset(); immune.reset(); condImm.reset();
-      setSenses(""); setLanguages("");
-      setTraits([]); setHasSpell(false); setSpellAbil("INT"); setSpellSave(10); setSpellAtk(0); setSpellList("");
-      setActions([]); setBonusActions([]); setReactions([]);
-      setHasLeg(false); setLegPer(3); setLegActs([]);
-      setHasLair(false); setLairActs([]);
-      setDescription(""); tags.reset(); setImgFile(null); setImgPrev(null);
+      navigate(`/entry/${insertedData.id}?saved=1`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save entry");
     } finally {
