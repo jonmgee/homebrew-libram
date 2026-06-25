@@ -1080,7 +1080,8 @@ function ImportTab({
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
-  const [dragOver, setDragOver] = useState(false);
+  const [dragOverCount, setDragOverCount] = useState(0);
+  const dragOver = dragOverCount > 0;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const ACCEPTED_TYPES = ".jpg,.jpeg,.png,.pdf,.docx";
@@ -1162,21 +1163,14 @@ function ImportTab({
     acceptFile(file);
   };
 
-  // Prevent browser from opening dropped files at document level
+  // Prevent browser from navigating or opening dropped files at document level
   useEffect(() => {
-    const preventAll = (e: DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-    document.addEventListener("dragover", preventAll);
-    document.addEventListener("dragenter", preventAll);
-    document.addEventListener("dragleave", preventAll);
-    document.addEventListener("drop", preventAll);
+    const preventNav = (e: DragEvent) => e.preventDefault();
+    document.addEventListener("dragover", preventNav);
+    document.addEventListener("drop", preventNav);
     return () => {
-      document.removeEventListener("dragover", preventAll);
-      document.removeEventListener("dragenter", preventAll);
-      document.removeEventListener("dragleave", preventAll);
-      document.removeEventListener("drop", preventAll);
+      document.removeEventListener("dragover", preventNav);
+      document.removeEventListener("drop", preventNav);
     };
   }, []);
 
@@ -1187,17 +1181,17 @@ function ImportTab({
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setDragOver(true);
+    setDragOverCount((c) => c + 1);
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setDragOver(false);
+    setDragOverCount((c) => Math.max(0, c - 1));
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setDragOver(false);
+    setDragOverCount(0);
     const file = e.dataTransfer.files[0];
     if (!file) return;
 
@@ -1251,9 +1245,7 @@ function ImportTab({
       {/* drag-over overlay */}
       {dragOver && (
         <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg border-2 border-dashed border-amber-600 bg-[var(--color-parchment)]/90"
-          onDragEnter={(e) => e.preventDefault()}
           onDragOver={(e) => e.preventDefault()}
-          onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
           onDrop={handleDrop}
         >
           <p className="font-[var(--font-title)] text-lg font-bold text-[#58180d]">
