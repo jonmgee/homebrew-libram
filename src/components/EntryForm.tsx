@@ -1993,20 +1993,69 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
   setImagePreview: (s: string | null) => void;
   handleImage: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
+  const [dragOverCount, setDragOverCount] = useState(0);
+  const dragOver = dragOverCount > 0;
+
+  const acceptImage = (file: File) => {
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+    // Sync native input
+    if (fileRef.current) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileRef.current.files = dt.files;
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const items = Array.from(e.clipboardData.items);
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const blob = item.getAsFile();
+        if (!blob) continue;
+        acceptImage(new File([blob], "pasted-image.png", { type: blob.type }));
+        return;
+      }
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOverCount(0);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) acceptImage(file);
+  };
+
   return (
-    <div>
+    <div
+      onDragOver={(e) => e.preventDefault()}
+      onDragEnter={(e) => { e.preventDefault(); setDragOverCount((c) => c + 1); }}
+      onDragLeave={(e) => { e.preventDefault(); setDragOverCount((c) => Math.max(0, c - 1)); }}
+      onDrop={handleDrop}
+      onPaste={handlePaste}
+    >
       <label className={labelCls}>Image</label>
-      <div onClick={() => fileRef.current?.click()} className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6 text-center transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)]">
+      <div onClick={() => fileRef.current?.click()} className="relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6 text-center transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)]">
         {imagePreview ? (
           <img src={imagePreview} alt="Preview" className="max-h-40 rounded object-contain" />
         ) : (
           <>
             <FontAwesomeIcon icon={faUpload} className="text-2xl text-[#766649]" />
-            <span className="font-[var(--font-phb)] text-sm text-[#766649]">Click to upload an image</span>
+            <span className="font-[var(--font-phb)] text-sm text-[#766649]">Click to upload, drag an image, or paste a screenshot</span>
           </>
         )}
         {imageFile && (
           <button type="button" onClick={(e) => { e.stopPropagation(); setImageFile(null); setImagePreview(null); if (fileRef.current) fileRef.current.value = ""; }} className="text-xs text-red-600 hover:text-red-800">Remove</button>
+        )}
+
+        {/* drag-over overlay */}
+        {dragOver && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-amber-600 bg-[var(--color-parchment)]/90">
+            <p className="font-[var(--font-title)] text-base font-bold text-[#58180d]">Drop image here</p>
+          </div>
         )}
       </div>
       <input ref={fileRef} type="file" accept="image/*" onChange={handleImage} className="hidden" />
