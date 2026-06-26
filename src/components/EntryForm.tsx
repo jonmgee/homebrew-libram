@@ -10,7 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { formatEntryType, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
 import type { EntryType } from "../types";
-import { supabase } from "../lib/supabase";
+import { saveEntryWithImage } from "../lib/uploadImage";
 import MonsterForm, { abilMod, modStr, crToProf, CR_LIST, SIZE_LIST, ABILITIES, SKILL_LIST, SKILL_ABIL, useTags as useMonsterTags, TagRow, RepeatBlock } from "./MonsterForm";
 
 /* ──────────── Props ──────────── */
@@ -37,6 +37,7 @@ export default function EntryForm({ entryType }: EntryFormProps) {
   const [importType] = useState<EntryType>(entryType);
   const [parsedData, setParsedData] = useState<ParseResult | null>(null);
   const [prepopKey, setPrepopKey] = useState(0);
+  const [capturedImage, setCapturedImage] = useState<{file: File; preview: string} | null>(null);
 
   const handleParsed = (data: ParseResult) => {
     setParsedData(data);
@@ -89,11 +90,15 @@ export default function EntryForm({ entryType }: EntryFormProps) {
                 key={prepopKey}
                 entryType={entryType}
                 parsedData={parsedData}
+                capturedImage={capturedImage}
               />
             ) : (
               <ImportTab
                 importType={importType}
-                onParsed={handleParsed}
+                onParsed={(data, image) => {
+                  if (image) setCapturedImage(image);
+                  handleParsed(data);
+                }}
               />
             )}
           </motion.div>
@@ -252,13 +257,17 @@ const SUBCLASS_TYPES: EntryType[] = ["subclass"];
 const TABLE_TYPES: EntryType[] = ["table"];
 
 /* ──────── Manual Entry tab ──────── */
-function ManualEntryTab({ entryType, parsedData }: { entryType: EntryType; parsedData?: ParseResult | null }) {
-  if (TREASURE_TYPES.includes(entryType)) return <TreasureForm entryType={entryType} parsedData={parsedData} />;
-  if (SIMPLE_TYPES.includes(entryType)) return <SimpleForm entryType={entryType} parsedData={parsedData} />;
-  if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} parsedData={parsedData} />;
-  if (MONSTER_TYPES.includes(entryType)) return <MonsterForm parsedData={parsedData ?? undefined} />;
-  if (SUBCLASS_TYPES.includes(entryType)) return <SubclassForm parsedData={parsedData} />;
-  if (TABLE_TYPES.includes(entryType)) return <TableForm parsedData={parsedData} />;
+function ManualEntryTab({ entryType, parsedData, capturedImage }: {
+  entryType: EntryType;
+  parsedData?: ParseResult | null;
+  capturedImage?: {file: File; preview: string} | null;
+}) {
+  if (TREASURE_TYPES.includes(entryType)) return <TreasureForm entryType={entryType} parsedData={parsedData} capturedImage={capturedImage ?? undefined} />;
+  if (SIMPLE_TYPES.includes(entryType)) return <SimpleForm entryType={entryType} parsedData={parsedData} capturedImage={capturedImage ?? undefined} />;
+  if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} parsedData={parsedData} capturedImage={capturedImage ?? undefined} />;
+  if (MONSTER_TYPES.includes(entryType)) return <MonsterForm parsedData={parsedData ?? undefined} capturedImage={capturedImage ?? undefined} />;
+  if (SUBCLASS_TYPES.includes(entryType)) return <SubclassForm parsedData={parsedData} capturedImage={capturedImage ?? undefined} />;
+  if (TABLE_TYPES.includes(entryType)) return <TableForm parsedData={parsedData} capturedImage={capturedImage ?? undefined} />;
 
   return (
     <div className="min-h-[120px]">
@@ -273,7 +282,7 @@ function ManualEntryTab({ entryType, parsedData }: { entryType: EntryType; parse
 }
 
 /* ──────── Subclass form ──────── */
-function SubclassForm({ parsedData }: { parsedData?: ParseResult | null }) {
+function SubclassForm({ parsedData, capturedImage }: { parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string} }) {
   const [name, setName] = useState("");
   const [parentClass, setParentClass] = useState("");
   const [description, setDescription] = useState("");
@@ -337,28 +346,17 @@ function SubclassForm({ parsedData }: { parsedData?: ParseResult | null }) {
     const filteredFeatures = features.filter((f) => f.desc.trim());
     if (filteredFeatures.length) properties.level_features = filteredFeatures;
 
-    if (imageFile) {
-      const ext = imageFile.name.split(".").pop() ?? "png";
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      const { data: uploadData } = await supabase.storage.from("entry-images").upload(filename, imageFile);
-      if (uploadData) {
-        const { data: pub } = supabase.storage.from("entry-images").getPublicUrl(filename);
-        properties.image_url = pub.publicUrl;
-      } else {
-        properties.image_data = imagePreview;
-      }
-    }
+    // Use the locally-selected image, or fall back to import's captured image
+    const imageToUpload = imageFile ?? capturedImage?.file ?? null;
 
     try {
-      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
+      await saveEntryWithImage({
         name: name.trim(),
         type: "subclass",
         description: description.trim(),
         tags: tags.tags,
         properties,
-      }).select('id').single();
-      if (insertError) throw insertError;
-      navigate(`/entry/${insertedData.id}?saved=1`);
+      }, imageToUpload, navigate);
       setName("");
       setParentClass("");
       setDescription("");
@@ -459,7 +457,7 @@ function dieRowCount(die: string): number {
 }
 
 /* ──────── Table form ──────── */
-function TableForm({ parsedData }: { parsedData?: ParseResult | null }) {
+function TableForm({ parsedData, capturedImage }: { parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string} }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [dieType, setDieType] = useState("");
@@ -565,28 +563,16 @@ function TableForm({ parsedData }: { parsedData?: ParseResult | null }) {
     const dataRows = cells.map((row, ri) => [String(ri + 1), ...row.slice(1)]);
     properties.rows = dataRows;
 
-    if (imageFile) {
-      const ext = imageFile.name.split(".").pop() ?? "png";
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      const { data: uploadData } = await supabase.storage.from("entry-images").upload(filename, imageFile);
-      if (uploadData) {
-        const { data: pub } = supabase.storage.from("entry-images").getPublicUrl(filename);
-        properties.image_url = pub.publicUrl;
-      } else {
-        properties.image_data = imagePreview;
-      }
-    }
+    const imageToUpload = imageFile ?? capturedImage?.file ?? null;
 
     try {
-      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
+      await saveEntryWithImage({
         name: name.trim(),
         type: "table",
         description: description.trim(),
         tags: tags.tags,
         properties,
-      }).select('id').single();
-      if (insertError) throw insertError;
-      navigate(`/entry/${insertedData.id}?saved=1`);
+      }, imageToUpload, navigate);
       setName("");
       setDescription("");
       tags.resetTags();
@@ -713,7 +699,7 @@ function TableForm({ parsedData }: { parsedData?: ParseResult | null }) {
 }
 
 /* ──────── Shared form for Magic Item / Weapon / Armour / Potion / Adventuring Gear / Trinket ──────── */
-function TreasureForm({ entryType, parsedData }: { entryType: EntryType; parsedData?: ParseResult | null }) {
+function TreasureForm({ entryType, parsedData, capturedImage }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string} }) {
   const [name, setName] = useState("");
   const [rarity, setRarity] = useState("");
   const [attunement, setAttunement] = useState(false);
@@ -775,37 +761,15 @@ function TreasureForm({ entryType, parsedData }: { entryType: EntryType; parsedD
         properties.attunement_by = attunementBy.trim();
       }
 
-      // Image: try to upload to Supabase Storage
-      let imageUrl: string | null = null;
-      if (imageFile) {
-        const ext = imageFile.name.split(".").pop() ?? "png";
-        const filename = `${crypto.randomUUID()}.${ext}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("entry-images")
-          .upload(filename, imageFile);
-        if (!uploadError && uploadData) {
-          const { data: publicUrl } = supabase.storage
-            .from("entry-images")
-            .getPublicUrl(filename);
-          imageUrl = publicUrl.publicUrl;
-          properties.image_url = imageUrl;
-        } else {
-          // Fallback: store as data URL in properties
-          properties.image_data = imagePreview;
-        }
-      }
+      const imageToUpload = imageFile ?? capturedImage?.file ?? null;
 
-      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
+      await saveEntryWithImage({
         name: name.trim(),
         type: entryType,
         description: description.trim(),
         tags: tags.tags,
         properties,
-      }).select('id').single();
-
-      if (insertError) throw insertError;
-
-      navigate(`/entry/${insertedData.id}?saved=1`);
+      }, imageToUpload, navigate);
     } catch (err) {
       console.error("Save error:", err);
       setError(err instanceof Error ? err.message : "Failed to save entry");
@@ -1064,7 +1028,7 @@ function ImportTab({
   onParsed,
 }: {
   importType: EntryType;
-  onParsed: (data: ParseResult) => void;
+  onParsed: (data: ParseResult, image?: {file: File; preview: string}) => void;
 }) {
   const [pasteText, setPasteText] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -1140,13 +1104,24 @@ function ImportTab({
         return;
       }
 
-      onParsed(result);
+      onParsed(result, getCapturedImage());
     } catch (err) {
       setParseError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setParsing(false);
     }
   };
+
+  // Determine the current captured image (for passthrough to manual form)
+  function getCapturedImage(): {file: File; preview: string} | undefined {
+    if (uploadFile?.type.startsWith("image/")) {
+      return { file: uploadFile, preview: imagePreview ?? "" };
+    }
+    if (imageFile) {
+      return { file: imageFile, preview: imagePreview ?? "" };
+    }
+    return undefined;
+  }
 
   // File upload handler — supports images, PDFs, and Word docs
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1339,7 +1314,7 @@ const inputCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg
 const textareaCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600 min-h-[100px] resize-y";
 
 /* ──────── Simple form (NPC, Background, Feat) ──────── */
-function SimpleForm({ entryType, parsedData }: { entryType: EntryType; parsedData?: ParseResult | null }) {
+function SimpleForm({ entryType, parsedData, capturedImage }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string} }) {
   const isNpc = entryType === "npc";
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -1476,25 +1451,16 @@ function SimpleForm({ entryType, parsedData }: { entryType: EntryType; parsedDat
       if (hasLair) properties.lair_actions = lairActs.filter(a => a.name||a.desc);
     }
 
-    if (imageFile) {
-      const ext = imageFile.name.split(".").pop() ?? "png";
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      const { data: uploadData } = await supabase.storage.from("entry-images").upload(filename, imageFile);
-      if (uploadData) {
-        const { data: pub } = supabase.storage.from("entry-images").getPublicUrl(filename);
-        properties.image_url = pub.publicUrl;
-      } else {
-        properties.image_data = imagePreview;
-      }
-    }
+    const imageToUpload = imageFile ?? capturedImage?.file ?? null;
 
     try {
-      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
-        name: name.trim(), type: entryType, description: description.trim(),
-        tags: tags.tags, properties,
-      }).select('id').single();
-      if (insertError) throw insertError;
-      navigate(`/entry/${insertedData.id}?saved=1`);
+      await saveEntryWithImage({
+        name: name.trim(),
+        type: entryType,
+        description: description.trim(),
+        tags: tags.tags,
+        properties,
+      }, imageToUpload, navigate);
       setName(""); setDescription(""); tags.resetTags(); setImageFile(null); setImagePreview(null);
       setShowStatBlock(false); setSize(""); setCreatureType(""); setAlignment(""); setCr("");
       setAc(""); setHp(""); setSpeed("");
@@ -1670,7 +1636,7 @@ function SimpleForm({ entryType, parsedData }: { entryType: EntryType; parsedDat
 }
 
 /* ──────── Spell/Scroll combined form ──────── */
-function SpellScrollForm({ entryType, parsedData }: { entryType: EntryType; parsedData?: ParseResult | null }) {
+function SpellScrollForm({ entryType, parsedData, capturedImage }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string} }) {
   const [isSpell, setIsSpell] = useState(entryType === "spell");
   const [name, setName] = useState("");
   const [level, setLevel] = useState("");
@@ -1768,34 +1734,17 @@ function SpellScrollForm({ entryType, parsedData }: { entryType: EntryType; pars
       properties.concentration = concentration;
     }
 
-    if (imageFile) {
-      const ext = imageFile.name.split(".").pop() ?? "png";
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("entry-images")
-        .upload(filename, imageFile);
-      if (!uploadError && uploadData) {
-        const { data: publicUrl } = supabase.storage
-          .from("entry-images")
-          .getPublicUrl(filename);
-        properties.image_url = publicUrl.publicUrl;
-      } else {
-        properties.image_data = imagePreview;
-      }
-    }
+    const imageToUpload = imageFile ?? capturedImage?.file ?? null;
 
     try {
       const actualType: EntryType = isSpell ? "spell" : "scroll";
-      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
+      await saveEntryWithImage({
         name: name.trim(),
         type: actualType,
         description: description.trim(),
         tags: tags.tags,
         properties,
-      }).select('id').single();
-      if (insertError) throw insertError;
-
-      navigate(`/entry/${insertedData.id}?saved=1`);
+      }, imageToUpload, navigate);
     } catch (err) {
       console.error("Save error:", err);
       setError(err instanceof Error ? err.message : "Failed to save entry");

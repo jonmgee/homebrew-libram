@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faSave, faTimes, faUpload, faPlus, faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import { supabase } from "../lib/supabase";
+import { saveEntryWithImage } from "../lib/uploadImage";
 
 /* ───── Shared styles ───── */
 const labelCls = "mb-1 block font-[var(--font-title)] text-sm font-bold text-[#58180d]";
@@ -126,7 +126,7 @@ export function RepeatBlock({ items, onChange, onRemove, onAdd, namePh, descPh, 
 }
 
 /* ───── MonsterForm ───── */
-export default function MonsterForm({ parsedData }: { parsedData?: Record<string, unknown> | null } = {}) {
+export default function MonsterForm({ parsedData, capturedImage }: { parsedData?: Record<string, unknown> | null; capturedImage?: {file: File; preview: string} } = {}) {
   /* Core */
   const [name, setName] = useState("");
   const [size, setSize] = useState("");
@@ -311,28 +311,16 @@ export default function MonsterForm({ parsedData }: { parsedData?: Record<string
     if (hasLeg) props.legendary_actions = { per_round: legPer, actions: legActs.filter(a => a.name||a.desc) };
     if (hasLair) props.lair_actions = lairActs.filter(a => a.name||a.desc);
 
-    if (imgFile) {
-      const ext = imgFile.name.split(".").pop() ?? "png";
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      const { data: uploadData } = await supabase.storage.from("entry-images").upload(filename, imgFile);
-      if (uploadData) {
-        const { data: pub } = supabase.storage.from("entry-images").getPublicUrl(filename);
-        props.image_url = pub.publicUrl;
-      } else {
-        props.image_data = imgPrev;
-      }
-    }
+    const imageToUpload = imgFile ?? capturedImage?.file ?? null;
 
     try {
-      const { data: insertedData, error: insertError } = await supabase.from("entries").insert({
+      await saveEntryWithImage({
         name: name.trim(),
         type: "monster",
         description: description.trim(),
         tags: tags.tags,
         properties: props,
-      }).select('id').single();
-      if (insertError) throw insertError;
-      navigate(`/entry/${insertedData.id}?saved=1`);
+      }, imageToUpload, navigate);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save entry");
     } finally {

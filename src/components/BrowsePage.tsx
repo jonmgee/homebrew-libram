@@ -202,6 +202,13 @@ export default function BrowsePage() {
                         className="min-w-0 flex-1 no-underline"
                       >
                         <div className="flex flex-wrap items-center gap-2">
+                          {(entry.properties?.image_url as string | undefined) && (
+                            <img
+                              src={entry.properties.image_url as string}
+                              alt=""
+                              className="h-8 w-8 shrink-0 rounded border border-parchment-dark object-cover"
+                            />
+                          )}
                           <h3 className="phb-h3 !border-none !mb-0 !pb-0 !text-base">
                             {entry.name}
                           </h3>
