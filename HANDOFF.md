@@ -159,7 +159,7 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [ ] **Mobile optimisation** — responsive but not fully polished for small screens
 - [ ] **Pagination** — no pagination for large entry lists
 - [ ] **Import/export** — no bulk import or export
-- [ ] **Supabase Storage bucket** — `entry-images` bucket may need manual creation
+- [x] **Image upload pipeline** — images upload to `entry-images` bucket with traceable filenames, write back to `properties.image_url`. Renders on detail page and as thumbnail on browse list. RLS update policy added for anon writeback.
 - [ ] **CRUD** — no edit/delete of existing entries from browse page
 
 ## Next tasks
