@@ -1927,7 +1927,11 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
   // Prevent browser from navigating or opening dropped files at document level
   // (exact same pattern as ImportTab — needed for Safari)
   useEffect(() => {
-    const preventNav = (e: DragEvent) => e.preventDefault();
+    console.log("ImageUpload drag handlers attached");
+    const preventNav = (e: DragEvent) => {
+      console.log("document drop intercepted");
+      e.preventDefault();
+    };
     document.addEventListener("dragover", preventNav);
     document.addEventListener("drop", preventNav);
     return () => {
