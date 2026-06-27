@@ -225,21 +225,27 @@ export default function BrowsePage() {
                           {entrySummary(entry) || "\u2014"}
                         </p>
                       </Link>
-                      <div className="mt-0.5 shrink-0">
+                      <div className="mt-0.5 flex shrink-0 items-center gap-1.5">
+                        <Link
+                          to={`/entry/${entry.id}/edit`}
+                          className="rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-2 py-1 text-xs font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a]"
+                        >
+                          Edit
+                        </Link>
                         {deleteConfirmId === entry.id ? (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
                             <span className="phb-small-sc text-xs text-crimson">
                               Delete?
                             </span>
                             <button
                               onClick={() => handleDelete(entry.id)}
-                              className="rounded bg-crimson px-2 py-1 phb-small-sc text-xs font-bold text-parchment-light hover:bg-crimson-light"
+                              className="rounded-lg border border-crimson bg-crimson px-2 py-1 text-xs font-bold text-parchment-light transition-colors hover:bg-crimson-light"
                             >
                               Yes
                             </button>
                             <button
                               onClick={() => setDeleteConfirmId(null)}
-                              className="rounded bg-parchment-dark px-2 py-1 phb-small-sc text-xs font-bold text-ink hover:bg-parchment"
+                              className="rounded-lg border border-[var(--color-gilding-dark)] bg-parchment-dark px-2 py-1 text-xs font-bold text-ink transition-colors hover:bg-parchment"
                             >
                               No
                             </button>
@@ -247,7 +253,7 @@ export default function BrowsePage() {
                         ) : (
                           <button
                             onClick={() => setDeleteConfirmId(entry.id)}
-                            className="phb-body text-xs italic text-ink-light/40 underline underline-offset-2 hover:text-crimson"
+                            className="rounded-lg border border-crimson bg-crimson px-2 py-1 text-xs font-bold text-parchment-light transition-colors hover:bg-crimson-light"
                           >
                             Delete
                           </button>

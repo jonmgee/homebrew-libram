@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useSearchParams } from "react-router-dom";
+import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { formatEntryType, type DbEntry } from "../types";
 import SpellDetail from "./SpellDetail";
@@ -211,6 +211,20 @@ export default function EntryDetailPage() {
     return () => { cancelled = true; };
   }, [id]);
 
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  async function handleDelete() {
+    if (!id) return;
+    const { error } = await supabase.from("entries").delete().eq("id", id);
+    if (error) {
+      setDeleteError(error.message);
+      return;
+    }
+    navigate(from, { replace: true });
+  }
+
   const showSaved = sp.get("saved") === "1";
   const showUpdated = sp.get("updated") === "1";
 
@@ -259,14 +273,40 @@ export default function EntryDetailPage() {
         </div>
       )}
       <div className="parchment-card gilded-border mt-4 p-6 sm:p-8">
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex items-center justify-end gap-2">
           <Link
             to={`/entry/${id}/edit`}
             className="rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-4 py-1.5 text-xs font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a]"
           >
             Edit Entry
           </Link>
+          <button
+            onClick={() => setDeleteConfirm(true)}
+            className="rounded-lg border border-crimson bg-crimson px-4 py-1.5 text-xs font-bold text-parchment-light transition-colors hover:bg-crimson-light"
+          >
+            Delete
+          </button>
         </div>
+        {deleteConfirm && (
+          <div className="mb-4 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 text-sm">
+            <p className="phb-body text-crimson">Are you sure? This cannot be undone.</p>
+            {deleteError && <p className="mt-1 text-xs text-crimson">{deleteError}</p>}
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={handleDelete}
+                className="rounded-lg border border-crimson bg-crimson px-3 py-1 text-xs font-bold text-parchment-light transition-colors hover:bg-crimson-light"
+              >
+                Yes, Delete
+              </button>
+              <button
+                onClick={() => { setDeleteConfirm(false); setDeleteError(null); }}
+                className="rounded-lg border border-[var(--color-gilding-dark)] bg-parchment-dark px-3 py-1 text-xs font-bold text-ink transition-colors hover:bg-parchment"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
         <div className="overflow-hidden">
           <EntryImage entry={entry} />
           <C entry={entry} />
