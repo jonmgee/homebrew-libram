@@ -212,18 +212,20 @@ export default function EntryDetailPage() {
   }, [id]);
 
   const showSaved = sp.get("saved") === "1";
+  const showUpdated = sp.get("updated") === "1";
 
-  // Auto-dismiss saved indicator after 4 seconds
+  // Auto-dismiss saved/updated indicator after 4 seconds
   useEffect(() => {
-    if (showSaved) {
+    if (showSaved || showUpdated) {
+      const param = showUpdated ? "updated" : "saved";
       const t = setTimeout(() => {
         const u = new URL(window.location.href);
-        u.searchParams.delete("saved");
+        u.searchParams.delete(param);
         window.history.replaceState({}, "", u.toString());
       }, 4000);
       return () => clearTimeout(t);
     }
-  }, [showSaved]);
+  }, [showSaved, showUpdated]);
 
   if (loadState === "loading") return <div className="mx-auto max-w-4xl px-4 py-12"><p className="phb-description text-center">Loading entry\u2026</p></div>;
 
@@ -251,7 +253,20 @@ export default function EntryDetailPage() {
           Entry saved successfully!
         </div>
       )}
+      {showUpdated && (
+        <div className="mt-4 rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800 text-center">
+          Entry updated successfully!
+        </div>
+      )}
       <div className="parchment-card gilded-border mt-4 p-6 sm:p-8">
+        <div className="mb-4 flex justify-end">
+          <Link
+            to={`/entry/${id}/edit`}
+            className="rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-4 py-1.5 text-xs font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a]"
+          >
+            Edit Entry
+          </Link>
+        </div>
         <div className="overflow-hidden">
           <EntryImage entry={entry} />
           <C entry={entry} />

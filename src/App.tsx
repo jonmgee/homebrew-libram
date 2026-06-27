@@ -5,6 +5,7 @@ import BrowsePage from "./components/BrowsePage";
 import CreateEntryPage from "./components/CreateEntryPage";
 import CreateEntryInputPage from "./components/CreateEntryInputPage";
 import EntryDetailPage from "./components/EntryDetailPage";
+import EditEntryPage from "./components/EditEntryPage";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/create" element={<CreateEntryPage />} />
           <Route path="/create/:type" element={<CreateEntryInputPage />} />
           <Route path="/entry/:id" element={<EntryDetailPage />} />
+          <Route path="/entry/:id/edit" element={<EditEntryPage />} />
         </Routes>
       </main>
     </BrowserRouter>

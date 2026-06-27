@@ -5,6 +5,7 @@ import {
   faSave, faTimes, faUpload, faPlus, faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { saveEntryWithImage } from "../lib/uploadImage";
+import type { DbEntry } from "../types";
 
 /* ───── Shared styles ───── */
 const labelCls = "mb-1 block font-[var(--font-title)] text-sm font-bold text-[#58180d]";
@@ -126,7 +127,7 @@ export function RepeatBlock({ items, onChange, onRemove, onAdd, namePh, descPh, 
 }
 
 /* ───── MonsterForm ───── */
-export default function MonsterForm({ parsedData, capturedImage }: { parsedData?: Record<string, unknown> | null; capturedImage?: {file: File; preview: string} } = {}) {
+export default function MonsterForm({ parsedData, capturedImage, initialData }: { parsedData?: Record<string, unknown> | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry } = {}) {
   /* Core */
   const [name, setName] = useState("");
   const [size, setSize] = useState("");
@@ -277,6 +278,63 @@ export default function MonsterForm({ parsedData, capturedImage }: { parsedData?
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsedData]);
 
+  // Pre-populate from initial data (edit mode)
+  useEffect(() => {
+    if (!initialData) return;
+    setName(initialData.name);
+    setDescription(initialData.description);
+    const p = initialData.properties ?? {};
+    if (typeof p.size === "string") setSize(p.size);
+    if (typeof p.creature_type === "string") setCreatureType(p.creature_type);
+    if (typeof p.alignment === "string") setAlignment(p.alignment);
+    if (typeof p.cr === "string") setCr(p.cr);
+    if (typeof p.ac === "string") setAc(p.ac);
+    if (typeof p.hp === "string") setHp(p.hp);
+    if (typeof p.speed === "string") setSpeed(p.speed);
+    if (typeof p.ability_str === "number") setStr(p.ability_str);
+    if (typeof p.ability_dex === "number") setDex(p.ability_dex);
+    if (typeof p.ability_con === "number") setCon(p.ability_con);
+    if (typeof p.ability_int === "number") setIntel(p.ability_int);
+    if (typeof p.ability_wis === "number") setWis(p.ability_wis);
+    if (typeof p.ability_cha === "number") setCha(p.ability_cha);
+    if (typeof p.saving_throws === "string") {
+      const savesStr = p.saving_throws.toLowerCase();
+      setSaveProfs(prev => ({ ...prev, ...Object.fromEntries(ABILITIES.map(a => [a, savesStr.includes(a.toLowerCase())])) }));
+    }
+    if (typeof p.skills === "string") {
+      setSkillProfs(p.skills.split(",").map((s: string) => s.trim().split(" ").slice(0, -1).join(" ")).filter((s: string) => SKILL_LIST.includes(s)));
+    }
+    if (typeof p.damage_vulnerabilities === "string") p.damage_vulnerabilities.split(",").forEach((t: string) => vuln.add(t.trim()));
+    if (typeof p.damage_resistances === "string") p.damage_resistances.split(",").forEach((t: string) => resist.add(t.trim()));
+    if (typeof p.damage_immunities === "string") p.damage_immunities.split(",").forEach((t: string) => immune.add(t.trim()));
+    if (typeof p.condition_immunities === "string") p.condition_immunities.split(",").forEach((t: string) => condImm.add(t.trim()));
+    if (typeof p.senses === "string") setSenses(p.senses);
+    if (typeof p.languages === "string") setLanguages(p.languages);
+    if (Array.isArray(p.traits)) setTraits(p.traits as {name:string;desc:string}[]);
+    if (Array.isArray(p.actions)) setActions(p.actions as {name:string;desc:string}[]);
+    if (Array.isArray(p.bonus_actions)) setBonusActions(p.bonus_actions as {name:string;desc:string}[]);
+    if (Array.isArray(p.reactions)) setReactions(p.reactions as {name:string;desc:string}[]);
+    if (typeof p.lair_actions === "object" && p.lair_actions !== null) {
+      setLairActs(p.lair_actions as {name:string;desc:string}[]);
+      if ((p.lair_actions as {name:string;desc:string}[]).length > 0) setHasLair(true);
+    }
+    if (typeof p.legendary_actions === "object" && p.legendary_actions !== null) {
+      const la = p.legendary_actions as {per_round?: number; actions?: {name:string;desc:string}[]};
+      if (typeof la.per_round === "number") setLegPer(la.per_round);
+      if (Array.isArray(la.actions) && la.actions.length > 0) {
+        setLegActs(la.actions as {name:string;desc:string}[]);
+        setHasLeg(true);
+      }
+    }
+    tags.reset();
+    for (const t of initialData.tags) {
+      if (typeof t === "string") tags.add(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
+
   const getSave = (a: string): number => { const m = abilMod(abilScores[a]??10); return saveProfs[a] ? m+profBonus : m; };
   const getSkill = (s: string): number => { const abb = SKILL_ABIL[s]!; return skillProfs.includes(s) ? abilMod(abilScores[abb]??10)+profBonus : abilMod(abilScores[abb]??10); };
 
@@ -320,7 +378,7 @@ export default function MonsterForm({ parsedData, capturedImage }: { parsedData?
         description: description.trim(),
         tags: tags.tags,
         properties: props,
-      }, imageToUpload, navigate);
+      }, imageToUpload, navigate, initialData?.id, existingImageUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save entry");
     } finally {
@@ -486,7 +544,7 @@ export default function MonsterForm({ parsedData, capturedImage }: { parsedData?
       <div className="pt-2">
         <button type="submit" disabled={saving||!name.trim()} className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-4 py-2.5 text-sm font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a] disabled:cursor-not-allowed disabled:opacity-50">
           <FontAwesomeIcon icon={faSave} />
-          {saving ? "Saving…" : "Save Entry"}
+          {saving ? "Saving…" : initialData ? "Save Changes" : "Save Entry"}
         </button>
       </div>
     </form>

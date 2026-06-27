@@ -9,13 +9,14 @@ import {
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { formatEntryType, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
-import type { EntryType } from "../types";
+import type { EntryType, DbEntry } from "../types";
 import { saveEntryWithImage } from "../lib/uploadImage";
 import MonsterForm, { abilMod, modStr, crToProf, CR_LIST, SIZE_LIST, ABILITIES, SKILL_LIST, SKILL_ABIL, useTags as useMonsterTags, TagRow, RepeatBlock } from "./MonsterForm";
 
 /* ──────────── Props ──────────── */
 interface EntryFormProps {
   entryType: EntryType;
+  initialData?: DbEntry;
 }
 
 /* ──────────── Tab config ──────────── */
@@ -32,7 +33,7 @@ const TABS: { id: TabId; label: string }[] = [
 type ParseResult = Record<string, unknown>;
 
 /* ──────────── Component ──────────── */
-export default function EntryForm({ entryType }: EntryFormProps) {
+export default function EntryForm({ entryType, initialData }: EntryFormProps) {
   const [activeTab, setActiveTab] = useState<TabId>("import");
   const [importType] = useState<EntryType>(entryType);
   const [parsedData, setParsedData] = useState<ParseResult | null>(null);
@@ -91,6 +92,7 @@ export default function EntryForm({ entryType }: EntryFormProps) {
                 entryType={entryType}
                 parsedData={parsedData}
                 capturedImage={capturedImage}
+                initialData={initialData}
               />
             ) : (
               <ImportTab
@@ -257,17 +259,18 @@ const SUBCLASS_TYPES: EntryType[] = ["subclass"];
 const TABLE_TYPES: EntryType[] = ["table"];
 
 /* ──────── Manual Entry tab ──────── */
-function ManualEntryTab({ entryType, parsedData, capturedImage }: {
+function ManualEntryTab({ entryType, parsedData, capturedImage, initialData }: {
   entryType: EntryType;
   parsedData?: ParseResult | null;
   capturedImage?: {file: File; preview: string} | null;
+  initialData?: DbEntry;
 }) {
-  if (TREASURE_TYPES.includes(entryType)) return <TreasureForm entryType={entryType} parsedData={parsedData} capturedImage={capturedImage ?? undefined} />;
-  if (SIMPLE_TYPES.includes(entryType)) return <SimpleForm entryType={entryType} parsedData={parsedData} capturedImage={capturedImage ?? undefined} />;
-  if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} parsedData={parsedData} capturedImage={capturedImage ?? undefined} />;
-  if (MONSTER_TYPES.includes(entryType)) return <MonsterForm parsedData={parsedData ?? undefined} capturedImage={capturedImage ?? undefined} />;
-  if (SUBCLASS_TYPES.includes(entryType)) return <SubclassForm parsedData={parsedData} capturedImage={capturedImage ?? undefined} />;
-  if (TABLE_TYPES.includes(entryType)) return <TableForm parsedData={parsedData} capturedImage={capturedImage ?? undefined} />;
+  if (TREASURE_TYPES.includes(entryType)) return <TreasureForm entryType={entryType} parsedData={parsedData} capturedImage={capturedImage ?? undefined} initialData={initialData} />;
+  if (SIMPLE_TYPES.includes(entryType)) return <SimpleForm entryType={entryType} parsedData={parsedData} capturedImage={capturedImage ?? undefined} initialData={initialData} />;
+  if (ARCANA_TYPES.includes(entryType)) return <SpellScrollForm entryType={entryType} parsedData={parsedData} capturedImage={capturedImage ?? undefined} initialData={initialData} />;
+  if (MONSTER_TYPES.includes(entryType)) return <MonsterForm parsedData={parsedData ?? undefined} capturedImage={capturedImage ?? undefined} initialData={initialData} />;
+  if (SUBCLASS_TYPES.includes(entryType)) return <SubclassForm parsedData={parsedData} capturedImage={capturedImage ?? undefined} initialData={initialData} />;
+  if (TABLE_TYPES.includes(entryType)) return <TableForm parsedData={parsedData} capturedImage={capturedImage ?? undefined} initialData={initialData} />;
 
   return (
     <div className="min-h-[120px]">
@@ -282,7 +285,7 @@ function ManualEntryTab({ entryType, parsedData, capturedImage }: {
 }
 
 /* ──────── Subclass form ──────── */
-function SubclassForm({ parsedData, capturedImage }: { parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string} }) {
+function SubclassForm({ parsedData, capturedImage, initialData }: { parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry }) {
   const [name, setName] = useState("");
   const [parentClass, setParentClass] = useState("");
   const [description, setDescription] = useState("");
@@ -318,6 +321,24 @@ function SubclassForm({ parsedData, capturedImage }: { parsedData?: ParseResult 
     setTimeout(() => setPrepopNotice(false), 6000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsedData]);
+
+  // Pre-populate from initial data (edit mode)
+  useEffect(() => {
+    if (!initialData) return;
+    setName(initialData.name);
+    setDescription(initialData.description);
+    const pc = initialData.properties?.parent_class as string | undefined;
+    if (pc) setParentClass(pc);
+    const lf = initialData.properties?.level_features as { level: number; desc: string }[] | undefined;
+    if (lf && lf.length) setFeatures(lf);
+    tags.resetTags();
+    for (const t of initialData.tags) {
+      if (typeof t === "string") tags.addTag(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
 
   // ── Level Features ──
   const [features, setFeatures] = useState<{ level: number; desc: string }[]>([]);
@@ -356,14 +377,16 @@ function SubclassForm({ parsedData, capturedImage }: { parsedData?: ParseResult 
         description: description.trim(),
         tags: tags.tags,
         properties,
-      }, imageToUpload, navigate);
-      setName("");
-      setParentClass("");
-      setDescription("");
-      tags.resetTags();
-      setFeatures([]);
-      setImageFile(null);
-      setImagePreview(null);
+      }, imageToUpload, navigate, initialData?.id, existingImageUrl);
+      if (!initialData) {
+        setName("");
+        setParentClass("");
+        setDescription("");
+        tags.resetTags();
+        setFeatures([]);
+        setImageFile(null);
+        setImagePreview(null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save entry");
     } finally {
@@ -443,7 +466,7 @@ function SubclassForm({ parsedData, capturedImage }: { parsedData?: ParseResult 
 
       <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
 
-      <SaveButton saving={saving} disabled={!name.trim()} />
+      <SaveButton saving={saving} disabled={!name.trim()} label={initialData ? "Save Changes" : "Save Entry"} />
     </form>
   );
 }
@@ -457,7 +480,7 @@ function dieRowCount(die: string): number {
 }
 
 /* ──────── Table form ──────── */
-function TableForm({ parsedData, capturedImage }: { parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string} }) {
+function TableForm({ parsedData, capturedImage, initialData }: { parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [dieType, setDieType] = useState("");
@@ -498,6 +521,26 @@ function TableForm({ parsedData, capturedImage }: { parsedData?: ParseResult | n
     setTimeout(() => setPrepopNotice(false), 6000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsedData]);
+
+  // Pre-populate from initial data (edit mode)
+  useEffect(() => {
+    if (!initialData) return;
+    setName(initialData.name);
+    setDescription(initialData.description);
+    const dt = initialData.properties?.die_type as string | undefined;
+    if (dt) setDieType(dt);
+    const cols = initialData.properties?.columns as string[] | undefined;
+    if (cols && cols.length) setColumns(cols);
+    const rows = initialData.properties?.rows as string[][] | undefined;
+    if (rows && rows.length) setCells(rows);
+    tags.resetTags();
+    for (const t of initialData.tags) {
+      if (typeof t === "string") tags.addTag(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
 
   const rowCount = dieType ? dieRowCount(dieType) : 0;
 
@@ -572,15 +615,17 @@ function TableForm({ parsedData, capturedImage }: { parsedData?: ParseResult | n
         description: description.trim(),
         tags: tags.tags,
         properties,
-      }, imageToUpload, navigate);
-      setName("");
-      setDescription("");
-      tags.resetTags();
-      setDieType("");
-      setColumns([""]);
-      setCells([]);
-      setImageFile(null);
-      setImagePreview(null);
+      }, imageToUpload, navigate, initialData?.id, existingImageUrl);
+      if (!initialData) {
+        setName("");
+        setDescription("");
+        tags.resetTags();
+        setDieType("");
+        setColumns([""]);
+        setCells([]);
+        setImageFile(null);
+        setImagePreview(null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save entry");
     } finally {
@@ -693,13 +738,13 @@ function TableForm({ parsedData, capturedImage }: { parsedData?: ParseResult | n
 
       <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
 
-      <SaveButton saving={saving} disabled={!name.trim() || !dieType} />
+      <SaveButton saving={saving} disabled={!name.trim() || !dieType} label={initialData ? "Save Changes" : "Save Entry"} />
     </form>
   );
 }
 
 /* ──────── Shared form for Magic Item / Weapon / Armour / Potion / Adventuring Gear / Trinket ──────── */
-function TreasureForm({ entryType, parsedData, capturedImage }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string} }) {
+function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry }) {
   const [name, setName] = useState("");
   const [rarity, setRarity] = useState("");
   const [attunement, setAttunement] = useState(false);
@@ -715,7 +760,7 @@ function TreasureForm({ entryType, parsedData, capturedImage }: { entryType: Ent
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Pre-populate from parsed data
+  // Pre-populate from parsed data (import)
   useEffect(() => {
     if (parsedData) {
       setName(typeof parsedData.name === "string" ? parsedData.name : "");
@@ -723,7 +768,6 @@ function TreasureForm({ entryType, parsedData, capturedImage }: { entryType: Ent
       setAttunement(typeof parsedData.attunement === "boolean" ? parsedData.attunement : false);
       setAttunementBy(typeof parsedData.attunement_by === "string" ? parsedData.attunement_by : "");
       setDescription(typeof parsedData.description === "string" ? parsedData.description : "");
-      // Reset tags then add parsed ones
       tags.resetTags();
       const parsedTags = parsedData.tags;
       if (Array.isArray(parsedTags)) {
@@ -736,6 +780,27 @@ function TreasureForm({ entryType, parsedData, capturedImage }: { entryType: Ent
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsedData]);
+
+  // Pre-populate from initial data (edit mode)
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name);
+      setDescription(initialData.description);
+      tags.resetTags();
+      for (const t of initialData.tags) {
+        if (typeof t === "string") tags.addTag(t);
+      }
+      const r = initialData.properties?.rarity as string | undefined;
+      if (r) setRarity(r);
+      const att = initialData.properties?.requires_attunement as boolean | undefined;
+      if (att !== undefined) setAttunement(att);
+      const attBy = initialData.properties?.attunement_by as string | undefined;
+      if (attBy) setAttunementBy(attBy);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -769,7 +834,7 @@ function TreasureForm({ entryType, parsedData, capturedImage }: { entryType: Ent
         description: description.trim(),
         tags: tags.tags,
         properties,
-      }, imageToUpload, navigate);
+      }, imageToUpload, navigate, initialData?.id, existingImageUrl);
     } catch (err) {
       console.error("Save error:", err);
       setError(err instanceof Error ? err.message : "Failed to save entry");
@@ -954,7 +1019,7 @@ function TreasureForm({ entryType, parsedData, capturedImage }: { entryType: Ent
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-4 py-2.5 text-sm font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <FontAwesomeIcon icon={faSave} />
-          {saving ? "Saving…" : "Save Entry"}
+          {saving ? "Saving…" : initialData ? "Save Changes" : "Save Entry"}
         </button>
       </div>
     </form>
@@ -1314,7 +1379,7 @@ const inputCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg
 const textareaCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600 min-h-[100px] resize-y";
 
 /* ──────── Simple form (NPC, Background, Feat) ──────── */
-function SimpleForm({ entryType, parsedData, capturedImage }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string} }) {
+function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry }) {
   const isNpc = entryType === "npc";
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -1343,6 +1408,20 @@ function SimpleForm({ entryType, parsedData, capturedImage }: { entryType: Entry
     setTimeout(() => setPrepopNotice(false), 6000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsedData]);
+
+  // Pre-populate from initial data (edit mode)
+  useEffect(() => {
+    if (!initialData) return;
+    setName(initialData.name);
+    setDescription(initialData.description);
+    tags.resetTags();
+    for (const t of initialData.tags) {
+      if (typeof t === "string") tags.addTag(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
 
   // ── Stat block state (NPC only) ──
   const [showStatBlock, setShowStatBlock] = useState(false);
@@ -1460,18 +1539,20 @@ function SimpleForm({ entryType, parsedData, capturedImage }: { entryType: Entry
         description: description.trim(),
         tags: tags.tags,
         properties,
-      }, imageToUpload, navigate);
-      setName(""); setDescription(""); tags.resetTags(); setImageFile(null); setImagePreview(null);
-      setShowStatBlock(false); setSize(""); setCreatureType(""); setAlignment(""); setCr("");
-      setAc(""); setHp(""); setSpeed("");
-      setStr(10); setDex(10); setCon(10); setIntel(10); setWis(10); setCha(10);
-      setSaveProfs({STR:false,DEX:false,CON:false,INT:false,WIS:false,CHA:false});
-      setSkillProfs([]); vuln.reset(); resist.reset(); immune.reset(); condImm.reset();
-      setSenses(""); setLanguages("");
-      setTraits([]); setHasSpell(false); setSpellAbil("INT"); setSpellSave(10); setSpellAtk(0); setSpellList("");
-      setActions([]); setBonusActions([]); setReactions([]);
-      setHasLeg(false); setLegPer(3); setLegActs([]);
-      setHasLair(false); setLairActs([]);
+      }, imageToUpload, navigate, initialData?.id, existingImageUrl);
+      if (!initialData) {
+        setName(""); setDescription(""); tags.resetTags(); setImageFile(null); setImagePreview(null);
+        setShowStatBlock(false); setSize(""); setCreatureType(""); setAlignment(""); setCr("");
+        setAc(""); setHp(""); setSpeed("");
+        setStr(10); setDex(10); setCon(10); setIntel(10); setWis(10); setCha(10);
+        setSaveProfs({STR:false,DEX:false,CON:false,INT:false,WIS:false,CHA:false});
+        setSkillProfs([]); vuln.reset(); resist.reset(); immune.reset(); condImm.reset();
+        setSenses(""); setLanguages("");
+        setTraits([]); setHasSpell(false); setSpellAbil("INT"); setSpellSave(10); setSpellAtk(0); setSpellList("");
+        setActions([]); setBonusActions([]); setReactions([]);
+        setHasLeg(false); setLegPer(3); setLegActs([]);
+        setHasLair(false); setLairActs([]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save entry");
     } finally {
@@ -1636,7 +1717,7 @@ function SimpleForm({ entryType, parsedData, capturedImage }: { entryType: Entry
 }
 
 /* ──────── Spell/Scroll combined form ──────── */
-function SpellScrollForm({ entryType, parsedData, capturedImage }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string} }) {
+function SpellScrollForm({ entryType, parsedData, capturedImage, initialData }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry }) {
   const [isSpell, setIsSpell] = useState(entryType === "spell");
   const [name, setName] = useState("");
   const [level, setLevel] = useState("");
@@ -1692,6 +1773,36 @@ function SpellScrollForm({ entryType, parsedData, capturedImage }: { entryType: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsedData]);
 
+  // Pre-populate from initial data (edit mode)
+  useEffect(() => {
+    if (!initialData) return;
+    setName(initialData.name);
+    setDescription(initialData.description);
+    const p = initialData.properties ?? {};
+    const isSpellType = initialData.type === "spell";
+    setIsSpell(isSpellType);
+    if (typeof p.level === "string") setLevel(p.level);
+    if (typeof p.school === "string") setSchool(p.school);
+    if (typeof p.casting_time === "string") setCastingTime(p.casting_time);
+    if (typeof p.range === "string") setRange(p.range);
+    if (Array.isArray(p.components)) {
+      setCompV(p.components.includes("V"));
+      setCompS(p.components.includes("S"));
+      setCompM(p.components.includes("M"));
+    }
+    if (typeof p.material === "string") setMaterialDesc(p.material);
+    if (typeof p.duration === "string") setDuration(p.duration);
+    if (typeof p.concentration === "boolean") setConcentration(p.concentration);
+    if (typeof p.rarity === "string") setRarity(p.rarity);
+    tags.resetTags();
+    for (const t of initialData.tags) {
+      if (typeof t === "string") tags.addTag(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
+
   const components: string[] = [];
   if (compV) components.push("V");
   if (compS) components.push("S");
@@ -1744,7 +1855,7 @@ function SpellScrollForm({ entryType, parsedData, capturedImage }: { entryType: 
         description: description.trim(),
         tags: tags.tags,
         properties,
-      }, imageToUpload, navigate);
+      }, imageToUpload, navigate, initialData?.id, existingImageUrl);
     } catch (err) {
       console.error("Save error:", err);
       setError(err instanceof Error ? err.message : "Failed to save entry");
@@ -1907,7 +2018,7 @@ function SpellScrollForm({ entryType, parsedData, capturedImage }: { entryType: 
 
       <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
 
-      <SaveButton saving={saving} disabled={!name.trim()} />
+      <SaveButton saving={saving} disabled={!name.trim()} label={initialData ? "Save Changes" : "Save Entry"} />
     </form>
   );
 }
@@ -1980,12 +2091,12 @@ function ImageUpload({ fileRef, imageFile: _imageFile, imagePreview, setImageFil
 }
 
 /* ──────── Shared SaveButton component ──────── */
-function SaveButton({ saving, disabled }: { saving: boolean; disabled: boolean }) {
+function SaveButton({ saving, disabled, label = "Save Entry" }: { saving: boolean; disabled: boolean; label?: string }) {
   return (
     <div className="pt-2">
       <button type="submit" disabled={saving || disabled} className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-4 py-2.5 text-sm font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a] disabled:cursor-not-allowed disabled:opacity-50">
         <FontAwesomeIcon icon={faSave} />
-        {saving ? "Saving…" : "Save Entry"}
+        {saving ? "Saving…" : label}
       </button>
     </div>
   );
