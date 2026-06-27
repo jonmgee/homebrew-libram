@@ -1966,13 +1966,19 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
 
   return (
     <div
+      // Only preventDefault on dragover for the outer container — this marks
+      // it as a valid drop target so the browser allows drops on children.
       onDragOver={(e) => e.preventDefault()}
-      onDragEnter={(e) => { e.preventDefault(); setDragOverCount((c) => c + 1); }}
-      onDragLeave={(e) => { e.preventDefault(); setDragOverCount((c) => Math.max(0, c - 1)); }}
-      onDrop={handleDrop}
     >
       <label className={labelCls}>Image</label>
-      <div onClick={() => fileRef.current?.click()} className="relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6 text-center transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)]">
+      <div
+        onClick={() => fileRef.current?.click()}
+        onDragOver={(e) => e.preventDefault()}
+        onDragEnter={(e) => { e.preventDefault(); setDragOverCount((c) => c + 1); }}
+        onDragLeave={(e) => { e.preventDefault(); setDragOverCount((c) => Math.max(0, c - 1)); }}
+        onDrop={handleDrop}
+        className="relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6 text-center transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)]"
+      >
         {imagePreview ? (
           <img src={imagePreview} alt="Preview" className="max-h-40 rounded object-contain" />
         ) : (

@@ -8,18 +8,17 @@ import CreateEntryInputPage from "./components/CreateEntryInputPage";
 import EntryDetailPage from "./components/EntryDetailPage";
 
 function App() {
-  // Safari intercepts drag-and-drop at the window level before document-level
-  // handlers can fire. Calling preventDefault() at window tells Safari not to
-  // navigate to the dragged image. We avoid stopPropagation so React's
-  // synthetic onDrop handlers still receive the event.
+  // Safari intercepts drag-and-drop at the window level. We only need to
+  // intercept the drop event to prevent Safari navigating to the image.
+  // We do NOT intercept dragover at window — calling preventDefault there
+  // marks window as the drop target, preventing child elements from
+  // receiving onDrop.
   useEffect(() => {
     const prevent = (e: DragEvent) => {
       e.preventDefault();
     };
-    window.addEventListener("dragover", prevent);
     window.addEventListener("drop", prevent);
     return () => {
-      window.removeEventListener("dragover", prevent);
       window.removeEventListener("drop", prevent);
     };
   }, []);
