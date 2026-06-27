@@ -1924,23 +1924,16 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
   const [dragOverCount, setDragOverCount] = useState(0);
   const dragOver = dragOverCount > 0;
 
-  // Native document-level paste listener so any Ctrl+V / Cmd+V on the page
-  // with image data is caught (no need to focus a specific element).
+  // Prevent browser from navigating or opening dropped files at document level
+  // (exact same pattern as ImportTab — needed for Safari)
   useEffect(() => {
-    const handlePasteNative = (e: ClipboardEvent) => {
-      const items = Array.from(e.clipboardData?.items ?? []);
-      for (const item of items) {
-        if (item.type.startsWith("image/")) {
-          e.preventDefault();
-          const blob = item.getAsFile();
-          if (!blob) continue;
-          acceptImage(new File([blob], "pasted-image.png", { type: blob.type }));
-          return;
-        }
-      }
+    const preventNav = (e: DragEvent) => e.preventDefault();
+    document.addEventListener("dragover", preventNav);
+    document.addEventListener("drop", preventNav);
+    return () => {
+      document.removeEventListener("dragover", preventNav);
+      document.removeEventListener("drop", preventNav);
     };
-    document.addEventListener("paste", handlePasteNative);
-    return () => document.removeEventListener("paste", handlePasteNative);
   }, []);
 
   const acceptImage = (file: File) => {
@@ -1956,29 +1949,50 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
     }
   };
 
+  // Drag-and-drop handlers (mirrors ImportTab pattern)
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOverCount((c) => c + 1);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOverCount((c) => Math.max(0, c - 1));
+  };
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOverCount(0);
-    console.log("ImageUpload onDrop — files:", e.dataTransfer.files);
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) acceptImage(file);
+    if (!file) return;
+    if (file.type.startsWith("image/")) acceptImage(file);
   };
 
   return (
     <div
-      // Only preventDefault on dragover for the outer container — this marks
-      // it as a valid drop target so the browser allows drops on children.
-      onDragOver={(e) => e.preventDefault()}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className="relative"
     >
+      {/* drag-over overlay */}
+      {dragOver && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg border-2 border-dashed border-amber-600 bg-[var(--color-parchment)]/90"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+        >
+          <p className="font-[var(--font-title)] text-lg font-bold text-[#58180d]">
+            Drop image here
+          </p>
+        </div>
+      )}
       <label className={labelCls}>Image</label>
-      <div
-        onClick={() => fileRef.current?.click()}
-        onDragOver={(e) => e.preventDefault()}
-        onDragEnter={(e) => { e.preventDefault(); setDragOverCount((c) => c + 1); }}
-        onDragLeave={(e) => { e.preventDefault(); setDragOverCount((c) => Math.max(0, c - 1)); }}
-        onDrop={handleDrop}
-        className="relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6 text-center transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)]"
-      >
+      <div onClick={() => fileRef.current?.click()} className="relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6 text-center transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)]">
         {imagePreview ? (
           <img src={imagePreview} alt="Preview" className="max-h-40 rounded object-contain" />
         ) : (
@@ -1989,13 +2003,6 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
         )}
         {imageFile && (
           <button type="button" onClick={(e) => { e.stopPropagation(); setImageFile(null); setImagePreview(null); if (fileRef.current) fileRef.current.value = ""; }} className="text-xs text-red-600 hover:text-red-800">Remove</button>
-        )}
-
-        {/* drag-over overlay */}
-        {dragOver && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-amber-600 bg-[var(--color-parchment)]/90">
-            <p className="font-[var(--font-title)] text-base font-bold text-[#58180d]">Drop image here</p>
-          </div>
         )}
       </div>
       <input ref={fileRef} type="file" accept="image/*" onChange={handleImage} className="hidden" />
