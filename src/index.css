@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&display=swap');
-
 /* ──────────── Self-hosted PHB fonts (Homebrewery / naturalcrit, MIT license) ──────────── */
 
 /* Body serif: BookInsanity */
@@ -87,7 +85,6 @@
   --font-sans: "ScalySansRemake", sans-serif;
   --font-sans-sc: "ScalySansSmallCapsRemake", sans-serif;
   --font-dropcap: "SolberaImitationRemake", serif;
-  --font-cinzel: "Cinzel Decorative", serif;
 
   /* PHB colour palette */
   --color-parchment: #eee5ce;        /* HB_Color_Background */
