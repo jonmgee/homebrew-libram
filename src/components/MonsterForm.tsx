@@ -330,10 +330,12 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
     for (const t of initialData.tags) {
       if (typeof t === "string") tags.add(t);
     }
+    const imgUrl = initialData.properties?.image_url as string | undefined;
+    if (imgUrl) setImgPrev(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
+  const existingImageUrl = imgPrev?.startsWith("http") ? imgPrev : undefined;
 
   const getSave = (a: string): number => { const m = abilMod(abilScores[a]??10); return saveProfs[a] ? m+profBonus : m; };
   const getSkill = (s: string): number => { const abb = SKILL_ABIL[s]!; return skillProfs.includes(s) ? abilMod(abilScores[abb]??10)+profBonus : abilMod(abilScores[abb]??10); };

@@ -34,7 +34,7 @@ type ParseResult = Record<string, unknown>;
 
 /* ──────────── Component ──────────── */
 export default function EntryForm({ entryType, initialData }: EntryFormProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("import");
+  const [activeTab, setActiveTab] = useState<TabId>(initialData ? "manual" : "import");
   const [importType] = useState<EntryType>(entryType);
   const [parsedData, setParsedData] = useState<ParseResult | null>(null);
   const [prepopKey, setPrepopKey] = useState(0);
@@ -335,10 +335,12 @@ function SubclassForm({ parsedData, capturedImage, initialData }: { parsedData?:
     for (const t of initialData.tags) {
       if (typeof t === "string") tags.addTag(t);
     }
+    const imgUrl = initialData.properties?.image_url as string | undefined;
+    if (imgUrl) setImagePreview(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
+  const existingImageUrl = imagePreview?.startsWith("http") ? imagePreview : undefined;
 
   // ── Level Features ──
   const [features, setFeatures] = useState<{ level: number; desc: string }[]>([]);
@@ -537,10 +539,12 @@ function TableForm({ parsedData, capturedImage, initialData }: { parsedData?: Pa
     for (const t of initialData.tags) {
       if (typeof t === "string") tags.addTag(t);
     }
+    const imgUrl = initialData.properties?.image_url as string | undefined;
+    if (imgUrl) setImagePreview(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
+  const existingImageUrl = imagePreview?.startsWith("http") ? imagePreview : undefined;
 
   const rowCount = dieType ? dieRowCount(dieType) : 0;
 
@@ -796,11 +800,13 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
       if (att !== undefined) setAttunement(att);
       const attBy = initialData.properties?.attunement_by as string | undefined;
       if (attBy) setAttunementBy(attBy);
+      const imgUrl = initialData.properties?.image_url as string | undefined;
+      if (imgUrl) setImagePreview(imgUrl);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
+  const existingImageUrl = imagePreview?.startsWith("http") ? imagePreview : undefined;
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1418,10 +1424,12 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
     for (const t of initialData.tags) {
       if (typeof t === "string") tags.addTag(t);
     }
+    const imgUrl = initialData.properties?.image_url as string | undefined;
+    if (imgUrl) setImagePreview(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
+  const existingImageUrl = imagePreview?.startsWith("http") ? imagePreview : undefined;
 
   // ── Stat block state (NPC only) ──
   const [showStatBlock, setShowStatBlock] = useState(false);
@@ -1798,10 +1806,12 @@ function SpellScrollForm({ entryType, parsedData, capturedImage, initialData }: 
     for (const t of initialData.tags) {
       if (typeof t === "string") tags.addTag(t);
     }
+    const imgUrl = initialData.properties?.image_url as string | undefined;
+    if (imgUrl) setImagePreview(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const existingImageUrl = initialData?.properties?.image_url as string | undefined;
+  const existingImageUrl = imagePreview?.startsWith("http") ? imagePreview : undefined;
 
   const components: string[] = [];
   if (compV) components.push("V");
