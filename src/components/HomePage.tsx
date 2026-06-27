@@ -31,7 +31,7 @@ export default function HomePage() {
       <div className="mx-auto max-w-5xl px-4 pt-12">
         <header className="mb-6 text-center">
           <h1 className="whitespace-nowrap text-center">
-            <span className="font-[var(--font-dropcap)] inline-block text-4xl leading-[0.8] text-[#58180d] drop-shadow-[0_2px_3px_rgba(88,24,13,0.35)] align-middle italic sm:text-5xl md:text-8xl">
+            <span className="font-[var(--font-dropcap)] inline-block text-4xl leading-[0.8] text-[#58180d] drop-shadow-[0_2px_3px_rgba(88,24,13,0.35)] align-middle sm:text-5xl md:text-8xl">
               H
             </span>
             <span className="font-[var(--font-title)] inline-block text-3xl uppercase tracking-[0.08em] text-[#58180d] drop-shadow-[0_2px_3px_rgba(88,24,13,0.35)] align-middle sm:text-4xl md:text-6xl">
