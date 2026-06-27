@@ -1924,20 +1924,23 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
   const [dragOverCount, setDragOverCount] = useState(0);
   const dragOver = dragOverCount > 0;
 
-  // Intercept Safari's default drag-and-drop at the document level
-  // so it doesn't navigate to the image instead of accepting it in the drop zone.
+  // Native document-level paste listener so any Ctrl+V / Cmd+V on the page
+  // with image data is caught (no need to focus a specific element).
   useEffect(() => {
-    const preventDefault_ = (e: Event) => { e.preventDefault(); };
-    document.addEventListener("dragover", preventDefault_);
-    document.addEventListener("dragenter", preventDefault_);
-    document.addEventListener("dragleave", preventDefault_);
-    document.addEventListener("drop", preventDefault_);
-    return () => {
-      document.removeEventListener("dragover", preventDefault_);
-      document.removeEventListener("dragenter", preventDefault_);
-      document.removeEventListener("dragleave", preventDefault_);
-      document.removeEventListener("drop", preventDefault_);
+    const handlePasteNative = (e: ClipboardEvent) => {
+      const items = Array.from(e.clipboardData?.items ?? []);
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          e.preventDefault();
+          const blob = item.getAsFile();
+          if (!blob) continue;
+          acceptImage(new File([blob], "pasted-image.png", { type: blob.type }));
+          return;
+        }
+      }
     };
+    document.addEventListener("paste", handlePasteNative);
+    return () => document.removeEventListener("paste", handlePasteNative);
   }, []);
 
   const acceptImage = (file: File) => {
@@ -1950,19 +1953,6 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
       const dt = new DataTransfer();
       dt.items.add(file);
       fileRef.current.files = dt.files;
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-    const items = Array.from(e.clipboardData.items);
-    for (const item of items) {
-      if (item.type.startsWith("image/")) {
-        e.preventDefault();
-        const blob = item.getAsFile();
-        if (!blob) continue;
-        acceptImage(new File([blob], "pasted-image.png", { type: blob.type }));
-        return;
-      }
     }
   };
 
@@ -1979,7 +1969,6 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
       onDragEnter={(e) => { e.preventDefault(); setDragOverCount((c) => c + 1); }}
       onDragLeave={(e) => { e.preventDefault(); setDragOverCount((c) => Math.max(0, c - 1)); }}
       onDrop={handleDrop}
-      onPaste={handlePaste}
     >
       <label className={labelCls}>Image</label>
       <div onClick={() => fileRef.current?.click()} className="relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6 text-center transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)]">
