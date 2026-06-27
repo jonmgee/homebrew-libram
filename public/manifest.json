@@ -1,0 +1,17 @@
+{
+  "name": "Homebrew Libram",
+  "short_name": "Libram",
+  "description": "Browse your custom D&D homebrew content",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a0a00",
+  "theme_color": "#58180d",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
