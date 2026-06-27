@@ -1924,6 +1924,22 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
   const [dragOverCount, setDragOverCount] = useState(0);
   const dragOver = dragOverCount > 0;
 
+  // Intercept Safari's default drag-and-drop at the document level
+  // so it doesn't navigate to the image instead of accepting it in the drop zone.
+  useEffect(() => {
+    const preventDefault_ = (e: Event) => { e.preventDefault(); };
+    document.addEventListener("dragover", preventDefault_);
+    document.addEventListener("dragenter", preventDefault_);
+    document.addEventListener("dragleave", preventDefault_);
+    document.addEventListener("drop", preventDefault_);
+    return () => {
+      document.removeEventListener("dragover", preventDefault_);
+      document.removeEventListener("dragenter", preventDefault_);
+      document.removeEventListener("dragleave", preventDefault_);
+      document.removeEventListener("drop", preventDefault_);
+    };
+  }, []);
+
   const acceptImage = (file: File) => {
     setImageFile(file);
     const reader = new FileReader();
