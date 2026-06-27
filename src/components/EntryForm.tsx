@@ -1959,6 +1959,7 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOverCount(0);
+    console.log("ImageUpload onDrop — files:", e.dataTransfer.files);
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith("image/")) acceptImage(file);
   };

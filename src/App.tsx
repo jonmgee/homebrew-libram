@@ -9,12 +9,12 @@ import EntryDetailPage from "./components/EntryDetailPage";
 
 function App() {
   // Safari intercepts drag-and-drop at the window level before document-level
-  // handlers can fire. Intercepting at window with stopPropagation prevents
-  // Safari from navigating to the dragged image.
+  // handlers can fire. Calling preventDefault() at window tells Safari not to
+  // navigate to the dragged image. We avoid stopPropagation so React's
+  // synthetic onDrop handlers still receive the event.
   useEffect(() => {
     const prevent = (e: DragEvent) => {
       e.preventDefault();
-      e.stopPropagation();
     };
     window.addEventListener("dragover", prevent);
     window.addEventListener("drop", prevent);
