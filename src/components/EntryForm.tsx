@@ -1913,7 +1913,7 @@ function SpellScrollForm({ entryType, parsedData, capturedImage }: { entryType: 
 }
 
 /* ──────── Shared ImageUpload component ──────── */
-function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImagePreview, handleImage }: {
+function ImageUpload({ fileRef, imageFile: _imageFile, imagePreview, setImageFile, setImagePreview, handleImage }: {
   fileRef: React.RefObject<HTMLInputElement | null>;
   imageFile: File | null;
   imagePreview: string | null;
@@ -1921,42 +1921,6 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
   setImagePreview: (s: string | null) => void;
   handleImage: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
-  const [dragOverCount, setDragOverCount] = useState(0);
-  const dragOver = dragOverCount > 0;
-
-  // Prevent browser from navigating or opening dropped files at document level
-  // (exact same pattern as ImportTab — needed for Safari)
-  useEffect(() => {
-    console.log("ImageUpload drag handlers attached");
-    const preventNav = (e: DragEvent) => {
-      console.log("document drop intercepted");
-      e.preventDefault();
-    };
-    document.addEventListener("dragover", preventNav);
-    document.addEventListener("drop", preventNav);
-    return () => {
-      document.removeEventListener("dragover", preventNav);
-      document.removeEventListener("drop", preventNav);
-    };
-  }, []);
-
-  // Paste handler for clipboard images (e.g. Cmd+V screenshots)
-  useEffect(() => {
-    console.log("ImageUpload paste handler attached");
-    const handlePaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      for (const item of Array.from(items)) {
-        if (item.type.startsWith("image/")) {
-          const file = item.getAsFile();
-          if (file) acceptImage(file);
-        }
-      }
-    };
-    document.addEventListener("paste", handlePaste);
-    return () => document.removeEventListener("paste", handlePaste);
-  }, []);
-
   const acceptImage = (file: File) => {
     setImageFile(file);
     const reader = new FileReader();
@@ -1970,64 +1934,48 @@ function ImageUpload({ fileRef, imageFile, imagePreview, setImageFile, setImageP
     }
   };
 
-  // Drag-and-drop handlers (mirrors ImportTab pattern)
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    // Always preventDefault — image (accept) or text (reject silently)
     e.preventDefault();
-  };
-
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragOverCount((c) => c + 1);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragOverCount((c) => Math.max(0, c - 1));
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragOverCount(0);
-    const file = e.dataTransfer.files[0];
-    if (!file) return;
-    if (file.type.startsWith("image/")) acceptImage(file);
+    const items = e.clipboardData.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) acceptImage(file);
+        return;
+      }
+    }
   };
 
   return (
-    <div
-      onDragOver={handleDragOver}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className="relative"
-    >
-      {/* drag-over overlay */}
-      {dragOver && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg border-2 border-dashed border-amber-600 bg-[var(--color-parchment)]/90"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-        >
-          <p className="font-[var(--font-title)] text-lg font-bold text-[#58180d]">
-            Drop image here
-          </p>
+    <>
+      <label className={labelCls}>Image</label>
+      {imagePreview ? (
+        <div className="relative flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6">
+          <img src={imagePreview} alt="Preview" className="max-h-40 rounded object-contain" />
+          <button type="button" onClick={(e) => { e.stopPropagation(); setImageFile(null); setImagePreview(null); if (fileRef.current) fileRef.current.value = ""; }} className="text-xs text-red-600 hover:text-red-800">Remove</button>
+        </div>
+      ) : (
+        <div className="relative">
+          <textarea
+            readOnly
+            onPaste={handlePaste}
+            placeholder="Paste a screenshot (Cmd+V or right-click &rarr; Paste)"
+            className="w-full resize-none rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 pb-10 pt-6 text-center font-[var(--font-phb)] text-sm text-[#766649] placeholder:text-[#766649] transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)] cursor-default"
+            rows={3}
+          />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-[#766649] underline underline-offset-2 hover:text-amber-700"
+          >
+            or choose a file
+          </button>
         </div>
       )}
-      <label className={labelCls}>Image</label>
-      <div onClick={() => fileRef.current?.click()} className="relative flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 py-6 text-center transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)]">
-        {imagePreview ? (
-          <img src={imagePreview} alt="Preview" className="max-h-40 rounded object-contain" />
-        ) : (
-          <>
-            <FontAwesomeIcon icon={faUpload} className="text-2xl text-[#766649]" />
-            <span className="font-[var(--font-phb)] text-sm text-[#766649]">Click to upload, drag an image, or paste a screenshot</span>
-          </>
-        )}
-        {imageFile && (
-          <button type="button" onClick={(e) => { e.stopPropagation(); setImageFile(null); setImagePreview(null); if (fileRef.current) fileRef.current.value = ""; }} className="text-xs text-red-600 hover:text-red-800">Remove</button>
-        )}
-      </div>
       <input ref={fileRef} type="file" accept="image/*" onChange={handleImage} className="hidden" />
-    </div>
+    </>
   );
 }
 
