@@ -52,27 +52,21 @@ export async function saveEntryWithImage(
 ): Promise<void> {
   if (editId) {
     // ── EDIT MODE ──
-    // 1. If a new image was uploaded, upload it and get a URL
     let imageUrl: string | null | undefined = existingImageUrl;
 
     if (imageFile) {
       imageUrl = await uploadEntryImage(editId, imageFile);
     }
 
-    // 2. Build properties with the resolved image URL
     const properties = {
       ...data.properties,
       ...(imageUrl ? { image_url: imageUrl } : {}),
-      // If we had an existing image but it was explicitly removed (imageFile is null AND existingImageUrl was set but we want to clear it)
-      // Actually: if no imageFile and no existingImageUrl, don't set image_url
     };
 
-    // If image was removed (user hit Remove), don't pass image_url at all
     if (!imageFile && !existingImageUrl) {
       delete properties.image_url;
     }
 
-    // 3. Update the record
     const { error: updateError } = await supabase
       .from("entries")
       .update({
@@ -85,20 +79,29 @@ export async function saveEntryWithImage(
 
     if (updateError) throw updateError;
 
-    // 4. Navigate to detail page with updated banner
     navigate(`/entry/${editId}?updated=1`);
   } else {
     // ── CREATE MODE ──
-    // 1. Insert first (no image yet)
+    // 1. Get current session user
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      throw new Error("You must be signed in to create entries");
+    }
+
+    // 2. Insert with user_id
     const { data: inserted, error: insertError } = await supabase
       .from("entries")
-      .insert(data)
+      .insert({ ...data, user_id: userId })
       .select("id")
       .single();
 
     if (insertError) throw insertError;
 
-    // 2. Upload image after insert so we can use the entry ID
+    // 3. Upload image after insert so we can use the entry ID
     if (imageFile) {
       const url = await uploadEntryImage(inserted.id, imageFile);
       if (url) {
@@ -120,7 +123,7 @@ export async function saveEntryWithImage(
       }
     }
 
-    // 3. Navigate to detail page
+    // 4. Navigate to detail page
     navigate(`/entry/${inserted.id}?saved=1`);
   }
 }
