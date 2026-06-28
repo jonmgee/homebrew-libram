@@ -5,6 +5,8 @@ import {
   faSave, faTimes, faUpload, faPlus, faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { saveEntryWithImage } from "../lib/uploadImage";
+import { useDuplicateNameCheck } from "../lib/useDuplicateNameCheck";
+import { DuplicateNameWarning } from "./DuplicateNameWarning";
 import type { DbEntry } from "../types";
 
 /* ───── Shared styles ───── */
@@ -130,6 +132,7 @@ export function RepeatBlock({ items, onChange, onRemove, onAdd, namePh, descPh, 
 export default function MonsterForm({ parsedData, capturedImage, initialData }: { parsedData?: Record<string, unknown> | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry } = {}) {
   /* Core */
   const [name, setName] = useState("");
+  const dupWarning = useDuplicateNameCheck(name, initialData);
   const [size, setSize] = useState("");
   const [creatureType, setCreatureType] = useState("");
   const [alignment, setAlignment] = useState("");
@@ -410,7 +413,8 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
 
       <h3 className={sectionHeadingCls}>Core Identity</h3>
       <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2"><label className={labelCls}>Name</label><input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Ancient Red Dragon" className={inputCls} required /></div>
+        <div className="col-span-2"><label className={labelCls}>Name</label><input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Ancient Red Dragon" className={inputCls} required />
+          <DuplicateNameWarning warning={dupWarning} /></div>
         <div><label className={labelCls}>Size</label><CustomSelect value={size} onChange={setSize} options={SIZE_LIST} getLabel={s=>s.charAt(0).toUpperCase()+s.slice(1)} placeholder="Select…" /></div>
         <div><label className={labelCls}>Type</label><input type="text" value={creatureType} onChange={e=>setCreatureType(e.target.value)} placeholder="e.g. Dragon" className={inputCls} /></div>
         <div><label className={labelCls}>Alignment</label><input type="text" value={alignment} onChange={e=>setAlignment(e.target.value)} placeholder="e.g. Chaotic Evil" className={inputCls} /></div>

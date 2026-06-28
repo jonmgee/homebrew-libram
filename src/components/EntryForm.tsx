@@ -11,6 +11,8 @@ import {
 import { formatEntryType, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
 import type { EntryType, DbEntry } from "../types";
 import { saveEntryWithImage } from "../lib/uploadImage";
+import { useDuplicateNameCheck } from "../lib/useDuplicateNameCheck";
+import { DuplicateNameWarning } from "./DuplicateNameWarning";
 import MonsterForm, { abilMod, modStr, crToProf, CR_LIST, SIZE_LIST, ABILITIES, SKILL_LIST, SKILL_ABIL, useTags as useMonsterTags, TagRow, RepeatBlock } from "./MonsterForm";
 
 /* ──────────── Props ──────────── */
@@ -287,6 +289,7 @@ function ManualEntryTab({ entryType, parsedData, capturedImage, initialData }: {
 /* ──────── Subclass form ──────── */
 function SubclassForm({ parsedData, capturedImage, initialData }: { parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry }) {
   const [name, setName] = useState("");
+  const dupWarning = useDuplicateNameCheck(name, initialData);
   const [parentClass, setParentClass] = useState("");
   const [description, setDescription] = useState("");
   const tags = useTagInput();
@@ -412,6 +415,7 @@ function SubclassForm({ parsedData, capturedImage, initialData }: { parsedData?:
       <div>
         <label className={labelCls}>Name</label>
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. School of Evocation" className={inputCls} required />
+        <DuplicateNameWarning warning={dupWarning} />
       </div>
 
       <div>
@@ -484,6 +488,7 @@ function dieRowCount(die: string): number {
 /* ──────── Table form ──────── */
 function TableForm({ parsedData, capturedImage, initialData }: { parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry }) {
   const [name, setName] = useState("");
+  const dupWarning = useDuplicateNameCheck(name, initialData);
   const [description, setDescription] = useState("");
   const [dieType, setDieType] = useState("");
   const [columns, setColumns] = useState<string[]>([""]);
@@ -657,6 +662,7 @@ function TableForm({ parsedData, capturedImage, initialData }: { parsedData?: Pa
       <div>
         <label className={labelCls}>Name</label>
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Random Encounters" className={inputCls} required />
+        <DuplicateNameWarning warning={dupWarning} />
       </div>
 
       <div>
@@ -750,6 +756,7 @@ function TableForm({ parsedData, capturedImage, initialData }: { parsedData?: Pa
 /* ──────── Shared form for Magic Item / Weapon / Armour / Potion / Adventuring Gear / Trinket ──────── */
 function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry }) {
   const [name, setName] = useState("");
+  const dupWarning = useDuplicateNameCheck(name, initialData);
   const [rarity, setRarity] = useState("");
   const [attunement, setAttunement] = useState(false);
   const [attunementBy, setAttunementBy] = useState("");
@@ -888,6 +895,7 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
           className={inputCls}
           required
         />
+        <DuplicateNameWarning warning={dupWarning} />
       </div>
 
       {/* ───── Rarity ───── */}
@@ -1388,6 +1396,7 @@ const textareaCls = "w-full rounded-lg border border-[var(--color-gilding-dark)]
 function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry }) {
   const isNpc = entryType === "npc";
   const [name, setName] = useState("");
+  const dupWarning = useDuplicateNameCheck(name, initialData);
   const [description, setDescription] = useState("");
   const tags = useTagInput();
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -1581,6 +1590,7 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
       <div>
         <label className={labelCls}>Name</label>
         <input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Elara Moonshadow" className={inputCls} required />
+        <DuplicateNameWarning warning={dupWarning} />
       </div>
 
       <div>
@@ -1728,6 +1738,7 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
 function SpellScrollForm({ entryType, parsedData, capturedImage, initialData }: { entryType: EntryType; parsedData?: ParseResult | null; capturedImage?: {file: File; preview: string}; initialData?: DbEntry }) {
   const [isSpell, setIsSpell] = useState(entryType === "spell");
   const [name, setName] = useState("");
+  const dupWarning = useDuplicateNameCheck(name, initialData);
   const [level, setLevel] = useState("");
   const [school, setSchool] = useState("");
   const [castingTime, setCastingTime] = useState("");
@@ -1927,6 +1938,7 @@ function SpellScrollForm({ entryType, parsedData, capturedImage, initialData }: 
       <div>
         <label className={labelCls}>Name</label>
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Fireball" className={inputCls} required />
+        <DuplicateNameWarning warning={dupWarning} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
