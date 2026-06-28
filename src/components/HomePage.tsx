@@ -44,7 +44,7 @@ export default function HomePage() {
             className="mx-auto mb-4 mt-4 w-72 sm:w-96"
           />
           <p className="font-[var(--font-sans)] text-sm italic leading-relaxed text-[#766649]">
-            Browse your custom D&D content
+            The digital tome for all your DnD homebrew content. Import photos and screenshots or create from scratch
           </p>
         </header>
       </div>
