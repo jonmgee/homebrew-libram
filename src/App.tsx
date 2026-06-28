@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
 import { AuthProvider } from "./context/AuthContext";
 import AuthGuard from "./components/AuthGuard";
 import NavBar from "./components/NavBar";
@@ -15,6 +16,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ScrollToTop />
         <NavBar />
         <main className="book-content">
           <Routes>
