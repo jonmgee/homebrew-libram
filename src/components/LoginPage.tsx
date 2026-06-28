@@ -1,10 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const { signIn } = useAuth();
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
