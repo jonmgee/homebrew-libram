@@ -4,6 +4,8 @@
 
 D&D homebrew content organiser — a web app for DMs to create, browse, and manage custom D&D content.
 
+**Status: ✨ Completed.** 30-day cooling period through 2026-07-28 — open for amendments.
+
 - **Live:** https://homebrew-libram.vercel.app
 - **GitHub:** https://github.com/jonmgee/homebrew-libram
 - **Stack:** React 19, TypeScript, Tailwind CSS v4, Vite 8, Supabase
@@ -109,7 +111,7 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] **Table range-expansion prompt fix** — AI instructed to expand ranges into one row per roll value (was returning `"1-2"` ranges that didn't match per-row form structure)
 - [x] **Table state-race fix** — dieType effect no longer wipes pre-populated cells on mount (`!parsedData` guard + early-return if correctly sized)
 - [x] **Paste Text E2E testing** — Barclay confirmed all 14 types pass (8/8 including d20 and d100 table with 100 populated rows)
-- [ ] **Upload methods (Image, PDF, Document)** — built but Paste Text only tested; Jon to prepare sample files, E2E testing deferred
+- [x] **Upload methods (Image, PDF, Document)** — built and tested; PDF confirmed working with pdfjs-dist@3.11.174 on cdnjs
 
 ### Phase 3: Detail-view rendering (2026-06-25)
 
@@ -151,24 +153,57 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 
 ## Known
 
-- [ ] **Entry editing** — no edit form; entries can only be created and deleted
-- [ ] **Auth** — anon policies are temporary; needs Supabase Auth integration
-- [ ] **Import upload methods (Image, PDF, Document)** — built, paste text & clipboard images verified; PDF/doc drag-and-drop file uploads untested
-- [x] **Detail view rendering for structured types** — Spell, Monster, Subclass, Table detail pages render all metadata
 - [ ] **Table rendering** — tables are browsable but don't render as interactive rollable tables
 - [ ] **Mobile optimisation** — responsive but not fully polished for small screens
 - [ ] **Pagination** — no pagination for large entry lists
 - [ ] **Import/export** — no bulk import or export
-- [x] **Image upload pipeline** — images upload to `entry-images` bucket with traceable filenames, write back to `properties.image_url`. Renders on detail page and as thumbnail on browse list. RLS update policy added for anon writeback.
-- [ ] **CRUD** — no edit/delete of existing entries from browse page
 
-## Next tasks
+## Completed (kept for reference)
 
-- Entry editing (edit/update existing entries)
-- Auth integration
-- Upload method E2E testing (Image, PDF, Document) — drag-and-drop paste-text content verified; file uploads untested
+### Auth (2026-06-28)
+- [x] **Supabase Auth with magic link** — private-only, no passwords
+- [x] **AuthContext** — `onAuthStateChange` session tracking, `signIn` (magic link), `signOut`
+- [x] **LoginPage** at `/login` — email input, magic link send, confirmation screen
+- [x] **AuthGuard** — redirects unauthenticated users to `/login`
+- [x] **NavBar** — shows user email + sign out button when logged in
+- [x] **RLS migration** (`001_add_auth_user_id.sql`) — user_id column, 4 auth-scoped policies
+- [x] **`uploadImage.ts` updated** — injects `user_id` on entry creation
+- [x] **Existing entries (17) have `user_id = NULL`** — first user to login should run SQL to claim them
+
+### Login page redesign (2026-06-28)
+- [x] Full-viewport two-image layout with centre blend gradients + dark overlay
+- [x] Frosted glass card (`bg-white/15` + `backdrop-blur-xl`)
+- [x] "Homebrew Libram" title (BookInsanity) and subheading
+
+### Duplicate name warning (2026-06-28)
+- [x] `useDuplicateNameCheck` hook — debounced 500ms query via `ilike`, scoped to user
+- [x] `DuplicateNameWarning` component — amber italic tooltip below name input
+- [x] Integrated into all 6 form components (non-blocking warning only)
+
+### PDF upload fix (2026-06-28)
+- [x] Downgraded pdfjs-dist from v6.0.227 → v3.11.174
+- [x] Root cause: v6 uses dynamic `import()` for WASM modules inside the worker; v3 is self-contained
+- [x] Worker URL: `cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`
+- [x] Removed orphaned .wasm files from `public/`
+
+### ScrollToTop (2026-06-28)
+- [x] Scrolls to top on route change
+
+### Edit functionality (2026-06-27)
+- [x] Edit button on detail page → `/entry/:id/edit` → prepopulated form → UPDATE
+- [x] All 6 form components accept `initialData` prop
+- [x] "Entry updated successfully" banner on redirect
+
+### Detail view rendering (2026-06-25)
+- [x] Spell, Monster, Subclass, Table detail pages render all structured metadata
+
+### Image upload pipeline (2026-06-25)
+- [x] Images upload to `entry-images` bucket with traceable filenames
+- [x] Write back to `properties.image_url`, renders on detail + browse thumbnail
+
+## Remaining tasks
+
 - Table rendering (interactive rollable tables)
 - Mobile optimisation
 - Pagination
 - Import/export
-- Supabase Storage bucket setup verification
