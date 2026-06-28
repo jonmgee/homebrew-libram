@@ -8,7 +8,7 @@ function SignInCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="gilded-border relative z-10 w-full max-w-md rounded-lg bg-[var(--color-parchment)] p-8 shadow-2xl">
+    <div className="gilded-border relative z-10 w-full max-w-md rounded-lg bg-[var(--color-parchment)]/80 p-8 shadow-2xl backdrop-blur-sm">
       {children}
     </div>
   );
@@ -58,11 +58,14 @@ export default function LoginPage() {
       </div>
 
       {/* ── Dark overlay across entire background ── */}
-      <div className="absolute inset-0 z-[1] bg-black/40" />
+      <div className="absolute inset-0 z-[1] bg-black/25" />
 
       {/* ── Centred sign-in card ── */}
       {sent ? (
         <SignInCard>
+          <p className="mb-2 text-center font-[var(--font-phb)] text-lg uppercase tracking-[0.08em] text-[#58180d] drop-shadow-[0_1px_2px_rgba(88,24,13,0.3)]">
+            Homebrew Libram
+          </p>
           <h1 className="phb-h1 !text-2xl text-center">Check your inbox</h1>
           <p className="phb-body mt-4 leading-relaxed text-[#766649]">
             We've sent a magic link to{" "}
@@ -86,6 +89,9 @@ export default function LoginPage() {
         </SignInCard>
       ) : (
         <SignInCard>
+          <p className="mb-2 text-center font-[var(--font-phb)] text-lg uppercase tracking-[0.08em] text-[#58180d] drop-shadow-[0_1px_2px_rgba(88,24,13,0.3)]">
+            Homebrew Libram
+          </p>
           <h1 className="phb-h1 !text-2xl text-center">Sign In</h1>
           <p className="phb-description mt-2 text-center text-sm">
             Enter your email and we'll send you a magic link. No password needed.
