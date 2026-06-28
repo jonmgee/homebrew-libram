@@ -8,7 +8,7 @@ function SignInCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="gilded-border relative z-10 w-full max-w-sm rounded-lg bg-white/15 p-6 shadow-2xl backdrop-blur-xl">
+    <div className="relative z-10 w-full max-w-sm rounded-lg bg-white/15 p-6 shadow-2xl backdrop-blur-xl border border-white/10">
       {children}
     </div>
   );
