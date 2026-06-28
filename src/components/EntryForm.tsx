@@ -1044,11 +1044,9 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
 /* ──────── Client-side helpers ──────── */
 async function extractPdfText(file: File): Promise<string> {
   const pdfjsLib = await import("pdfjs-dist");
-  const version = (await import("pdfjs-dist/package.json")).version;
   /* v8 ignore next 3 */
   if (typeof window !== "undefined") {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.mjs`;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
   }
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
