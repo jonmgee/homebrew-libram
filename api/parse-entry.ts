@@ -4,6 +4,8 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 /* ──────── Type-specific extraction prompts ──────── */
 
+const VERBATIM_NOTE = `CRITICAL — description field: Copy the full description text verbatim, preserving all mechanical details, formatted text, bold labels as markdown bold, examples, and specific numbers. Do not summarise, condense, or paraphrase the description.`;
+
 const PROMPTS: Record<string, string> = {
 
   magic_item: `Extract and return JSON only — no preamble, no fences.
@@ -16,6 +18,7 @@ const PROMPTS: Record<string, string> = {
   "tags": ["array of strings"]
 }
 Use null for unknown, false for attunement, "None" for rarity. Infer tags.
+${VERBATIM_NOTE}
 Content:\n`,
 
   weapon: `Extract and return JSON only — no preamble, no fences.
@@ -28,6 +31,7 @@ Content:\n`,
   "tags": ["array of strings"]
 }
 Use null for unknown, false for attunement, "None" for rarity. Infer tags.
+${VERBATIM_NOTE}
 Content:\n`,
 
   armour: `Extract and return JSON only — no preamble, no fences.
@@ -40,6 +44,7 @@ Content:\n`,
   "tags": ["array of strings"]
 }
 Use null for unknown, false for attunement, "None" for rarity.
+${VERBATIM_NOTE}
 Content:\n`,
 
   potion: `Extract and return JSON only — no preamble, no fences.
@@ -52,6 +57,7 @@ Content:\n`,
   "tags": ["array of strings"]
 }
 Use null for unknown, false for attunement, "None" for rarity.
+${VERBATIM_NOTE}
 Content:\n`,
 
   adventuring_gear: `Extract and return JSON only — no preamble, no fences.
@@ -64,6 +70,7 @@ Content:\n`,
   "tags": ["array of strings"]
 }
 Use null for unknown, false for attunement, "None" for rarity.
+${VERBATIM_NOTE}
 Content:\n`,
 
   trinket: `Extract and return JSON only — no preamble, no fences.
@@ -73,6 +80,7 @@ Content:\n`,
   "tags": ["array of strings"]
 }
 Use null for unknown. Infer tags.
+${VERBATIM_NOTE}
 Content:\n`,
 
   npc: `Extract NPC fields and return JSON only — no preamble, no fences.
@@ -82,6 +90,7 @@ Content:\n`,
   "tags": ["array of strings"]
 }
 Name is NPC name or title. Description captures role/appearance/background. Infer tags like "blacksmith", "noble", "quest-giver". Use null for unknown.
+${VERBATIM_NOTE}
 Content:\n`,
 
   background: `Extract background fields and return JSON only — no preamble, no fences.
@@ -91,6 +100,7 @@ Content:\n`,
   "tags": ["array of strings"]
 }
 Name is background title (e.g. "Acolyte", "Criminal"). Description summarises flavour and benefits. Infer tags like "roleplay", "skills". Use null for unknown.
+${VERBATIM_NOTE}
 Content:\n`,
 
   feat: `Extract feat fields and return JSON only — no preamble, no fences.
@@ -100,6 +110,7 @@ Content:\n`,
   "tags": ["array of strings"]
 }
 Name is feat title (e.g. "Tough", "Alert"). Description captures mechanical benefit. Infer tags like "combat", "roleplay". Use null for unknown.
+${VERBATIM_NOTE}
 Content:\n`,
 
   spell: `Extract spell fields and return JSON only — no preamble, no fences.
@@ -114,6 +125,7 @@ Content:\n`,
   "description": "string", "tags": ["array of strings"]
 }
 Map "1st" to "1", "2nd" to "2". Infer school and tags. Use null/false/[] for unknowns.
+${VERBATIM_NOTE}
 Content:\n`,
 
   scroll: `Extract scroll fields and return JSON only — no preamble, no fences.
@@ -129,6 +141,7 @@ Content:\n`,
   "description": "string", "tags": ["array of strings"]
 }
 Name often "Scroll of [Spell]". Extract spell properties + rarity. Use null/false/[]/None.
+${VERBATIM_NOTE}
 Content:\n`,
 
   subclass: `Extract subclass fields and return JSON only — no preamble, no fences.
@@ -140,6 +153,7 @@ Content:\n`,
   "tags": ["array of strings"]
 }
 Name is subclass title, parent_class is base class. Extract level features as named blocks. Use null/[] for unknowns.
+${VERBATIM_NOTE}
 Content:\n`,
 
   monster: `Extract monster stat block and return JSON only — no preamble, no fences.
@@ -161,6 +175,7 @@ Content:\n`,
   "description": "string", "tags": ["array of strings"]
 }
 Ability scores as plain numbers. CR as string. Traits/actions as named blocks. Use null for unknown, [] for arrays.
+${VERBATIM_NOTE}
 Content:\n`,
 
   table: `Extract table fields and return JSON only — no preamble, no fences.
@@ -176,6 +191,7 @@ Example: input "1-2: A merchant" → rows [["1", "A merchant"], ["2", "A merchan
 Input "20: A dragon" → rows [["20", "A dragon"]].
 Each row first cell = single roll number (not a range), rest match columns.
 Cells per row = 1 + columns.length. die_type matches total row count. Use null/[] if no value.
+${VERBATIM_NOTE}
 Content:
 `,
 };
@@ -307,20 +323,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (typeof parsed.condition_immunities === "string") result.condition_immunities = parsed.condition_immunities.trim();
     if (typeof parsed.senses === "string") result.senses = parsed.senses.trim();
     if (typeof parsed.languages === "string") result.languages = parsed.languages.trim();
-    if (Array.isArray(parsed.traits)) result.traits = parsed.traits;
-    if (Array.isArray(parsed.actions)) result.actions = parsed.actions;
-    if (Array.isArray(parsed.bonus_actions)) result.bonus_actions = parsed.bonus_actions;
-    if (Array.isArray(parsed.reactions)) result.reactions = parsed.reactions;
-    if (typeof parsed.legendary_actions === "object" && parsed.legendary_actions !== null) result.legendary_actions = parsed.legendary_actions;
-
-    // Table
-    if (typeof parsed.die_type === "string") result.die_type = parsed.die_type.trim();
-    if (Array.isArray(parsed.columns)) result.columns = parsed.columns.filter((c): c is string => typeof c === "string");
-    if (Array.isArray(parsed.rows)) result.rows = parsed.rows;
-
-    return res.status(200).json(result);
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    return res.status(500).json({ error: "Something went wrong." });
-  }
-}
+    if (Array.is
