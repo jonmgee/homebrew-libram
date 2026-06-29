@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { supabase } from "../lib/supabase";
 import { CATEGORIES } from "../types";
 
 const MotionLink = motion(Link);
@@ -26,6 +28,35 @@ const containerVariants = {
 const hoverTransition = { type: "spring" as const, stiffness: 300, damping: 15, mass: 0.5 } as const;
 
 export default function HomePage() {
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchCounts() {
+      const { data, error } = await supabase
+        .from("entries")
+        .select("type");
+
+      if (cancelled || error) return;
+
+      const typeCounts: Record<string, number> = {};
+      for (const row of data ?? []) {
+        typeCounts[row.type] = (typeCounts[row.type] || 0) + 1;
+      }
+      setCounts(typeCounts);
+      setTotal(data?.length ?? 0);
+    }
+
+    fetchCounts();
+    return () => { cancelled = true; };
+  }, []);
+
+  function categoryCount(cat: typeof CATEGORIES[number]): number {
+    return cat.types.reduce((sum, t) => sum + (counts[t] || 0), 0);
+  }
+
   return (
     <>
       <div className="mx-auto max-w-5xl px-4 pt-12">
@@ -81,39 +112,34 @@ export default function HomePage() {
         animate="visible"
         variants={containerVariants}
       >
-        {CATEGORIES.map((cat) => (
-          <MotionLink
-            key={cat.slug}
-            to={`/browse/${cat.slug}`}
-            className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
-            variants={cardVariants}
-            whileHover={{ scale: 1.02 }}
-            transition={hoverTransition}
-          >
-            <img
-              src={CATEGORY_IMAGES[cat.slug]}
-              alt={cat.label}
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/80 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              <h2 className="font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
-                {cat.label}
-              </h2>
-              <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
-                {cat.label === "Treasure"
-                  ? "Armour, weapons, magic items, potions, gear, trinkets"
-                  : cat.label === "Arcana"
-                    ? "Spells and scrolls"
-                    : cat.label === "Creatures"
-                      ? "Monsters and NPCs"
-                      : cat.label === "Character Options"
-                        ? "Backgrounds, feats, subclasses"
-                        : "Random tables and generators"}
-              </p>
-            </div>
-          </MotionLink>
-        ))}
+        {CATEGORIES.map((cat) => {
+          const entryCount = categoryCount(cat);
+          return (
+            <MotionLink
+              key={cat.slug}
+              to={`/browse/${cat.slug}`}
+              className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
+              variants={cardVariants}
+              whileHover={{ scale: 1.02 }}
+              transition={hoverTransition}
+            >
+              <img
+                src={CATEGORY_IMAGES[cat.slug]}
+                alt={cat.label}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/80 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <h2 className="font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
+                  {cat.label}
+                </h2>
+                <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
+                  {entryCount} entr{entryCount === 1 ? "y" : "ies"}
+                </p>
+              </div>
+            </MotionLink>
+          );
+        })}
 
         <MotionLink
           to="/browse/all"
@@ -133,7 +159,7 @@ export default function HomePage() {
               All Entries
             </h2>
             <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
-              Browse every entry across all categories
+              {total} entr{total === 1 ? "y" : "ies"}
             </p>
           </div>
         </MotionLink>
