@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import { supabase } from "../lib/supabase";
 import { formatEntryType, type DbEntry } from "../types";
 import SpellDetail from "./SpellDetail";
@@ -10,6 +11,19 @@ import TableDetail from "./TableDetail";
 type LoadState = "loading" | "loaded" | "error" | "not_found";
 
 const SH = "phb-small-sc block text-sm font-bold uppercase tracking-wider text-caption mb-1";
+
+function MarkdownDescription({ text }: { text: string }) {
+  return (
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+        strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+      }}
+    >
+      {text}
+    </ReactMarkdown>
+  );
+}
 
 function renderTags(tags: string[]) {
   if (!tags || !tags.length) return null;
@@ -40,7 +54,7 @@ function MagicItemDetail({ entry }: { entry: DbEntry }) {
     <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
       <p className="phb-description mt-1 text-base">{[r, sub].filter(Boolean).join(", ")}{att && <span className="ml-1 not-italic">(requires attunement)</span>}</p>
       {ch !== undefined && ch > 0 && <p className="phb-description mt-1 text-sm">Charges: {ch}</p>}
-      <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">{entry.description}</div>
+      <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} /></div>
       {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
@@ -60,7 +74,7 @@ function WeaponDetail({ entry }: { entry: DbEntry }) {
       <p className="phb-body mt-1 text-base"><span className="font-semibold">{dd}</span>{dt && <span className="text-ink-light"> {dt}</span>}{bonus !== "+0" && <span className="text-ink-light"> ({bonus})</span>}</p>
       {props && <p className="phb-description mt-1 text-sm">{props}</p>}
       {(cost || w !== undefined) && <div className="phb-description mt-2 flex gap-4 text-sm">{cost && <span>Cost: {cost}</span>}{w !== undefined && <span>Weight: {w} lb</span>}</div>}
-      <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">{entry.description}</div>
+      <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} /></div>
       {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
@@ -78,7 +92,7 @@ function ArmourDetail({ entry }: { entry: DbEntry }) {
     <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
       <p className="phb-body mt-1 text-base"><span className="font-semibold capitalize">{at}</span>{bonus !== "+0" && <span className="text-ink-light"> ({bonus})</span>}{stealth && <span className="ml-2 phb-description text-sm">&mdash; Disadvantage on Stealth</span>}</p>
       {(cost || w !== undefined) && <div className="phb-description mt-2 flex gap-4 text-sm">{cost && <span>Cost: {cost}</span>}{w !== undefined && <span>Weight: {w} lb</span>}</div>}
-      <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">{entry.description}</div>
+      <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} /></div>
       {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
@@ -95,7 +109,7 @@ function PotionDetail({ entry }: { entry: DbEntry }) {
       {r && <p className="phb-description mt-1 text-base">{r}</p>}
       {eff && <div className="phb-body mt-4"><span className={SH}>Effect</span><p className="mt-1 text-base leading-relaxed">{eff}</p></div>}
       {dur && <p className="phb-description mt-2 text-sm">Duration: {dur}</p>}
-      <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">{entry.description}</div>
+      <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} /></div>
       {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
@@ -114,7 +128,7 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
       {gc && <p className="phb-description mt-1 text-base capitalize">{gc}</p>}
       {(cost || w !== undefined || qty > 1) && <div className="phb-description mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">{cost && <span>Cost: {cost}</span>}{w !== undefined && <span>Weight: {w} lb</span>}{qty > 1 && <span>Quantity: {qty}</span>}</div>}
       {props && <p className="phb-description mt-2 text-sm">{props}</p>}
-      <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">{entry.description}</div>
+      <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} /></div>
       {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
@@ -124,7 +138,7 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
 function TrinketDetail({ entry }: { entry: DbEntry }) {
   return (
     <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
-      <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">{entry.description}</div>
+      <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} /></div>
       {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
@@ -135,7 +149,7 @@ function SimpleDetail({ entry }: { entry: DbEntry }) {
   return (
     <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
       <p className="phb-description mt-1 text-sm">{formatEntryType(entry.type)}</p>
-      <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">{entry.description}</div>
+      <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} /></div>
       {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
