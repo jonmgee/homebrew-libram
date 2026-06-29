@@ -134,6 +134,17 @@ export default function HomePage() {
                   {cat.label}
                 </h2>
                 <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
+                  {cat.label === "Treasure"
+                    ? "Armour, weapons, magic items, potions, gear, trinkets"
+                    : cat.label === "Arcana"
+                      ? "Spells and scrolls"
+                      : cat.label === "Creatures"
+                        ? "Monsters and NPCs"
+                        : cat.label === "Character Options"
+                          ? "Backgrounds, feats, subclasses"
+                          : "Random tables and generators"}
+                </p>
+                <p className="mt-0.5 text-xs leading-tight text-[#C9A84C]/70 drop-shadow">
                   {entryCount} entr{entryCount === 1 ? "y" : "ies"}
                 </p>
               </div>
