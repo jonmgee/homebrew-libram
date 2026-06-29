@@ -158,6 +158,15 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [ ] **Pagination** — no pagination for large entry lists
 - [ ] **Import/export** — no bulk import or export
 
+### 2026-06-29 round — AI extraction fixes, Oath modal, PWA prompt, homepage counts, footer
+
+- [x] **AI extraction preserves full description** (9d71e2a, e8b9a19) — verbatim-preservation instruction in all 14 prompts; fixed truncated file
+- [x] **Markdown rendering on detail pages** (3c6eefc) — react-markdown for `description` field across all 7 detail renderers
+- [x] **Libram's Oath modal** (98f0562) — one-time disclaimer on first login, localStorage `libram_oath_accepted`, non-dismissible outside checkbox+confirm
+- [x] **PWA install prompt** (fa42e64) — `PwaPrompt` component, Android/Chrome `beforeinstallprompt` + native install, iOS share-icon instruction, dismisses to `pwa_prompt_dismissed`
+- [x] **Homepage entry counts** (6a7cd2f, 3764a6b) — per-category counts on each card, All Entries shows grand total, subcategory descriptions preserved
+- [x] **Footer** (6e2bb38) — `Footer` component on all pages (including `/login`), italic muted text with `mailto:hello@appwrightsguild.com`
+
 ## Completed (kept for reference)
 
 ### Auth (2026-06-28)
