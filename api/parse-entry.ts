@@ -323,4 +323,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (typeof parsed.condition_immunities === "string") result.condition_immunities = parsed.condition_immunities.trim();
     if (typeof parsed.senses === "string") result.senses = parsed.senses.trim();
     if (typeof parsed.languages === "string") result.languages = parsed.languages.trim();
-    if (Array.is
+    if (Array.isArray(parsed.traits)) result.traits = parsed.traits;
+    if (Array.isArray(parsed.actions)) result.actions = parsed.actions;
+    if (Array.isArray(parsed.bonus_actions)) result.bonus_actions = parsed.bonus_actions;
+    if (Array.isArray(parsed.reactions)) result.reactions = parsed.reactions;
+    if (typeof parsed.legendary_actions === "object" && parsed.legendary_actions !== null) result.legendary_actions = parsed.legendary_actions;
+
+    // Table
+    if (typeof parsed.die_type === "string") result.die_type = parsed.die_type.trim();
+    if (Array.isArray(parsed.columns)) result.columns = parsed.columns.filter((c): c is string => typeof c === "string");
+    if (Array.isArray(parsed.rows)) result.rows = parsed.rows;
+
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    return res.status(500).json({ error: "Something went wrong." });
+  }
+}
