@@ -3,6 +3,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import { AuthProvider } from "./context/AuthContext";
 import AuthGuard from "./components/AuthGuard";
 import NavBar from "./components/NavBar";
+import Footer from "./components/Footer";
 import HomePage from "./components/HomePage";
 import SubCategoryPage from "./components/SubCategoryPage";
 import BrowsePage from "./components/BrowsePage";
@@ -86,6 +87,7 @@ function App() {
               }
             />
           </Routes>
+          <Footer />
         </main>
       </AuthProvider>
     </BrowserRouter>
