@@ -1,12 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../context/AuthContext";
 
-/* ───── Shared card ───── */
-function SignInCard({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+type Mode = "signin" | "signup" | "forgot";
+
+function SignInCard({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative z-10 w-full max-w-sm rounded-lg bg-white/15 p-6 shadow-2xl backdrop-blur-xl border border-white/10">
       {children}
@@ -15,44 +12,82 @@ function SignInCard({
 }
 
 export default function LoginPage() {
-  const { signIn } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [confirmMsg, setConfirmMsg] = useState<string | null>(null);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSignIn = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password) return;
+    setSending(true);
+    setError(null);
+    setConfirmMsg(null);
+    const { error: err } = await signIn(email.trim(), password);
+    setSending(false);
+    if (err) setError(err);
+  };
+
+  const handleSignUp = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password) return;
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    setSending(true);
+    setError(null);
+    setConfirmMsg(null);
+    const { error: err, user } = await signUp(email.trim(), password);
+    setSending(false);
+    if (err) {
+      setError(err);
+    } else if (user?.identities?.length === 0) {
+      setConfirmMsg("An account with this email already exists. Sign in instead.");
+    } else {
+      setConfirmMsg("Check your email to confirm your account before signing in.");
+    }
+  };
+
+  const handleForgot = async (e: FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
     setSending(true);
     setError(null);
-    const { error: err } = await signIn(email.trim());
+    setConfirmMsg(null);
+    const { error: err } = await resetPassword(email.trim());
     setSending(false);
     if (err) {
       setError(err);
     } else {
-      setSent(true);
+      setConfirmMsg("Check your email for a password reset link.");
     }
   };
+
+  const handleSubmit = mode === "signin" ? handleSignIn : mode === "signup" ? handleSignUp : handleForgot;
+
+  const title = mode === "signin" ? "Sign In" : mode === "signup" ? "Create Account" : "Reset Password";
+  const subtext = mode === "signin" ? "Enter your credentials to continue" : mode === "signup" ? "Create a new account" : "Enter your email to receive a reset link";
+  const buttonLabel = sending ? "Please wait…" : mode === "forgot" ? "Send reset link" : title;
 
   return (
     <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden">
       {/* ── Two-image background ── */}
       <div className="absolute inset-0 z-0 flex">
         <div className="relative h-full w-1/2 overflow-hidden">
-          <img
-            src="/assets/loginpic2.png"
-            alt=""
-            className="h-full w-full object-cover"
-          />
+          <img src="/assets/loginpic2.png" alt="" className="h-full w-full object-cover" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/60" />
         </div>
         <div className="relative h-full w-1/2 overflow-hidden">
-          <img
-            src="/assets/loginpagepic.png"
-            alt=""
-            className="h-full w-full object-cover"
-          />
+          <img src="/assets/loginpagepic.png" alt="" className="h-full w-full object-cover" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-black/60" />
         </div>
       </div>
@@ -61,89 +96,140 @@ export default function LoginPage() {
       <div className="absolute inset-0 z-[1] bg-black/20" />
 
       {/* ── Centred card ── */}
-      {sent ? (
-        <SignInCard>
-          <p className="mb-1 text-center font-[var(--font-phb)] text-2xl uppercase tracking-[0.08em] text-[#EEE5CE] drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]">
-            Homebrew Libram
-          </p>
-          <p className="mb-4 text-center font-[var(--font-sans)] text-xs italic leading-relaxed text-[#C9A84C] drop-shadow-sm">
-            The digital tome for all your DnD homebrew content
-          </p>
-          <h1 className="phb-h1 text-center text-xl text-[#EEE5CE] drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
-            Check your inbox
-          </h1>
-          <p className="phb-body mt-4 text-sm leading-relaxed text-[#d4c9b0]">
-            We've sent a magic link to{" "}
-            <span className="font-[var(--font-sans)] font-semibold text-[#EEE5CE]">
-              {email}
-            </span>
-          </p>
-          <p className="phb-description mt-2 text-xs text-[#b5a98e]">
-            Click the link in the email to sign in. It expires after one hour.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setSent(false);
-              setEmail("");
-            }}
-            className="phb-btn mt-5 inline-block w-full rounded-lg bg-[#58180d]/90 px-6 py-2 text-sm font-[var(--font-title)] uppercase tracking-wider text-[#EEE5CE] hover:bg-[#7a2212]"
-          >
-            Send again
-          </button>
-        </SignInCard>
-      ) : (
-        <SignInCard>
-          <p className="mb-1 text-center font-[var(--font-phb)] text-2xl uppercase tracking-[0.08em] text-[#EEE5CE] drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]">
-            Homebrew Libram
-          </p>
-          <p className="mb-4 text-center font-[var(--font-sans)] text-xs italic leading-relaxed text-[#C9A84C] drop-shadow-sm">
-            The digital tome for all your DnD homebrew content
-          </p>
+      <SignInCard>
+        <p className="mb-1 text-center font-[var(--font-phb)] text-2xl uppercase tracking-[0.08em] text-[#EEE5CE] drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]">
+          Homebrew Libram
+        </p>
+        <p className="mb-4 text-center font-[var(--font-sans)] text-xs italic leading-relaxed text-[#C9A84C] drop-shadow-sm">
+          The digital tome for all your DnD homebrew content
+        </p>
 
-          <div className="mb-5 flex flex-wrap items-baseline justify-center gap-x-1.5">
-            <h1 className="phb-h1 text-2xl text-[#EEE5CE] drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
-              Sign In
-            </h1>
-            <span className="font-[var(--font-sans)] text-xs italic text-[#b5a98e]">
-              — Enter an email, we'll send you a link to log in
-            </span>
+        <div className="mb-5 flex flex-wrap items-baseline justify-center gap-x-1.5">
+          <h1 className="phb-h1 text-2xl text-[#EEE5CE] drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
+            {title}
+          </h1>
+          <span className="font-[var(--font-sans)] text-xs italic text-[#b5a98e]">
+            — {subtext}
+          </span>
+        </div>
+
+        {confirmMsg && (
+          <div className="mb-4 rounded-lg border border-green-500/30 bg-green-900/20 px-3 py-2 text-center text-xs text-green-300">
+            {confirmMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email */}
+          <div>
+            <label htmlFor="email" className="phb-small-sc mb-1 block text-xs uppercase tracking-wider text-[#C9A84C]">
+              Email address
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="phb-body w-full rounded-lg border border-white/30 bg-white/30 px-4 py-2.5 text-sm text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:outline-none"
+            />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Password fields (not shown in forgot mode) */}
+          {mode !== "forgot" && (
             <div>
-              <label
-                htmlFor="email"
-                className="phb-small-sc mb-1 block text-xs uppercase tracking-wider text-[#C9A84C]"
-              >
-                Email address
+              <label htmlFor="password" className="phb-small-sc mb-1 block text-xs uppercase tracking-wider text-[#C9A84C]">
+                Password
               </label>
               <input
-                id="email"
-                type="email"
+                id="password"
+                type="password"
                 required
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={mode === "signup" ? "At least 6 characters" : "Enter your password"}
                 className="phb-body w-full rounded-lg border border-white/30 bg-white/30 px-4 py-2.5 text-sm text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:outline-none"
               />
             </div>
+          )}
 
-            {error && (
-              <p className="phb-description text-xs text-red-300">{error}</p>
-            )}
+          {/* Confirm password (sign up only) */}
+          {mode === "signup" && (
+            <div>
+              <label htmlFor="confirmPassword" className="phb-small-sc mb-1 block text-xs uppercase tracking-wider text-[#C9A84C]">
+                Confirm password
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repeat your password"
+                className="phb-body w-full rounded-lg border border-white/30 bg-white/30 px-4 py-2.5 text-sm text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:outline-none"
+              />
+            </div>
+          )}
 
+          {/* Forgot password link (sign in only) */}
+          {mode === "signin" && (
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => { setMode("forgot"); setError(null); setConfirmMsg(null); }}
+                className="text-xs italic text-[#C9A84C] underline underline-offset-2 hover:text-[#dbb85c] transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <p className="phb-description text-xs text-red-300">{error}</p>
+          )}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={sending || (mode !== "forgot" && !email.trim() && !password)}
+            className="phb-btn w-full rounded-lg bg-[#58180d]/90 px-6 py-2.5 font-[var(--font-title)] text-sm uppercase tracking-wider text-[#EEE5CE] transition-opacity hover:bg-[#7a2212] disabled:opacity-50"
+          >
+            {buttonLabel}
+          </button>
+        </form>
+
+        {/* Toggle between modes */}
+        <div className="mt-4 text-center">
+          {mode === "signin" ? (
             <button
-              type="submit"
-              disabled={sending || !email.trim()}
-              className="phb-btn w-full rounded-lg bg-[#58180d]/90 px-6 py-2.5 font-[var(--font-title)] text-sm uppercase tracking-wider text-[#EEE5CE] transition-opacity hover:bg-[#7a2212] disabled:opacity-50"
+              type="button"
+              onClick={() => { setMode("signup"); setError(null); setConfirmMsg(null); setPassword(""); setConfirmPassword(""); }}
+              className="text-xs italic text-[#b5a98e] hover:text-[#C9A84C] transition-colors"
             >
-              {sending ? "Sending…" : "Send magic link"}
+              Don't have an account? <span className="underline underline-offset-2">Create one</span>
             </button>
-          </form>
-        </SignInCard>
-      )}
+          ) : mode === "signup" ? (
+            <button
+              type="button"
+              onClick={() => { setMode("signin"); setError(null); setConfirmMsg(null); setPassword(""); setConfirmPassword(""); }}
+              className="text-xs italic text-[#b5a98e] hover:text-[#C9A84C] transition-colors"
+            >
+              Already have an account? <span className="underline underline-offset-2">Sign in</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setMode("signin"); setError(null); setConfirmMsg(null); }}
+              className="text-xs italic text-[#b5a98e] hover:text-[#C9A84C] transition-colors"
+            >
+              <span className="underline underline-offset-2">Back to sign in</span>
+            </button>
+          )}
+        </div>
+      </SignInCard>
     </div>
   );
 }

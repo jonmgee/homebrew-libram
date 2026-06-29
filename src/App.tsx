@@ -12,6 +12,7 @@ import CreateEntryInputPage from "./components/CreateEntryInputPage";
 import EntryDetailPage from "./components/EntryDetailPage";
 import EditEntryPage from "./components/EditEntryPage";
 import LoginPage from "./components/LoginPage";
+import ResetPasswordPage from "./components/ResetPasswordPage";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <main className="book-content">
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
               path="/"
               element={
