@@ -1,6 +1,6 @@
 {
   "name": "Homebrew Libram",
-  "short_name": "Libram",
+  "short_name": "Homebrew Libram",
   "description": "Browse your custom D&D homebrew content",
   "start_url": "/",
   "display": "standalone",
