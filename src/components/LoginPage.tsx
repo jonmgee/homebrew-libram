@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 type Mode = "signin" | "signup" | "forgot";
@@ -12,7 +13,13 @@ function SignInCard({ children }: { children: React.ReactNode }) {
 }
 
 export default function LoginPage() {
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, resetPassword, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) navigate("/");
+  }, [user, navigate]);
+
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +36,11 @@ export default function LoginPage() {
     setConfirmMsg(null);
     const { error: err } = await signIn(email.trim(), password);
     setSending(false);
-    if (err) setError(err);
+    if (err) {
+      setError(err);
+    } else {
+      navigate("/");
+    }
   };
 
   const handleSignUp = async (e: FormEvent) => {
