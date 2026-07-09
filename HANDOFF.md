@@ -224,6 +224,13 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] **AI import prompts** (`api/parse-entry.ts`) — markdown-formatted descriptions, monster stat hardening ("24 (+7)" → 24, keep AC/HP notes, recharge in block names), spell cantrip/concentration/material rules, d100 table completeness ("00" = 100, no gaps, never stop early), max_tokens 16384 (d100 tables truncated at 4096), JSON response_format
 - [x] `motion()` → `motion.create()` (framer-motion deprecation)
 
+### 2026-07-09 evening — 3D physics dice (merged to main)
+
+- [x] **@3d-dice/dice-box integration** — Roll buttons throw a real 3D die (BabylonJS + Ammo physics), Libram crimson theme, settles on the physics result, matching row flashes + scrolls into view
+- [x] **Lazy loading** — engine (~74KB gzip) + assets load only on first roll; assets vendored at `public/assets/dice-box/`
+- [x] **Resilience** — 2D fallback on WebGL failure/timeout; reduced-motion lands instantly; ref-based re-click guard
+- [x] Type declarations at `src/lib/dice-box.d.ts` (package ships no types)
+
 ## Remaining tasks
 
 - Table rendering (interactive rollable tables)
