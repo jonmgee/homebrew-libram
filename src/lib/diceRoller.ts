@@ -22,8 +22,10 @@ function ensureOverlay(): HTMLElement {
   if (!el) {
     el = document.createElement("div");
     el.id = OVERLAY_ID;
+    // Always displayed (transparent + click-through): dice-box sizes its
+    // canvas from the container at init, so it must never be display:none.
     el.style.cssText =
-      "position:fixed;inset:0;z-index:9999;pointer-events:none;display:none;";
+      "position:fixed;inset:0;z-index:9999;pointer-events:none;";
     document.body.appendChild(el);
   }
   return el;
@@ -45,6 +47,8 @@ async function init(): Promise<DiceBoxInstance> {
     lightIntensity: 0.9,
   }) as DiceBoxInstance;
   await box.init();
+  // Nudge the engine to adopt the canvas's CSS-driven size
+  window.dispatchEvent(new Event("resize"));
   return box;
 }
 
@@ -58,11 +62,9 @@ export async function rollDie3d(sides: number): Promise<number> {
 
   if (clearTimer) { clearTimeout(clearTimer); clearTimer = null; }
   box.clear();
-  const overlay = ensureOverlay();
-  overlay.style.display = "block";
 
   const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("dice roll timed out")), 10000),
+    setTimeout(() => reject(new Error("dice roll timed out")), 8000),
   );
   try {
     const results = await Promise.race([box.roll(`1d${sides}`), timeout]);
@@ -71,13 +73,11 @@ export async function rollDie3d(sides: number): Promise<number> {
     // leave the die on the table a moment, then tidy up
     clearTimer = setTimeout(() => {
       box.clear();
-      overlay.style.display = "none";
       clearTimer = null;
     }, 2400);
     return value;
   } catch (err) {
     box.clear();
-    overlay.style.display = "none";
     throw err;
   }
 }
