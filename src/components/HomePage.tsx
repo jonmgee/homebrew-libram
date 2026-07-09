@@ -90,6 +90,7 @@ export default function HomePage() {
             autoPlay
             muted
             playsInline
+            loop
             className="block w-full"
           >
             <source src="/assets/Hero.mp4" type="video/mp4" />

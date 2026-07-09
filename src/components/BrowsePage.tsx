@@ -206,7 +206,7 @@ export default function BrowsePage() {
                             <img
                               src={entry.properties.image_url as string}
                               alt=""
-                              className="h-8 w-8 shrink-0 rounded border border-parchment-dark object-cover"
+                              className="h-10 w-10 shrink-0 rounded border border-parchment-dark object-cover shadow-sm"
                             />
                           )}
                           <h3 className="phb-h3 !border-none !mb-0 !pb-0 !text-base">
@@ -225,13 +225,7 @@ export default function BrowsePage() {
                           {entrySummary(entry) || "\u2014"}
                         </p>
                       </Link>
-                      <div className="mt-0.5 flex shrink-0 items-center gap-1.5">
-                        <Link
-                          to={`/entry/${entry.id}/edit`}
-                          className="rounded-lg border border-[var(--color-gilding-dark)] bg-[#58180d] px-2 py-1 text-xs font-bold text-[#eee5ce] transition-colors hover:bg-[#6e2a1a]"
-                        >
-                          Edit
-                        </Link>
+                      <div className="mt-0.5 flex shrink-0 items-center gap-1">
                         {deleteConfirmId === entry.id ? (
                           <div className="flex items-center gap-1">
                             <span className="phb-small-sc text-xs text-crimson">
@@ -239,24 +233,40 @@ export default function BrowsePage() {
                             </span>
                             <button
                               onClick={() => handleDelete(entry.id)}
-                              className="rounded-lg border border-crimson bg-crimson px-2 py-1 text-xs font-bold text-parchment-light transition-colors hover:bg-crimson-light"
+                              className="cursor-pointer rounded-md border border-crimson bg-crimson px-2 py-1 text-xs font-bold text-parchment-light transition-colors hover:bg-crimson-light"
                             >
                               Yes
                             </button>
                             <button
                               onClick={() => setDeleteConfirmId(null)}
-                              className="rounded-lg border border-[var(--color-gilding-dark)] bg-parchment-dark px-2 py-1 text-xs font-bold text-ink transition-colors hover:bg-parchment"
+                              className="cursor-pointer rounded-md border border-parchment-dark bg-parchment-dark px-2 py-1 text-xs font-bold text-ink transition-colors hover:bg-parchment"
                             >
                               No
                             </button>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setDeleteConfirmId(entry.id)}
-                            className="rounded-lg border border-crimson bg-crimson px-2 py-1 text-xs font-bold text-parchment-light transition-colors hover:bg-crimson-light"
-                          >
-                            Delete
-                          </button>
+                          <>
+                            <Link
+                              to={`/entry/${entry.id}/edit`}
+                              className="quiet-action"
+                              title="Edit entry"
+                              aria-label={`Edit ${entry.name}`}
+                            >
+                              <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+                                <path d="M13.586 3.586a2 2 0 1 1 2.828 2.828l-.793.793-2.828-2.828.793-.793ZM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828Z" />
+                              </svg>
+                            </Link>
+                            <button
+                              onClick={() => setDeleteConfirmId(entry.id)}
+                              className="quiet-action danger"
+                              title="Delete entry"
+                              aria-label={`Delete ${entry.name}`}
+                            >
+                              <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+                                <path fillRule="evenodd" d="M9 2a1 1 0 0 0-.894.553L7.382 4H4a1 1 0 0 0 0 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a1 1 0 1 0 0-2h-3.382l-.724-1.447A1 1 0 0 0 11 2H9ZM7 8a1 1 0 0 1 2 0v6a1 1 0 1 1-2 0V8Zm5-1a1 1 0 0 0-1 1v6a1 1 0 1 0 2 0V8a1 1 0 0 0-1-1Z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>

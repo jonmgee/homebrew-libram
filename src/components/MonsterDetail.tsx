@@ -1,38 +1,37 @@
 import { DbEntry } from "../types";
+import MarkdownDescription from "./MarkdownDescription";
 
-const SH = "phb-small-sc block text-sm font-bold uppercase tracking-wider text-caption mb-1";
 const s = (v: unknown): string => String(v ?? "");
-const n = (v: unknown, d = 10): number => typeof v === "number" ? v : d;
+const n = (v: unknown, d = 10): number => (typeof v === "number" ? v : d);
 
 function modStr(score: number): string {
   const m = Math.floor((score - 10) / 2);
   return m >= 0 ? "+" + m : "" + m;
 }
 
-function AbBox({ label, score }: { label: string; score: number }) {
+function StatLine({ label, value }: { label: string; value: string }) {
+  if (!value) return null;
   return (
-    <div className="flex flex-col items-center rounded border border-parchment-dark bg-parchment-dark/20 px-2 py-1.5">
-      <span className="phb-small-sc text-[0.55rem] font-bold uppercase tracking-widest text-caption">{label}</span>
-      <span className="phb-body text-lg font-bold leading-tight">{score}</span>
-      <span className="text-[0.65rem] text-ink-light">({modStr(score)})</span>
-    </div>
+    <p className="phb-stat-line">
+      <strong>{label}</strong> {value}
+    </p>
   );
 }
 
 function NamedItems({ label, items }: { label: string; items: unknown[] | null | undefined }) {
   if (!items || !items.length) return null;
   return (
-    <div className="mt-4">
-      <span className={SH}>{label}</span>
-      <div className="space-y-2">
+    <div>
+      {label && <h3 className="phb-action-header">{label}</h3>}
+      <div>
         {(items as Record<string, unknown>[]).map((item, i) => {
           const name = s(item.name);
           const desc = s(item.desc);
           if (!name && !desc) return null;
           return (
-            <div key={i} className="phb-body text-sm leading-relaxed">
+            <p key={i} className="phb-entry">
               {name && <span className="font-bold italic">{name}.</span>} {desc}
-            </div>
+            </p>
           );
         })}
       </div>
@@ -46,22 +45,25 @@ function SpellSection({ sc }: { sc: Record<string, unknown> | undefined }) {
   const dc = s(sc.save_dc);
   const atk = s(sc.attack_bonus);
   const spells = s(sc.spells);
+  if (!abil && !dc && !atk && !spells) return null;
   return (
-    <div className="mt-4">
-      <span className={SH}>Spellcasting</span>
-      <p className="phb-body text-sm leading-relaxed mt-1">
-        Spellcasting Ability: {abil}
-        {(dc || atk) && <> &middot; Save DC {dc}{atk ? " &middot; Attack +" + atk : ""}</>}
+    <div>
+      <h3 className="phb-action-header">Spellcasting</h3>
+      <p className="phb-entry">
+        <span className="font-bold italic">Spellcasting.</span> Ability: {abil}
+        {(dc || atk) && (
+          <>
+            {dc && <> &middot; Save DC {dc}</>}
+            {atk && <> &middot; Attack +{atk}</>}
+          </>
+        )}
       </p>
-      {spells && <p className="phb-body text-sm mt-1 whitespace-pre-line">{spells}</p>}
+      {spells && <p className="phb-entry whitespace-pre-line">{spells}</p>}
     </div>
   );
 }
 
-function renderTag(label: string, val: string) {
-  if (!val) return null;
-  return <p className="phb-body text-sm"><strong>{label}</strong> {val}</p>;
-}
+const ABILITY_LABELS = ["STR", "DEX", "CON", "INT", "WIS", "CHA"] as const;
 
 export default function MonsterDetail({ entry }: { entry: DbEntry }) {
   const p = entry.properties ?? {};
@@ -91,70 +93,80 @@ export default function MonsterDetail({ entry }: { entry: DbEntry }) {
   const reactions = (p.reactions as unknown[]) ?? null;
   const ld = p.legendary_actions as Record<string, unknown> | undefined;
   const lair = (p.lair_actions as unknown[]) ?? null;
-  const typeLine = [size, ctype, align].filter(Boolean).join(" ");
+  const typeLine = [
+    [size, ctype].filter(Boolean).join(" "),
+    align,
+  ].filter(Boolean).join(", ");
 
-  const snl = [senses, langs].filter(Boolean);
-  const dmg = [dVuln, dRes, dImm, cImm].filter(Boolean);
+  const midLines = [saves, skills, dVuln, dRes, dImm, cImm, senses, langs, cr].some(Boolean);
 
   return (
     <>
-      <h1 className="phb-h1 !text-2xl">{entry.name}</h1>
-      {typeLine && <p className="phb-description mt-1 text-sm italic">{typeLine}</p>}
-
-      <div className="mt-3 rounded border border-parchment-dark bg-parchment-dark/10 p-3 space-y-0.5">
-        {renderTag("Challenge", cr)}
-        {renderTag("Armour Class", ac)}
-        {renderTag("Hit Points", hp)}
-        {renderTag("Speed", speed)}
-      </div>
-
-      <div className="mt-4 grid grid-cols-6 gap-1.5">
-        <AbBox label="STR" score={ability[0]!} />
-        <AbBox label="DEX" score={ability[1]!} />
-        <AbBox label="CON" score={ability[2]!} />
-        <AbBox label="INT" score={ability[3]!} />
-        <AbBox label="WIS" score={ability[4]!} />
-        <AbBox label="CHA" score={ability[5]!} />
-      </div>
-
-      {(saves || skills) && (
-        <div className="mt-3 space-y-1">
-          {renderTag("Saving Throws", saves)}
-          {renderTag("Skills", skills)}
-        </div>
-      )}
-
-      {dmg.length > 0 && (
-        <div className="mt-3 space-y-1">
-          {renderTag("Damage Vulnerabilities", dVuln)}
-          {renderTag("Damage Resistances", dRes)}
-          {renderTag("Damage Immunities", dImm)}
-          {renderTag("Condition Immunities", cImm)}
-        </div>
-      )}
-
-      {snl.length > 0 && (
-        <div className="mt-3 space-y-1">
-          {renderTag("Senses", senses)}
-          {renderTag("Languages", langs)}
-        </div>
-      )}
-
+      {/* Flavour text above the stat block, PHB style */}
       {entry.description && (
-        <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">{entry.description}</div>
+        <div className="phb-body mb-5 leading-relaxed">
+          <MarkdownDescription text={entry.description} dropCap />
+        </div>
       )}
 
-      <NamedItems label="Traits" items={traits} />
-      <SpellSection sc={sc} />
-      <NamedItems label="Actions" items={actions} />
-      <NamedItems label="Bonus Actions" items={bonusActions} />
-      <NamedItems label="Reactions" items={reactions} />
-      <NamedItems label="Legendary Actions" items={(ld?.actions as unknown[]) ?? null} />
-      <NamedItems label="Lair Actions" items={lair} />
+      <div className="phb-statblock clear-both">
+        <h1 className="phb-statblock-name">{entry.name}</h1>
+        {typeLine && <p className="phb-statblock-type">{typeLine}</p>}
+
+        <hr className="phb-taper-rule" />
+
+        <StatLine label="Armour Class" value={ac} />
+        <StatLine label="Hit Points" value={hp} />
+        <StatLine label="Speed" value={speed} />
+
+        <hr className="phb-taper-rule" />
+
+        <div className="phb-ability-grid py-1">
+          {ABILITY_LABELS.map((label, i) => (
+            <div key={label}>
+              <div className="ab-label">{label}</div>
+              <div className="ab-score">
+                {ability[i]} ({modStr(ability[i]!)})
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <hr className="phb-taper-rule" />
+
+        {midLines && (
+          <>
+            <StatLine label="Saving Throws" value={saves} />
+            <StatLine label="Skills" value={skills} />
+            <StatLine label="Damage Vulnerabilities" value={dVuln} />
+            <StatLine label="Damage Resistances" value={dRes} />
+            <StatLine label="Damage Immunities" value={dImm} />
+            <StatLine label="Condition Immunities" value={cImm} />
+            <StatLine label="Senses" value={senses} />
+            <StatLine label="Languages" value={langs} />
+            <StatLine label="Challenge" value={cr} />
+            <hr className="phb-taper-rule" />
+          </>
+        )}
+
+        {traits && traits.length > 0 && (
+          <div className="pt-1">
+            <NamedItems label="" items={traits} />
+          </div>
+        )}
+        <SpellSection sc={sc} />
+        <NamedItems label="Actions" items={actions} />
+        <NamedItems label="Bonus Actions" items={bonusActions} />
+        <NamedItems label="Reactions" items={reactions} />
+        <NamedItems label="Legendary Actions" items={(ld?.actions as unknown[]) ?? null} />
+        <NamedItems label="Lair Actions" items={lair} />
+      </div>
 
       {entry.tags && entry.tags.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {entry.tags.map(t => <span key={t} className="phb-tag">{t}</span>)}
+        <div className="mt-5 flex flex-wrap gap-1.5">
+          {entry.tags.map((t) => (
+            <span key={t} className="phb-tag">{t}</span>
+          ))}
         </div>
       )}
       {(entry.source || entry.campaign) && (

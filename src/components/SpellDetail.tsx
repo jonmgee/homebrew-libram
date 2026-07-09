@@ -1,7 +1,16 @@
 import { DbEntry } from "../types";
+import MarkdownDescription from "./MarkdownDescription";
 
 const s = (v: unknown) => String(v ?? "");
 const b = (v: unknown) => v as boolean | undefined;
+
+function SpellStat({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <p className="phb-body text-sm leading-snug">
+      <span className="font-bold">{label}:</span> {children}
+    </p>
+  );
+}
 
 export default function SpellDetail({ entry }: { entry: DbEntry }) {
   const p = entry.properties ?? {};
@@ -13,33 +22,61 @@ export default function SpellDetail({ entry }: { entry: DbEntry }) {
   const mat = s(p.material);
   const dur = s(p.duration);
   const conc = b(p.concentration);
+  const ritual = b(p.ritual);
+  const classes = s(p.classes);
   const rarity = s(p.rarity);
   const isScroll = entry.type === "scroll";
 
-  const ll = lvl && /^\d+$/.test(lvl)
-    ? (lvl === "0" ? "Cantrip" : lvl + ["st", "nd", "rd", "th"][Math.min(parseInt(lvl) - 1, 3)])
-    : lvl;
+  // "5" → "5th-level", "cantrip"/"0" → school-first cantrip line
+  const isCantrip = lvl === "0" || /cantrip/i.test(lvl);
+  const ordinal =
+    lvl && /^\d+$/.test(lvl) && !isCantrip
+      ? lvl + (["st", "nd", "rd"][parseInt(lvl) - 1] ?? "th")
+      : "";
+  const schoolCap = school ? school.charAt(0).toUpperCase() + school.slice(1) : "";
+  let levelLine = "";
+  if (isCantrip && school) levelLine = `${schoolCap} cantrip`;
+  else if (ordinal && school) levelLine = `${ordinal}-level ${school}`;
+  else levelLine = [lvl, school].filter(Boolean).join(" ");
+  if (ritual) levelLine += " (ritual)";
 
   return (
     <>
       <h1 className="phb-h1 !text-2xl">{entry.name}</h1>
-      <p className="phb-description mt-1 text-sm">
-        {isScroll && rarity && <>{rarity} scroll &middot; </>}
-        {ll}{ll && school && " "}{school && <span className="italic">{school}</span>}
+      <p className="phb-description mt-0.5 text-sm !italic">
+        {isScroll && rarity && <span className="capitalize">{rarity} spell scroll &middot; </span>}
+        {levelLine}
       </p>
 
-      <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
-        {ct && <><span className="phb-small-sc font-bold uppercase tracking-wider text-caption">Casting Time</span><span className="phb-body">{ct}</span></>}
-        {rng && <><span className="phb-small-sc font-bold uppercase tracking-wider text-caption">Range</span><span className="phb-body">{rng}</span></>}
+      <div className="mt-3 space-y-0.5">
+        {ct && <SpellStat label="Casting Time">{ct}</SpellStat>}
+        {rng && <SpellStat label="Range">{rng}</SpellStat>}
         {comps.length > 0 && (
-          <><span className="phb-small-sc font-bold uppercase tracking-wider text-caption">Components</span>
-            <span className="phb-body">{comps.join(", ")}{mat && <span className="text-ink-light"> ({mat})</span>}</span>
-          </>
+          <SpellStat label="Components">
+            {comps.join(", ")}
+            {mat && <span className="text-ink-light"> ({mat})</span>}
+          </SpellStat>
         )}
-        {dur && <><span className="phb-small-sc font-bold uppercase tracking-wider text-caption">Duration</span><span className="phb-body">{dur}{conc && <span className="ml-1 text-caption">(concentration)</span>}</span></>}
+        {dur && (
+          <SpellStat label="Duration">
+            {conc ? `Concentration, up to ${dur.replace(/^concentration,?\s*(up to\s*)?/i, "")}` : dur}
+          </SpellStat>
+        )}
       </div>
 
-      {entry.description && <div className="phb-body mt-4 leading-relaxed whitespace-pre-line">{entry.description}</div>}
+      <hr className="phb-taper-rule !my-3" />
+
+      {entry.description && (
+        <div className="phb-body mt-3 leading-relaxed">
+          <MarkdownDescription text={entry.description} />
+        </div>
+      )}
+
+      {classes && (
+        <p className="phb-description mt-4 text-sm">
+          <span className="font-semibold not-italic">Classes:</span> {classes}
+        </p>
+      )}
 
       {entry.tags && entry.tags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">
