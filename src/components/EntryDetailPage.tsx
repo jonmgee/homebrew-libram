@@ -164,18 +164,12 @@ const RENDERERS: Record<string, React.FC<{ entry: DbEntry }>> = {
 
 function EntryImage({ entry }: { entry: DbEntry }) {
   const imageUrl = (entry.properties?.image_url as string | undefined);
-  if (!imageUrl) {
-    return (
-      <div className="float-right ml-6 mb-4 flex h-[250px] w-[200px] shrink-0 items-center justify-center border border-parchment-dark bg-parchment-dark/20">
-        <span className="phb-description px-2 text-center text-[0.6rem] leading-tight">Entry illustration placeholder</span>
-      </div>
-    );
-  }
+  if (!imageUrl) return null;
   return (
     <img
       src={imageUrl}
       alt={entry.name}
-      className="float-right ml-6 mb-4 max-h-[300px] w-auto max-w-[220px] shrink-0 rounded-lg border border-parchment-dark shadow-sm object-contain"
+      className="mx-auto mb-4 block max-h-[300px] w-auto max-w-full rounded-lg border border-parchment-dark object-contain shadow-sm sm:float-right sm:ml-6 sm:mx-0 sm:max-w-[220px]"
     />
   );
 }

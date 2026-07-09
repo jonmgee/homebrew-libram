@@ -4,7 +4,9 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 /* ──────── Type-specific extraction prompts ──────── */
 
-const VERBATIM_NOTE = `CRITICAL — description field: Copy the full description text verbatim, preserving all mechanical details, formatted text, bold labels as markdown bold, examples, and specific numbers. Do not summarise, condense, or paraphrase the description.`;
+const VERBATIM_NOTE = `CRITICAL — description field: Copy the full description text verbatim, preserving all mechanical details, examples, and specific numbers. Do not summarise, condense, or paraphrase the description.
+Format the description as markdown: keep bold labels such as **Curse.** or **At Higher Levels.** as markdown bold, keep bullet lists as markdown "- " lists, and separate paragraphs with a blank line. Never wrap the description itself in quotes or code fences.
+If the source is an image or scan, transcribe the text exactly as printed, correcting only obvious OCR artefacts (broken words, stray characters). Never invent content that is not in the source.`;
 
 const PROMPTS: Record<string, string> = {
 
@@ -124,7 +126,10 @@ Content:\n`,
   "duration": "string", "concentration": boolean,
   "description": "string", "tags": ["array of strings"]
 }
-Map "1st" to "1", "2nd" to "2". Infer school and tags. Use null/false/[] for unknowns.
+Map "1st" to "1", "2nd" to "2", and "0"/"cantrip" to "cantrip". A line like "5th-level evocation" means level "5", school "evocation".
+material is the text in parentheses after the M component, without the parentheses.
+Set concentration true if the duration mentions concentration; the duration value itself should not repeat the word "Concentration" (e.g. "Concentration, up to 1 minute" → duration "1 minute", concentration true).
+Include any "At Higher Levels" paragraph at the end of the description as **At Higher Levels.** followed by the text. Infer school and tags. Use null/false/[] for unknowns.
 ${VERBATIM_NOTE}
 Content:\n`,
 
@@ -174,7 +179,12 @@ Content:\n`,
   "legendary_actions": { "per_round": number, "actions": [ { "name": "string", "desc": "string" } ] },
   "description": "string", "tags": ["array of strings"]
 }
-Ability scores as plain numbers. CR as string. Traits/actions as named blocks. Use null for unknown, [] for arrays.
+Ability scores as plain numbers — a printed "24 (+7)" means 24; ignore the modifier in parentheses.
+ac: keep any armour note, e.g. "17 (natural armor)". hp: keep the dice formula, e.g. "168 (16d12 + 64)". cr: keep XP if printed, e.g. "11 (7,200 XP)".
+Attack lines go in actions verbatim, e.g. "Melee Weapon Attack: +11 to hit, reach 10 ft., one target. Hit: 25 (4d8 + 7) bludgeoning damage."
+Recharge and usage notes stay in the block name, e.g. "Toll the Lantern (Recharge 5–6)" or "Fire Breath (1/Day)".
+Traits are the passive abilities printed between the stat lines and the Actions header. Any flavour or lore paragraphs outside the stat block go in description.
+Use null for unknown, [] for arrays.
 ${VERBATIM_NOTE}
 Content:\n`,
 
@@ -189,8 +199,10 @@ Content:\n`,
 CRITICAL: Expand roll ranges into one row per individual roll value.
 Example: input "1-2: A merchant" → rows [["1", "A merchant"], ["2", "A merchant"]].
 Input "20: A dragon" → rows [["20", "A dragon"]].
+On d100 tables "00" means 100, and "96-00" expands to rows 96, 97, 98, 99, 100.
 Each row first cell = single roll number (not a range), rest match columns.
-Cells per row = 1 + columns.length. die_type matches total row count. Use null/[] if no value.
+Cells per row = 1 + columns.length. Rows must be complete and in ascending roll order with no gaps and no duplicates — a d20 table has exactly 20 rows, a d100 table exactly 100. Never stop early; output every row even if repetitive.
+die_type is the die that matches the total row count. columns excludes the roll column (e.g. a two-column "d12 / Patron" table has columns ["Patron"]). Use null/[] if no value.
 ${VERBATIM_NOTE}
 Content:
 `,
@@ -241,7 +253,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const body = {
       model: "google/gemini-3.1-flash-lite",
-      messages, temperature: 0.1, max_tokens: 4096,
+      messages, temperature: 0.1,
+      // d100 tables and long stat blocks can exceed 4096 output tokens
+      max_tokens: 16384,
+      response_format: { type: "json_object" },
     };
 
     const response = await fetch(OPENROUTER_URL, {
@@ -288,7 +303,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (typeof parsed.attunement_by === "string") result.attunement_by = parsed.attunement_by.trim() || null;
 
     // Spell/Scroll
-    if (typeof parsed.level === "string") result.level = parsed.level.trim();
+    if (typeof parsed.level === "string") {
+      const lvl = parsed.level.trim().toLowerCase();
+      result.level = lvl === "0" ? "cantrip" : lvl;
+    }
     if (typeof parsed.school === "string") result.school = parsed.school.trim();
     if (typeof parsed.casting_time === "string") result.casting_time = parsed.casting_time.trim();
     if (typeof parsed.range === "string") result.range = parsed.range.trim();

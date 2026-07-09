@@ -210,6 +210,20 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] Images upload to `entry-images` bucket with traceable filenames
 - [x] Write back to `properties.image_url`, renders on detail + browse thumbnail
 
+### 2026-07-09 round — PHB polish pass (branch: phb-polish)
+
+- [x] **Authentic PHB monster stat block** — monsterBorderFancy frame, tapered crimson rules, red stat lines, classic six-ability row, Actions/Legendary headers with maroon underline
+- [x] **PHB spell layout** — "5th-level evocation" line, bold inline stat labels, ritual/concentration handling, Classes line
+- [x] **Rollable tables** — PHB olive-striped table, full width, animated "Roll dX" button that highlights and scrolls to the rolled row (expands ranges like 96–00)
+- [x] **Markdown everywhere** — shared `MarkdownDescription` component in all renderers (fixes literal `**asterisks**` on spell/monster/subclass/table pages), PHB drop caps on descriptions
+- [x] **Preview mode** — `VITE_PREVIEW_MODE=1` swaps the Supabase client for an in-memory mock (`src/lib/mockSupabase.ts` + `previewFixtures.ts`, 16 rich sample entries, all 14 types). Dev/testing only; never active in production
+- [x] **NavBar** — dark leather cover bar, gold lettering, + New Entry shortcut on non-home pages
+- [x] **Browse rows** — quiet pencil/trash icon actions replace heavy red buttons; larger thumbnails
+- [x] **Detail page** — subtle Edit/Delete, parchment "inscribed in the Libram" save banner, no more empty image placeholder box, image no longer floats on mobile (fixes squeezed text)
+- [x] **Footer** — PHB gold flourish accent; hero video loops
+- [x] **AI import prompts** (`api/parse-entry.ts`) — markdown-formatted descriptions, monster stat hardening ("24 (+7)" → 24, keep AC/HP notes, recharge in block names), spell cantrip/concentration/material rules, d100 table completeness ("00" = 100, no gaps, never stop early), max_tokens 16384 (d100 tables truncated at 4096), JSON response_format
+- [x] `motion()` → `motion.create()` (framer-motion deprecation)
+
 ## Remaining tasks
 
 - Table rendering (interactive rollable tables)

@@ -5,7 +5,7 @@ import { supabase } from "../lib/supabase";
 import { getCategory } from "../types";
 import { getSubCategories, type SubCategoryDef } from "../lib/subcategories";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },

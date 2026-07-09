@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
 import { CATEGORIES } from "../types";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 const CATEGORY_IMAGES: Record<string, string> = {
   treasure: "/assets/treasure.webp",

@@ -14,7 +14,7 @@ export default function NavBar() {
       <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-2.5">
         <Link
           to="/"
-          className="font-[var(--font-title)] text-lg uppercase tracking-[0.12em] text-[var(--color-gilding)] transition-colors hover:text-[var(--color-gilding-light)]"
+          className="whitespace-nowrap font-[var(--font-title)] text-sm uppercase tracking-[0.06em] text-[var(--color-gilding)] transition-colors hover:text-[var(--color-gilding-light)] sm:text-lg sm:tracking-[0.12em]"
         >
           Homebrew Libram
         </Link>
@@ -23,9 +23,10 @@ export default function NavBar() {
           {!onHome && (
             <Link
               to="/create"
-              className="phb-small-sc rounded-md border border-[var(--color-gilding-dark)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--color-gilding)] transition-colors hover:border-[var(--color-gilding)] hover:text-[var(--color-gilding-light)]"
+              className="phb-small-sc whitespace-nowrap rounded-md border border-[var(--color-gilding-dark)] px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-[var(--color-gilding)] transition-colors hover:border-[var(--color-gilding)] hover:text-[var(--color-gilding-light)]"
             >
-              + New Entry
+              <span className="sm:hidden">+ New</span>
+              <span className="hidden sm:inline">+ New Entry</span>
             </Link>
           )}
           <span className="hidden text-xs text-[var(--color-footnotes)]/70 sm:inline">
