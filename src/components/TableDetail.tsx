@@ -34,32 +34,51 @@ export default function TableDetail({ entry }: { entry: DbEntry }) {
   const [rolling, setRolling] = useState(false);
   const [lastRoll, setLastRoll] = useState<number | null>(null);
   const rowRefs = useRef<(HTMLTableRowElement | null)[]>([]);
+  const rollingRef = useRef(false); // instant re-click guard (state updates lag a frame)
 
-  function rollDie() {
-    if (!dieSize || !rows.length || rolling) return;
-    setRolling(true);
-    setRolledRow(null);
+  function landOn(result: number) {
+    setLastRoll(result);
+    const idx = rows.findIndex((r) => {
+      const range = parseRange(r[0] ?? "");
+      return range !== null && result >= range[0] && result <= range[1];
+    });
+    setRolledRow(idx >= 0 ? idx : null);
+    setRolling(false);
+    rollingRef.current = false;
+    if (idx >= 0) {
+      rowRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
 
-    // Tumble through a few fake results before settling
+  // 2D fallback if the 3D dice can't load (old browser, offline, no WebGL)
+  function rollFallback(sides: number) {
     let ticks = 0;
     const interval = setInterval(() => {
-      setLastRoll(1 + Math.floor(Math.random() * dieSize));
+      setLastRoll(1 + Math.floor(Math.random() * sides));
       ticks++;
       if (ticks >= 8) {
         clearInterval(interval);
-        const result = 1 + Math.floor(Math.random() * dieSize);
-        setLastRoll(result);
-        const idx = rows.findIndex((r) => {
-          const range = parseRange(r[0] ?? "");
-          return range !== null && result >= range[0] && result <= range[1];
-        });
-        setRolledRow(idx >= 0 ? idx : null);
-        setRolling(false);
-        if (idx >= 0) {
-          rowRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+        landOn(1 + Math.floor(Math.random() * sides));
       }
     }, 70);
+  }
+
+  async function rollDie() {
+    if (!dieSize || !rows.length || rollingRef.current) return;
+    rollingRef.current = true;
+    setRolling(true);
+    setRolledRow(null);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      landOn(1 + Math.floor(Math.random() * dieSize));
+      return;
+    }
+    try {
+      const { rollDie3d } = await import("../lib/diceRoller");
+      landOn(await rollDie3d(dieSize));
+    } catch (err) {
+      console.warn("3D dice unavailable, using fallback:", err);
+      rollFallback(dieSize); // clears the guard itself when it lands
+    }
   }
 
   return (
