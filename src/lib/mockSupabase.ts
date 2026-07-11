@@ -1,4 +1,3 @@
-import type { DbEntry } from "../types";
 import { PREVIEW_ENTRIES, PREVIEW_USER } from "./previewFixtures";
 
 /**
@@ -10,7 +9,10 @@ import { PREVIEW_ENTRIES, PREVIEW_USER } from "./previewFixtures";
 
 type Row = Record<string, unknown>;
 
-let entries: DbEntry[] = PREVIEW_ENTRIES.map((e) => ({ ...e }));
+const stores: Record<string, Row[]> = {
+  entries: PREVIEW_ENTRIES.map((e) => ({ ...e })),
+  libram_shares: [],
+};
 let nextId = 1000;
 
 const ok = <T>(data: T) => ({ data, error: null });
@@ -42,6 +44,8 @@ class MockQuery {
   private limitN: number | null = null;
   private singleRow = false;
   private payload: Row | Row[] | null = null;
+
+  constructor(private table: string) {}
 
   select(_cols?: string) {
     if (this.mode === "select") this.mode = "select";
@@ -92,20 +96,19 @@ class MockQuery {
   }
 
   private run(): { data: unknown; error: unknown } {
-    const matches = () =>
-      entries.filter((e) => this.filters.every((f) => f(e as unknown as Row)));
+    const store = stores[this.table] ?? [];
+    const matches = () => store.filter((e) => this.filters.every((f) => f(e)));
 
     if (this.mode === "insert") {
       const rows = (Array.isArray(this.payload) ? this.payload : [this.payload]) as Row[];
       const created = rows.map((r) => {
-        const row = {
-          created_at: new Date().toISOString(),
-          tags: [],
-          properties: {},
-          ...r,
-          id: `preview-${nextId++}`,
-        } as unknown as DbEntry;
-        entries.push(row);
+        const defaults: Row =
+          this.table === "libram_shares"
+            ? { token: crypto.randomUUID(), created_at: new Date().toISOString() }
+            : { created_at: new Date().toISOString(), tags: [], properties: {} };
+        const row: Row = { ...defaults, ...r };
+        if (this.table === "entries") row.id = `preview-${nextId++}`;
+        store.push(row);
         return row;
       });
       const data = this.singleRow ? created[0] : created;
@@ -119,8 +122,8 @@ class MockQuery {
     }
 
     if (this.mode === "delete") {
-      const hit = new Set(matches().map((e) => e.id));
-      entries = entries.filter((e) => !hit.has(e.id));
+      const hit = new Set(matches());
+      stores[this.table] = store.filter((e) => !hit.has(e));
       return ok(null);
     }
 
@@ -151,10 +154,38 @@ class MockQuery {
 export function createMockClient() {
   return {
     from(table: string) {
-      if (table !== "entries") {
+      if (!stores[table]) {
         console.warn(`[preview] Unmocked table "${table}"`);
+        stores[table] = [];
       }
-      return new MockQuery();
+      return new MockQuery(table);
+    },
+    rpc(fn: string, args: Record<string, unknown>) {
+      const exec = (): { data: unknown; error: unknown } => {
+        if (fn === "get_shared_entry") {
+          return ok(
+            stores.entries!
+              .filter((e) => e.share_token && e.share_token === args.p_token)
+              .map((e) => ({ ...e })),
+          );
+        }
+        if (fn === "get_shared_libram") {
+          const share = stores.libram_shares!.find((s) => s.token === args.p_token);
+          if (!share) return ok([]);
+          return ok(
+            stores.entries!
+              .filter((e) => !e.dm_only)
+              .map((e) => ({ ...e }))
+              .sort((a, b) => String(a.name).localeCompare(String(b.name))),
+          );
+        }
+        return { data: null, error: { message: `Unmocked rpc "${fn}"` } };
+      };
+      return {
+        then<T>(resolve: (v: { data: unknown; error: unknown }) => T): Promise<T> {
+          return new Promise((r) => setTimeout(r, 60)).then(() => resolve(exec()));
+        },
+      };
     },
     auth: {
       getSession: async () => ok({ session: mockSession }),

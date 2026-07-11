@@ -20,6 +20,12 @@ export default function NavBar() {
         </Link>
 
         <div className="flex items-center gap-2">
+          <Link
+            to="/share-libram"
+            className="phb-small-sc whitespace-nowrap rounded-md px-2 py-1 text-xs font-bold uppercase tracking-wider text-[var(--color-footnotes)]/80 transition-colors hover:text-[var(--color-gilding-light)]"
+          >
+            Share
+          </Link>
           {!onHome && (
             <Link
               to="/create"

@@ -244,6 +244,13 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] **Artwork auto-crop** — model returns `artwork: {image_index, box}` (0-1000 normalized) for the first image containing an illustration; client crops it via canvas and uses it as the entry image (falls back to first full image)
 - [x] API accepts `images[]` (legacy `image` still works); box validated server-side; crop rejects regions under 60px
 
+### 2026-07-10 — Sharing (merged to main)
+
+- [x] **Item share links** — Share button on detail pages mints a `share_token` (migration-006); public read-only page at `/share/:token` via SECURITY DEFINER `get_shared_entry()` (RLS untouched — shared rows never leak into other users' queries); Stop Sharing revokes
+- [x] **Whole-libram share** — `libram_shares` table + `get_shared_libram()` (migration-007); owner controls at `/share-libram` (NavBar → Share); public browse at `/share/libram/:token`, **DM-only entries always excluded**; revoke = delete row, re-share mints new token
+- [x] **Copy to my Libram** — signed-in visitors clone shared entries (rating/share state don't copy); anonymous visitors get a sign-in prompt
+- [x] Public pages carry their own header when the visitor is signed out; mock layer supports `rpc()` + `libram_shares` for preview testing
+
 ## Remaining tasks
 
 - Table rendering (interactive rollable tables)

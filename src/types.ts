@@ -137,6 +137,8 @@ export interface DbEntry {
   properties: Record<string, unknown>;
   /** Personal star rating, 1–5; null/undefined = unrated */
   rating?: number | null;
+  /** Public share link token; null/undefined = not shared */
+  share_token?: string | null;
 }
 
 export interface MonsterProperties {

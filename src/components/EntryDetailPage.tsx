@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { formatEntryType, type DbEntry } from "../types";
 import MarkdownDescription from "./MarkdownDescription";
 import StarRating from "./StarRating";
+import { CopyLinkField } from "./ShareSettingsPage";
 import SpellDetail from "./SpellDetail";
 import MonsterDetail from "./MonsterDetail";
 import SubclassDetail from "./SubclassDetail";
@@ -146,7 +147,7 @@ function SimpleDetail({ entry }: { entry: DbEntry }) {
 
 /* ─── Type lookup ─── */
 
-const RENDERERS: Record<string, React.FC<{ entry: DbEntry }>> = {
+export const RENDERERS: Record<string, React.FC<{ entry: DbEntry }>> = {
   magic_item: MagicItemDetail,
   weapon: WeaponDetail,
   armour: ArmourDetail,
@@ -163,7 +164,7 @@ const RENDERERS: Record<string, React.FC<{ entry: DbEntry }>> = {
   table: TableDetail,
 };
 
-function EntryImage({ entry }: { entry: DbEntry }) {
+export function EntryImage({ entry }: { entry: DbEntry }) {
   const imageUrl = (entry.properties?.image_url as string | undefined);
   if (!imageUrl) return null;
   return (
@@ -210,6 +211,34 @@ export default function EntryDetailPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const [sharePanel, setSharePanel] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
+
+  async function handleShareToggle() {
+    if (!entry) return;
+    if (entry.share_token) { setSharePanel((v) => !v); return; }
+    // First share: mint a token
+    setShareBusy(true);
+    const token = crypto.randomUUID();
+    const { error } = await supabase.from("entries").update({ share_token: token }).eq("id", entry.id);
+    if (!error) {
+      setEntry({ ...entry, share_token: token });
+      setSharePanel(true);
+    }
+    setShareBusy(false);
+  }
+
+  async function handleStopSharing() {
+    if (!entry) return;
+    setShareBusy(true);
+    const { error } = await supabase.from("entries").update({ share_token: null }).eq("id", entry.id);
+    if (!error) {
+      setEntry({ ...entry, share_token: null });
+      setSharePanel(false);
+    }
+    setShareBusy(false);
+  }
 
   async function handleRate(rating: number | null) {
     if (!entry) return;
@@ -284,6 +313,17 @@ export default function EntryDetailPage() {
             label={`Rate ${entry.name}`}
           />
           <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleShareToggle}
+            disabled={shareBusy}
+            className={`phb-small-sc cursor-pointer rounded-md border px-3 py-1 text-xs font-bold uppercase tracking-wider transition-colors ${
+              entry.share_token
+                ? "border-[var(--color-gilding-dark)] bg-[var(--color-gilding)]/20 text-[var(--color-gilding-dark)] hover:border-[var(--color-gilding)]"
+                : "border-parchment-dark text-caption hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
+            }`}
+          >
+            {entry.share_token ? "Shared ✓" : shareBusy ? "Sharing…" : "Share"}
+          </button>
           <Link
             to={`/entry/${id}/edit`}
             className="phb-small-sc rounded-md border border-parchment-dark px-3 py-1 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
@@ -298,6 +338,29 @@ export default function EntryDetailPage() {
           </button>
           </div>
         </div>
+        {sharePanel && entry.share_token && (
+          <div className="phb-note mb-4">
+            <div className="space-y-2 px-1 py-1.5">
+              <p className="text-xs font-bold uppercase tracking-wider">
+                Anyone with this link can view this entry (read-only):
+              </p>
+              <CopyLinkField url={`${window.location.origin}/share/${entry.share_token}`} />
+              {entry.dm_only && (
+                <p className="text-xs italic">
+                  Heads up: this is a DM-only entry — sharing the link reveals it to whoever holds it.
+                </p>
+              )}
+              <button
+                type="button"
+                disabled={shareBusy}
+                onClick={handleStopSharing}
+                className="phb-small-sc cursor-pointer rounded-md border border-crimson px-3 py-1 text-xs font-bold uppercase tracking-wider text-crimson transition-colors hover:bg-crimson/5"
+              >
+                Stop sharing
+              </button>
+            </div>
+          </div>
+        )}
         {deleteConfirm && (
           <div className="mb-4 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 text-sm">
             <p className="phb-body text-crimson">Are you sure? This cannot be undone.</p>

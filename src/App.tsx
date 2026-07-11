@@ -13,6 +13,9 @@ import EntryDetailPage from "./components/EntryDetailPage";
 import EditEntryPage from "./components/EditEntryPage";
 import LoginPage from "./components/LoginPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
+import SharedEntryPage from "./components/SharedEntryPage";
+import SharedLibramPage from "./components/SharedLibramPage";
+import ShareSettingsPage from "./components/ShareSettingsPage";
 
 function App() {
   return (
@@ -24,6 +27,17 @@ function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            {/* Public share pages — no auth required */}
+            <Route path="/share/libram/:token" element={<SharedLibramPage />} />
+            <Route path="/share/:token" element={<SharedEntryPage />} />
+            <Route
+              path="/share-libram"
+              element={
+                <AuthGuard>
+                  <ShareSettingsPage />
+                </AuthGuard>
+              }
+            />
             <Route
               path="/"
               element={
