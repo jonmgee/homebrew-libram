@@ -238,6 +238,12 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] **Pick Random** — crimson button on browse lists; picks a random entry from the current filtered list among magic items, weapons, armour, scrolls, potions and monsters, then opens it
 - [x] Edit forms leave `rating` untouched (update payload is field-scoped)
 
+### 2026-07-10 — Multi-file import + artwork auto-crop (merged to main)
+
+- [x] **Multi-file import** — Import tab accepts multiple files (drag/picker/paste), numbered thumbnail strip with remove; all parts sent to Gemini in order with stitch + seam-dedupe instructions (d100 chart across 2 screenshots → one table)
+- [x] **Artwork auto-crop** — model returns `artwork: {image_index, box}` (0-1000 normalized) for the first image containing an illustration; client crops it via canvas and uses it as the entry image (falls back to first full image)
+- [x] API accepts `images[]` (legacy `image` still works); box validated server-side; crop rejects regions under 60px
+
 ## Remaining tasks
 
 - Table rendering (interactive rollable tables)
