@@ -208,6 +208,12 @@ Content:
 `,
 };
 
+const MULTI_PART_NOTE = `
+The source material is provided as multiple sequential parts (e.g. several screenshots of one document). Treat all parts as ONE continuous document, in the order given. If parts overlap at the seams (e.g. the same table rows appear at the bottom of one screenshot and the top of the next), include the overlapping content only once.`;
+
+const ARTWORK_NOTE = `
+Additionally, if any provided image contains a distinct piece of illustration or artwork (a drawing/painting of a creature, item or scene — not text, tables, stat-block layout or UI), add this to the JSON: "artwork": { "image_index": <0-based index of the FIRST provided image that contains artwork>, "box": [x0, y0, x1, y1] } where the box coordinates are normalized to 0-1000 of that image's width and height (y increases downward) and tightly enclose ONLY the artwork, excluding all text columns, headers, stat blocks and interface chrome. If no image contains distinct artwork, use "artwork": null.`;
+
 const TREASURE_TYPES = new Set(["magic_item", "wondrous_item", "weapon", "armour", "potion", "adventuring_gear"]);
 
 function getPrompt(entryType: string): string | null {
@@ -228,23 +234,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { text, image, entryType } = req.body;
-    if (!text && !image) return res.status(400).json({ error: "No content provided." });
+    const { text, image, images, entryType } = req.body;
+
+    // Accept a list of images (new) or a single image (legacy callers)
+    const imageList: string[] = Array.isArray(images)
+      ? images.filter((i): i is string => typeof i === "string" && i.length > 0)
+      : typeof image === "string" && image.length > 0
+        ? [image]
+        : [];
+
+    if (!text && !imageList.length) return res.status(400).json({ error: "No content provided." });
 
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "OPENROUTER_API_KEY not configured" });
 
-    const prompt = getPrompt(entryType);
+    let prompt = getPrompt(entryType);
     if (!prompt) return res.status(400).json({ error: `No prompt for entry type "${entryType}".` });
+
+    const partCount = imageList.length + (text ? 1 : 0);
+    if (partCount > 1) prompt += MULTI_PART_NOTE;
+    if (imageList.length) prompt += ARTWORK_NOTE;
 
     const messages: Array<{ role: string; content: string | Array<{ type: string; [key: string]: unknown }> }> = [];
 
-    if (image) {
+    if (imageList.length) {
       messages.push({
         role: "user",
         content: [
-          { type: "text", text: prompt },
-          { type: "image_url", image_url: { url: `data:image/png;base64,${image}`, detail: "high" } },
+          { type: "text", text: prompt + (typeof text === "string" ? text : "") },
+          ...imageList.map((img) => ({
+            type: "image_url",
+            image_url: { url: `data:image/png;base64,${img}`, detail: "high" },
+          })),
         ],
       });
     } else {
@@ -346,6 +367,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (Array.isArray(parsed.bonus_actions)) result.bonus_actions = parsed.bonus_actions;
     if (Array.isArray(parsed.reactions)) result.reactions = parsed.reactions;
     if (typeof parsed.legendary_actions === "object" && parsed.legendary_actions !== null) result.legendary_actions = parsed.legendary_actions;
+
+    // Artwork region (for client-side cropping of the entry image)
+    if (
+      typeof parsed.artwork === "object" && parsed.artwork !== null &&
+      typeof (parsed.artwork as Record<string, unknown>).image_index === "number" &&
+      Array.isArray((parsed.artwork as Record<string, unknown>).box)
+    ) {
+      const aw = parsed.artwork as { image_index: number; box: unknown[] };
+      const box = aw.box.map(Number);
+      const valid =
+        box.length === 4 &&
+        box.every((n) => Number.isFinite(n) && n >= 0 && n <= 1000) &&
+        box[2]! > box[0]! && box[3]! > box[1]! &&
+        aw.image_index >= 0 && aw.image_index < imageList.length;
+      if (valid) result.artwork = { image_index: aw.image_index, box };
+    }
 
     // Table
     if (typeof parsed.die_type === "string") result.die_type = parsed.die_type.trim();

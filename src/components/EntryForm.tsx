@@ -1101,6 +1101,52 @@ async function callParseApi(payload: {
 }
 
 /* ──────── Import tab ──────── */
+
+type SourceFile = { file: File; preview: string | null };
+
+function readPreview(file: File): Promise<string | null> {
+  if (!file.type.startsWith("image/")) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Crop the AI-identified artwork region (box normalized to 0-1000)
+ * out of a source image, for use as the entry's illustration.
+ */
+async function cropArtwork(
+  file: File,
+  box: number[],
+): Promise<{ file: File; preview: string } | null> {
+  try {
+    const bmp = await createImageBitmap(file);
+    const sx = (box[0]! / 1000) * bmp.width;
+    const sy = (box[1]! / 1000) * bmp.height;
+    const sw = ((box[2]! - box[0]!) / 1000) * bmp.width;
+    const sh = ((box[3]! - box[1]!) / 1000) * bmp.height;
+    // Ignore implausibly small regions — likely a bad detection
+    if (sw < 60 || sh < 60) return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(sw);
+    canvas.height = Math.round(sh);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(bmp, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.9));
+    if (!blob) return null;
+    return {
+      file: new File([blob], "artwork.jpg", { type: "image/jpeg" }),
+      preview: canvas.toDataURL("image/jpeg", 0.9),
+    };
+  } catch {
+    return null;
+  }
+}
+
 function ImportTab({
   importType,
   onParsed,
@@ -1109,9 +1155,7 @@ function ImportTab({
   onParsed: (data: ParseResult, image?: {file: File; preview: string}) => void;
 }) {
   const [pasteText, setPasteText] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [sources, setSources] = useState<SourceFile[]>([]);
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [dragOverCount, setDragOverCount] = useState(0);
@@ -1126,47 +1170,49 @@ function ImportTab({
     file.name.endsWith(".pdf") ||
     file.name.endsWith(".docx");
 
-  const acceptFile = (file: File) => {
-    setUploadFile(file);
-    setParseError(null);
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = () => setImagePreview(reader.result as string);
-      reader.readAsDataURL(file);
-    } else {
-      setImagePreview(null);
+  const acceptFiles = async (incoming: File[]) => {
+    const accepted = incoming.filter(isAcceptedFile);
+    if (incoming.length && !accepted.length) {
+      setParseError("Unsupported file type. Accepted: images, PDFs, and Word documents.");
+      return;
     }
+    setParseError(null);
+    const withPreviews: SourceFile[] = await Promise.all(
+      accepted.map(async (file) => ({ file, preview: await readPreview(file) })),
+    );
+    setSources((prev) => [...prev, ...withPreviews]);
   };
 
-  // Build payload from whichever input is active
-  const getPayload = async (): Promise<{ text?: string; image?: string; entryType: EntryType }> => {
-    const payload: { text?: string; image?: string; entryType: EntryType } = { entryType: importType };
+  const removeSource = (idx: number) =>
+    setSources((prev) => prev.filter((_, i) => i !== idx));
 
-    // Uploaded file takes priority
-    if (uploadFile) {
-      if (uploadFile.type.startsWith("image/")) {
-        payload.image = await fileToBase64(uploadFile);
-      } else if (uploadFile.type === "application/pdf" || uploadFile.name.endsWith(".pdf")) {
-        payload.text = await extractPdfText(uploadFile);
+  const imageSources = sources.filter((s) => s.file.type.startsWith("image/"));
+
+  // Build payload from everything provided: pasted text + documents + images,
+  // in the order files were added (order matters for multi-part charts).
+  const getPayload = async (): Promise<{ text?: string; images?: string[]; entryType: EntryType }> => {
+    const textParts: string[] = [];
+    if (pasteText.trim()) textParts.push(pasteText.trim());
+    const images: string[] = [];
+
+    for (const { file } of sources) {
+      if (file.type.startsWith("image/")) {
+        images.push(await fileToBase64(file));
+      } else if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+        textParts.push(await extractPdfText(file));
       } else {
-        payload.text = await extractDocText(uploadFile);
+        textParts.push(await extractDocText(file));
       }
-      return payload;
     }
 
-    // Pasted image
-    if (imageFile) {
-      payload.image = await fileToBase64(imageFile);
-      return payload;
+    if (!textParts.length && !images.length) {
+      throw new Error("Paste some text, paste an image, or upload a file to transcribe");
     }
 
-    // Pasted text
-    if (pasteText.trim()) {
-      payload.text = pasteText.trim();
-      return payload;
-    }
-
-    throw new Error("Paste some text, paste an image, or upload a file to transcribe");
+    const payload: { text?: string; images?: string[]; entryType: EntryType } = { entryType: importType };
+    if (textParts.length) payload.text = textParts.join("\n\n");
+    if (images.length) payload.images = images;
+    return payload;
   };
 
   const handleParse = async () => {
@@ -1182,7 +1228,7 @@ function ImportTab({
         return;
       }
 
-      onParsed(result, getCapturedImage());
+      onParsed(result, await resolveCapturedImage(result));
     } catch (err) {
       setParseError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -1190,22 +1236,28 @@ function ImportTab({
     }
   };
 
-  // Determine the current captured image (for passthrough to manual form)
-  function getCapturedImage(): {file: File; preview: string} | undefined {
-    if (uploadFile?.type.startsWith("image/")) {
-      return { file: uploadFile, preview: imagePreview ?? "" };
+  // The image that rides along into the manual form: the AI-cropped artwork
+  // region if one was detected, otherwise the first uploaded/pasted image.
+  async function resolveCapturedImage(result: ParseResult): Promise<{file: File; preview: string} | undefined> {
+    const aw = result.artwork as { image_index: number; box: number[] } | undefined | null;
+    if (aw && typeof aw.image_index === "number" && Array.isArray(aw.box)) {
+      const src = imageSources[aw.image_index];
+      if (src) {
+        const cropped = await cropArtwork(src.file, aw.box);
+        if (cropped) return cropped;
+      }
     }
-    if (imageFile) {
-      return { file: imageFile, preview: imagePreview ?? "" };
-    }
+    const first = imageSources[0];
+    if (first) return { file: first.file, preview: first.preview ?? "" };
     return undefined;
   }
 
   // File upload handler — supports images, PDFs, and Word docs
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    acceptFile(file);
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    acceptFiles(files);
+    e.target.value = "";
   };
 
   // Prevent browser from navigating or opening dropped files at document level
@@ -1237,46 +1289,33 @@ function ImportTab({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOverCount(0);
-    const file = e.dataTransfer.files[0];
-    if (!file) return;
-
-    if (!isAcceptedFile(file)) {
-      setParseError("Unsupported file type. Accepted: images, PDFs, and Word documents.");
-      return;
-    }
-
-    acceptFile(file);
-
-    // Sync the file input so the UI reflects the selection
-    if (fileInputRef.current) {
-      const dt = new DataTransfer();
-      dt.items.add(file);
-      fileInputRef.current.files = dt.files;
-    }
+    const files = Array.from(e.dataTransfer.files);
+    if (!files.length) return;
+    acceptFiles(files);
   };
 
-  // Paste handler: image data → thumbnail, text → textarea
+  // Paste handler: image data → source list, text → textarea
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     const items = Array.from(e.clipboardData.items);
+    const pastedImages: File[] = [];
     for (const item of items) {
       if (item.type.startsWith("image/")) {
-        e.preventDefault();
         const blob = item.getAsFile();
-        if (!blob) continue;
-        const file = new File([blob], "clipboard-image.png", { type: blob.type });
-        setImageFile(file);
-        // Show preview
-        const reader = new FileReader();
-        reader.onload = () => setImagePreview(reader.result as string);
-        reader.readAsDataURL(file);
-        setParseError(null);
-        return;
+        if (blob) {
+          pastedImages.push(
+            new File([blob], `clipboard-${sources.length + pastedImages.length + 1}.png`, { type: blob.type }),
+          );
+        }
       }
+    }
+    if (pastedImages.length) {
+      e.preventDefault();
+      acceptFiles(pastedImages);
     }
     // If no image, let the textarea handle the text paste normally
   };
 
-  const hasContent = !!pasteText.trim() || !!imageFile || !!uploadFile;
+  const hasContent = !!pasteText.trim() || sources.length > 0;
 
   return (
     <div
@@ -1294,7 +1333,7 @@ function ImportTab({
           onDrop={handleDrop}
         >
           <p className="font-[var(--font-title)] text-lg font-bold text-[#58180d]">
-            Drop file here
+            Drop files here
           </p>
         </div>
       )}
@@ -1302,7 +1341,7 @@ function ImportTab({
         Import Content
       </h2>
       <p className="mb-4 mt-1 text-xs italic text-[#766649]">
-        Paste or type text below, paste a screenshot (Cmd+V), or drag a file here
+        Paste text, paste screenshots (Cmd+V), or drag one or more files here — multiple screenshots of the same source are stitched into one entry
       </p>
 
       {/* ───── unified paste / text area ───── */}
@@ -1316,43 +1355,63 @@ function ImportTab({
         className="w-full rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3 py-2 text-sm font-[var(--font-phb)] text-[var(--color-ink)] placeholder:text-[#766649] focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600 min-h-[120px] resize-y"
       />
 
-      {/* image preview for pasted / uploaded image */}
-      {(imageFile || (uploadFile && uploadFile.type.startsWith("image/"))) && imagePreview && (
+      {/* source file strip — numbered, in reading order */}
+      {sources.length > 0 && (
         <div className="mt-3">
-          <div className="relative inline-block">
-            <button
-              type="button"
-              onClick={() => { setImageFile(null); setImagePreview(null); setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-              className="absolute -right-2 -top-2 z-10 flex size-5 items-center justify-center rounded-full bg-[#58180d] text-[#eee5ce] hover:bg-[#6e2a1a] shadow-sm"
-              title="Remove image"
-            >
-              <FontAwesomeIcon icon={faTimes} className="size-2.5" />
-            </button>
-            <img src={imagePreview} alt="Preview" className="max-h-48 rounded-lg border border-[var(--color-gilding-dark)] object-contain" />
-            <p className="mt-1 text-xs text-[#766649]">
-              {(imageFile?.name ?? uploadFile?.name ?? "")} ({(imageFile?.size ?? uploadFile?.size ?? 0) / 1024 > 0 ? ((imageFile?.size ?? uploadFile?.size ?? 0) / 1024).toFixed(0) : 0} KB)
-            </p>
+          <div className="flex flex-wrap items-start gap-3">
+            {sources.map((src, i) => (
+              <div key={i} className="relative inline-block">
+                <button
+                  type="button"
+                  onClick={() => removeSource(i)}
+                  className="absolute -right-2 -top-2 z-10 flex size-5 items-center justify-center rounded-full bg-[#58180d] text-[#eee5ce] hover:bg-[#6e2a1a] shadow-sm"
+                  title={`Remove ${src.file.name}`}
+                >
+                  <FontAwesomeIcon icon={faTimes} className="size-2.5" />
+                </button>
+                {sources.length > 1 && (
+                  <span className="absolute -left-2 -top-2 z-10 flex size-5 items-center justify-center rounded-full bg-[var(--color-gilding-dark)] text-[0.65rem] font-bold text-white shadow-sm">
+                    {i + 1}
+                  </span>
+                )}
+                {src.preview ? (
+                  <img
+                    src={src.preview}
+                    alt={src.file.name}
+                    className="max-h-28 rounded-lg border border-[var(--color-gilding-dark)] object-contain"
+                  />
+                ) : (
+                  <div className="flex h-28 w-24 items-center justify-center rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-2 text-center text-[0.65rem] text-[#766649]">
+                    {src.file.name}
+                  </div>
+                )}
+                <p className="mt-1 max-w-28 truncate text-xs text-[#766649]" title={src.file.name}>
+                  {src.file.name} ({(src.file.size / 1024).toFixed(0)} KB)
+                </p>
+              </div>
+            ))}
           </div>
+          {sources.length > 1 && (
+            <p className="mt-1 text-xs italic text-[#766649]">
+              Files are read in order — for a chart split across screenshots, add the top part first.
+            </p>
+          )}
         </div>
       )}
 
       {/* ───── file upload button ───── */}
       <div className="mt-4">
         <label className="mb-1 block text-xs font-medium text-[#766649]">
-          Or choose a file to upload
+          Or choose one or more files to upload {sources.length > 0 && "(added to the list above)"}
         </label>
         <input
           ref={fileInputRef}
           type="file"
+          multiple
           accept={ACCEPTED_TYPES}
           onChange={handleFileChange}
           className="w-full text-sm font-[var(--font-phb)] text-[#58180d] file:mr-3 file:rounded-lg file:border file:border-[var(--color-gilding-dark)] file:bg-[var(--color-parchment)] file:px-3 file:py-1.5 file:text-sm file:font-[var(--font-phb)] file:text-[#58180d] hover:file:bg-[var(--color-parchment-light)]"
         />
-        {uploadFile && !uploadFile.type.startsWith("image/") && (
-          <p className="mt-1 text-xs text-[#766649]">
-            Selected: {uploadFile.name} ({(uploadFile.size / 1024).toFixed(0)} KB)
-          </p>
-        )}
       </div>
 
       {/* ───── parse error ───── */}
