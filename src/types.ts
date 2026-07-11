@@ -135,6 +135,8 @@ export interface DbEntry {
   campaign: string;
   created_at: string;
   properties: Record<string, unknown>;
+  /** Personal star rating, 1–5; null/undefined = unrated */
+  rating?: number | null;
 }
 
 export interface MonsterProperties {

@@ -28,6 +28,7 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     tags: ["longsword", "attunement", "moon"],
     campaign: "Shadows of Eltheria",
     created_at: at("2026-06-01"),
+    rating: 5,
     properties: {
       damage_dice: "1d8",
       damage_type: "slashing",
@@ -49,6 +50,7 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     tags: ["shield", "legion", "reaction"],
     campaign: "Shadows of Eltheria",
     created_at: at("2026-06-02"),
+    rating: 4,
     properties: {
       armour_type: "shield",
       bonus: "+1",
@@ -69,6 +71,7 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     tags: ["exploration", "utility", "maps"],
     campaign: "",
     created_at: at("2026-06-03"),
+    rating: 3,
     properties: {
       rarity: "rare",
       requires_attunement: false,
@@ -88,6 +91,7 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     tags: ["fire", "resistance", "consumable"],
     campaign: "Shadows of Eltheria",
     created_at: at("2026-06-04"),
+    rating: 4,
     properties: {
       rarity: "uncommon",
       effect:
@@ -107,6 +111,7 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     tags: ["gnomish", "utility"],
     campaign: "",
     created_at: at("2026-06-05"),
+    rating: 1,
     properties: {
       gear_category: "tool",
       quantity: 1,
@@ -141,6 +146,7 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     tags: ["cursed", "crown", "undead"],
     campaign: "Shadows of Eltheria",
     created_at: at("2026-06-07"),
+    rating: 5,
     properties: {
       rarity: "legendary",
       requires_attunement: true,
@@ -161,6 +167,7 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     tags: ["evocation", "radiant", "aoe"],
     campaign: "",
     created_at: at("2026-06-08"),
+    rating: 4,
     properties: {
       level: "5",
       school: "evocation",
@@ -186,6 +193,7 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     tags: ["conjuration", "teleport", "bonus action"],
     campaign: "Shadows of Eltheria",
     created_at: at("2026-06-09"),
+    rating: 2,
     properties: {
       level: "2",
       school: "conjuration",
@@ -237,6 +245,7 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     tags: ["construct", "guardian", "barrow"],
     campaign: "Shadows of Eltheria",
     created_at: at("2026-06-11"),
+    rating: 5,
     properties: {
       cr: "11 (7,200 XP)",
       size: "Huge",
@@ -399,6 +408,7 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     tags: ["tavern", "npc", "roleplay"],
     campaign: "",
     created_at: at("2026-06-16"),
+    rating: 3,
     properties: {
       die_type: "d12",
       columns: ["d12", "Patron"],

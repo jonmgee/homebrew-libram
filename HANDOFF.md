@@ -231,6 +231,13 @@ D&D homebrew content organiser — a web app for DMs to create, browse, and mana
 - [x] **Resilience** — 2D fallback on WebGL failure/timeout; reduced-motion lands instantly; ref-based re-click guard
 - [x] Type declarations at `src/lib/dice-box.d.ts` (package ships no types)
 
+### 2026-07-10 — Star ratings + random pick (merged to main)
+
+- [x] **Star ratings (1–5)** — `rating smallint` column (`supabase/migration-005-entry-rating.sql`, applied to prod), clickable gold stars on every detail page (click current rating to clear), optimistic save, mini read-only stars on browse rows
+- [x] **Sort control on browse lists** — A–Z / ★ Rating (nulls last, alpha within tier) / Newest
+- [x] **Pick Random** — crimson button on browse lists; picks a random entry from the current filtered list among magic items, weapons, armour, scrolls, potions and monsters, then opens it
+- [x] Edit forms leave `rating` untouched (update payload is field-scoped)
+
 ## Remaining tasks
 
 - Table rendering (interactive rollable tables)

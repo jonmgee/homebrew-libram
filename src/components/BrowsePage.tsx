@@ -1,11 +1,24 @@
 import { useEffect, useState, useMemo } from "react";
-import { useParams, Link, useLocation } from "react-router-dom";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { getCategory, formatEntryType, type DbEntry } from "../types";
 import { entrySummary } from "../lib/entrySummary";
 import { getTypesForSubCategory } from "../lib/subcategories";
+import StarRating from "./StarRating";
 
 type LoadState = "loading" | "loaded" | "error";
+type SortMode = "name" | "rating" | "newest";
+
+/** Types where "the Libram suggests one at random" makes sense for a DM */
+const RANDOM_PICK_TYPES = new Set([
+  "magic_item",
+  "wondrous_item",
+  "weapon",
+  "armour",
+  "scroll",
+  "potion",
+  "monster",
+]);
 
 export default function BrowsePage() {
   const { category, subcategory } = useParams<{ category: string; subcategory?: string }>();
@@ -40,7 +53,9 @@ export default function BrowsePage() {
 
   const [search, setSearch] = useState("");
   const [hideDmOnly, setHideDmOnly] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("name");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -109,8 +124,28 @@ export default function BrowsePage() {
       result = result.filter((e) => !e.dm_only);
     }
 
+    if (sortMode === "rating") {
+      result = [...result].sort(
+        (a, b) => (b.rating ?? 0) - (a.rating ?? 0) || a.name.localeCompare(b.name),
+      );
+    } else if (sortMode === "newest") {
+      result = [...result].sort((a, b) => b.created_at.localeCompare(a.created_at));
+    }
+    // "name" keeps the alphabetical order the query returned
+
     return result;
-  }, [entries, search, hideDmOnly]);
+  }, [entries, search, hideDmOnly, sortMode]);
+
+  const randomCandidates = useMemo(
+    () => filtered.filter((e) => RANDOM_PICK_TYPES.has(e.type)),
+    [filtered],
+  );
+
+  function pickRandom() {
+    if (!randomCandidates.length) return;
+    const pick = randomCandidates[Math.floor(Math.random() * randomCandidates.length)]!;
+    navigate(`/entry/${pick.id}?from=${encodeURIComponent(location.pathname + location.search)}`);
+  }
 
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -133,7 +168,7 @@ export default function BrowsePage() {
         <h1 className="phb-h1 !text-3xl text-[#58180d]">{heading}</h1>
       </div>
 
-      <div className="mb-6 flex flex-wrap items-center gap-4">
+      <div className="mb-3 flex flex-wrap items-center gap-4">
         <input
           type="text"
           value={search}
@@ -151,6 +186,41 @@ export default function BrowsePage() {
           />
           Hide DM-only
         </label>
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div
+          className="inline-flex overflow-hidden rounded-lg border border-parchment-dark"
+          role="group"
+          aria-label="Sort entries"
+        >
+          {([
+            ["name", "A–Z"],
+            ["rating", "★ Rating"],
+            ["newest", "Newest"],
+          ] as [SortMode, string][]).map(([mode, lbl]) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setSortMode(mode)}
+              aria-pressed={sortMode === mode}
+              className={`phb-small-sc cursor-pointer px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+                sortMode === mode
+                  ? "bg-[var(--color-header)] text-[var(--color-parchment-light)]"
+                  : "bg-parchment-light text-caption hover:text-[var(--color-header)]"
+              }`}
+            >
+              {lbl}
+            </button>
+          ))}
+        </div>
+
+        {randomCandidates.length > 0 && (
+          <button type="button" onClick={pickRandom} className="phb-roll-btn !text-sm !py-1.5">
+            <span aria-hidden="true">&#9860;</span>
+            Pick Random
+          </button>
+        )}
       </div>
 
       {loadState === "loading" && (
@@ -212,6 +282,7 @@ export default function BrowsePage() {
                           <h3 className="phb-h3 !border-none !mb-0 !pb-0 !text-base">
                             {entry.name}
                           </h3>
+                          <StarRating value={entry.rating} size="sm" />
                           {entry.dm_only && (
                             <span className="dm-stamp shrink-0">DM</span>
                           )}

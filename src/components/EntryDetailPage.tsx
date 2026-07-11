@@ -3,6 +3,7 @@ import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase";
 import { formatEntryType, type DbEntry } from "../types";
 import MarkdownDescription from "./MarkdownDescription";
+import StarRating from "./StarRating";
 import SpellDetail from "./SpellDetail";
 import MonsterDetail from "./MonsterDetail";
 import SubclassDetail from "./SubclassDetail";
@@ -210,6 +211,17 @@ export default function EntryDetailPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  async function handleRate(rating: number | null) {
+    if (!entry) return;
+    const previous = entry.rating ?? null;
+    setEntry({ ...entry, rating }); // optimistic
+    const { error } = await supabase.from("entries").update({ rating }).eq("id", entry.id);
+    if (error) {
+      console.error("Failed to save rating:", error);
+      setEntry((e) => (e ? { ...e, rating: previous } : e));
+    }
+  }
+
   async function handleDelete() {
     if (!id) return;
     const { error } = await supabase.from("entries").delete().eq("id", id);
@@ -265,7 +277,13 @@ export default function EntryDetailPage() {
         </div>
       )}
       <div className="parchment-card gilded-border page-enter mt-4 p-6 sm:p-8">
-        <div className="mb-4 flex items-center justify-end gap-1.5">
+        <div className="mb-4 flex items-center justify-between gap-1.5">
+          <StarRating
+            value={entry.rating}
+            onChange={handleRate}
+            label={`Rate ${entry.name}`}
+          />
+          <div className="flex items-center gap-1.5">
           <Link
             to={`/entry/${id}/edit`}
             className="phb-small-sc rounded-md border border-parchment-dark px-3 py-1 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
@@ -278,6 +296,7 @@ export default function EntryDetailPage() {
           >
             Delete
           </button>
+          </div>
         </div>
         {deleteConfirm && (
           <div className="mb-4 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 text-sm">
