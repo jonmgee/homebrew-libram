@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { copyAllToMyLibram } from "../lib/copyEntry";
+import { useAuth } from "../context/AuthContext";
 import { formatEntryType, type DbEntry } from "../types";
 import { entrySummary } from "../lib/entrySummary";
 import { RENDERERS, EntryImage } from "./EntryDetailPage";
@@ -8,6 +10,75 @@ import { CopyToLibramButton } from "./SharedEntryPage";
 import SharedHeader from "./SharedHeader";
 
 type LoadState = "loading" | "loaded" | "not_found" | "error";
+
+function CopyAllButton({ entries }: { entries: DbEntry[] }) {
+  const { user } = useAuth();
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!user || !entries.length) return null;
+
+  if (done !== null) {
+    return (
+      <p className="phb-body text-sm">
+        ✦ Copied {done} entr{done === 1 ? "y" : "ies"} into{" "}
+        <Link to="/browse/all" className="font-semibold text-[var(--color-header)] underline underline-offset-2">
+          your Libram
+        </Link>
+        . ✦
+      </p>
+    );
+  }
+
+  if (confirming) {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="phb-small-sc text-xs font-bold uppercase tracking-wider text-caption">
+          Add all {entries.length} entries to your libram?
+        </span>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setError(null);
+            try {
+              setDone(await copyAllToMyLibram(entries));
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Copy failed");
+              setBusy(false);
+              setConfirming(false);
+            }
+          }}
+          className="phb-small-sc cursor-pointer rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-header)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--color-parchment-light)] transition-colors hover:bg-[#6e2a1a]"
+        >
+          {busy ? "Copying…" : "Yes, copy all"}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setConfirming(false)}
+          className="phb-small-sc cursor-pointer rounded-md border border-parchment-dark px-3 py-1 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:text-[var(--color-header)]"
+        >
+          Cancel
+        </button>
+        {error && <span className="phb-body text-sm text-crimson">{error}</span>}
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setConfirming(true)}
+      className="phb-small-sc cursor-pointer rounded-md border border-[var(--color-gilding-dark)] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[var(--color-gilding-dark)] transition-colors hover:border-[var(--color-gilding)] hover:bg-[var(--color-gilding)]/10"
+    >
+      Copy all to my Libram
+    </button>
+  );
+}
 
 export default function SharedLibramPage() {
   const { token } = useParams<{ token: string }>();
@@ -89,11 +160,14 @@ export default function SharedLibramPage() {
 
         {loadState === "loaded" && !selected && (
           <>
-            <div className="mb-6 text-center">
+            <div className="mb-4 text-center">
               <h1 className="phb-h1 !text-3xl">A Shared Libram</h1>
               <p className="phb-description mt-1">
                 {entries.length} entr{entries.length === 1 ? "y" : "ies"}, shared read-only
               </p>
+            </div>
+            <div className="mb-4 flex justify-center">
+              <CopyAllButton entries={entries} />
             </div>
             <input
               type="text"
