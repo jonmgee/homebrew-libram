@@ -86,7 +86,10 @@ export default function LoginPage() {
   const handleSubmit = mode === "signin" ? handleSignIn : mode === "signup" ? handleSignUp : handleForgot;
 
   const title = mode === "signin" ? "Sign In" : mode === "signup" ? "Create Account" : "Reset Password";
-  const subtext = mode === "signin" ? "Enter your credentials to continue" : mode === "signup" ? "Create a new account" : "Enter your email to receive a reset link";
+  // Mirrors the wording on PC on Parchment's login. Both apps run on one
+  // Supabase project, so an account genuinely works on both — but only PC on
+  // Parchment said so, leaving the cross-reference one-directional.
+  const subtext = mode === "signin" ? "Use your PC on Parchment account, or create one" : mode === "signup" ? "One account for Homebrew Libram and PC on Parchment" : "Enter your email to receive a reset link";
   const buttonLabel = sending ? "Please wait…" : mode === "forgot" ? "Send reset link" : title;
 
   return (
@@ -111,12 +114,18 @@ export default function LoginPage() {
         <p className="mb-1 text-center font-[var(--font-phb)] text-2xl uppercase tracking-[0.08em] text-[#EEE5CE] drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]">
           Homebrew Libram
         </p>
-        <p className="mb-4 text-center font-[var(--font-sans)] text-xs italic leading-relaxed text-[#C9A84C] drop-shadow-sm">
+        <p className="mb-1 text-center font-[var(--font-sans)] text-xs italic leading-relaxed text-[#C9A84C] drop-shadow-sm">
           The digital tome for all your DnD homebrew content
+        </p>
+        <p className="mb-4 text-center font-[var(--font-phb)] text-[10px] uppercase tracking-widest text-[#b5a98e]">
+          An Appwright&rsquo;s Guild tool
         </p>
 
         <div className="mb-5 flex flex-wrap items-baseline justify-center gap-x-1.5">
-          <h1 className="phb-h1 text-2xl text-[#EEE5CE] drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
+          {/* phb-h1 sets PHB maroon, which is right on parchment but unreadable
+              on this dark card. The utility was already here and losing the
+              cascade — the `!` makes the intended cream actually apply. */}
+          <h1 className="phb-h1 text-2xl text-[#EEE5CE]! drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
             {title}
           </h1>
           <span className="font-[var(--font-sans)] text-xs italic text-[#b5a98e]">
