@@ -1,6 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+/**
+ * Shared header layout with PC on Parchment: site name on the left, then a
+ * right-hand cluster of [primary action] [secondary] [Account] [Sign out].
+ * Primary is filled, everything else is outlined and the same size, so the
+ * hierarchy reads at a glance. Colours stay Libram's own.
+ *
+ * Previously these four controls had four different treatments — plain text,
+ * outlined, an underlined email standing in for a button, and plain text again.
+ */
 export default function NavBar() {
   const { user, signOut } = useAuth();
   const location = useLocation();
@@ -9,9 +18,16 @@ export default function NavBar() {
 
   const onHome = location.pathname === "/";
 
+  // Same footprint for every non-primary control.
+  const secondary =
+    "phb-small-sc cursor-pointer whitespace-nowrap rounded-md border border-[var(--color-gilding-dark)]/60 px-3 py-1 text-xs uppercase tracking-wider text-[var(--color-footnotes)]/85 transition-colors hover:border-[var(--color-gilding)] hover:text-[var(--color-gilding-light)]";
+
+  const primary =
+    "phb-small-sc cursor-pointer whitespace-nowrap rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-header)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--color-parchment-light)] transition-colors hover:bg-[#7a2212]";
+
   return (
     <header className="sticky top-0 z-50 border-b-2 border-[var(--color-gilding-dark)] bg-[var(--color-cover)] shadow-[0_2px_8px_rgba(26,10,0,0.45)]">
-      <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-2.5">
+      <nav className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-2.5">
         <Link
           to="/"
           className="whitespace-nowrap font-[var(--font-title)] text-sm uppercase tracking-[0.06em] text-[var(--color-gilding)] transition-colors hover:text-[var(--color-gilding-light)] sm:text-lg sm:tracking-[0.12em]"
@@ -20,42 +36,19 @@ export default function NavBar() {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Link
-            to="/share-libram"
-            className="phb-small-sc whitespace-nowrap rounded-md px-2 py-1 text-xs font-bold uppercase tracking-wider text-[var(--color-footnotes)]/80 transition-colors hover:text-[var(--color-gilding-light)]"
-          >
-            Share
-          </Link>
           {!onHome && (
-            <Link
-              to="/create"
-              className="phb-small-sc whitespace-nowrap rounded-md border border-[var(--color-gilding-dark)] px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-[var(--color-gilding)] transition-colors hover:border-[var(--color-gilding)] hover:text-[var(--color-gilding-light)]"
-            >
+            <Link to="/create" className={primary}>
               <span className="sm:hidden">+ New</span>
               <span className="hidden sm:inline">+ New Entry</span>
             </Link>
           )}
-          {/* Email doubles as the account link on desktop; phones get a plain
-              "Account" instead, since the email is hidden there and the page
-              holds password change and account deletion — it has to be
-              reachable on the device people actually use. */}
-          <Link
-            to="/account"
-            className="phb-small-sc whitespace-nowrap rounded-md px-2 py-1 text-xs font-bold uppercase tracking-wider text-[var(--color-footnotes)]/80 transition-colors hover:text-[var(--color-gilding-light)] sm:hidden"
-          >
+          <Link to="/share-libram" className={secondary}>
+            Share
+          </Link>
+          <Link to="/account" className={secondary}>
             Account
           </Link>
-          <Link
-            to="/account"
-            className="hidden text-xs text-[var(--color-footnotes)]/70 underline underline-offset-2 transition-colors hover:text-[var(--color-gilding-light)] sm:inline"
-          >
-            {user.email}
-          </Link>
-          <button
-            type="button"
-            onClick={signOut}
-            className="phb-small-sc cursor-pointer rounded-md px-3 py-1 text-xs uppercase tracking-wider text-[var(--color-footnotes)]/80 transition-colors hover:text-[var(--color-gilding-light)]"
-          >
+          <button type="button" onClick={signOut} className={secondary}>
             Sign out
           </button>
         </div>
