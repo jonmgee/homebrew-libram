@@ -226,12 +226,72 @@ function stripMarkdownFence(raw: string): string {
   return raw.replace(/^```(?:json)?\s*/gm, "").replace(/```\s*$/gm, "").trim();
 }
 
+/* ──────── Access control ────────
+ * This endpoint spends real money on OpenRouter. It used to accept anonymous
+ * POSTs from any origin, so anyone could drain the account or embed it in
+ * their own site for free AI billed to us.
+ *
+ * Kept inline deliberately: Vercel does not deploy files whose names start
+ * with an underscore, and a shared api/_auth.ts import compiled fine but
+ * threw ERR_MODULE_NOT_FOUND at runtime. Duplication beats a 500. */
+
+const ALLOWED_ORIGINS = [
+  "https://homebrewlibram.com",
+  "https://www.homebrewlibram.com",
+  "https://homebrew-libram.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:5192",
+];
+
+/** Vision calls bill per image, so cap how many one request can trigger. */
+const MAX_IMAGES = 6;
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (req.method === "OPTIONS") return res.status(200).end();
+  const origin = typeof req.headers.origin === "string" ? req.headers.origin : "";
+  const originAllowed = ALLOWED_ORIGINS.includes(origin);
+
+  if (originAllowed) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Max-Age", "86400");
+  }
+
+  if (req.method === "OPTIONS") return res.status(originAllowed ? 204 : 403).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  // Signed-in users only. Verified against Supabase rather than trusted, so an
+  // expired or forged token is rejected.
+  const authHeader = req.headers.authorization;
+  const accessToken =
+    typeof authHeader === "string" && authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7).trim()
+      : "";
+
+  if (!accessToken) {
+    return res.status(401).json({ error: "Please sign in to use this feature." });
+  }
+
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // Our misconfiguration, not the caller's — don't imply their session is bad.
+    console.error("[parse-entry] Supabase env vars not set");
+    return res.status(500).json({ error: "Server auth is not configured." });
+  }
+
+  try {
+    const check = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: { Authorization: `Bearer ${accessToken}`, apikey: supabaseAnonKey },
+    });
+    if (!check.ok) {
+      return res.status(401).json({ error: "Your session has expired. Sign in again." });
+    }
+  } catch (e) {
+    console.error("[parse-entry] session verification failed:", e);
+    return res.status(503).json({ error: "Could not verify your session. Try again." });
+  }
 
   try {
     const { text, image, images, entryType } = req.body;
@@ -244,6 +304,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         : [];
 
     if (!text && !imageList.length) return res.status(400).json({ error: "No content provided." });
+    if (imageList.length > MAX_IMAGES) {
+      return res.status(400).json({ error: `Too many images (max ${MAX_IMAGES}).` });
+    }
 
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "OPENROUTER_API_KEY not configured" });
