@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { applyCors, requireUser } from "./_auth";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -227,15 +226,12 @@ function stripMarkdownFence(raw: string): string {
   return raw.replace(/^```(?:json)?\s*/gm, "").replace(/```\s*$/gm, "").trim();
 }
 
-/** Vision calls are billed per image, so cap how many one request can trigger. */
-const MAX_IMAGES = 6;
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (applyCors(req, res)) return;
-
-  // This endpoint spends money on OpenRouter. Signed-in users only.
-  const userId = await requireUser(req, res);
-  if (!userId) return;
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
     const { text, image, images, entryType } = req.body;
@@ -248,9 +244,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         : [];
 
     if (!text && !imageList.length) return res.status(400).json({ error: "No content provided." });
-    if (imageList.length > MAX_IMAGES) {
-      return res.status(400).json({ error: `Too many images (max ${MAX_IMAGES}).` });
-    }
 
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) return res.status(500).json({ error: "OPENROUTER_API_KEY not configured" });
