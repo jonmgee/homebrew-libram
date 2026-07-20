@@ -10,6 +10,79 @@ import { useAuth } from "../context/AuthContext";
  * share one Supabase project and therefore one account. That is genuinely
  * surprising, so it is stated on screen rather than left to be discovered.
  */
+/** Public storage URLs end in the filename. */
+function fileNameFromUrl(url: unknown): string | null {
+  if (typeof url !== "string" || !url) return null;
+  const last = url.split("/").pop();
+  if (!last) return null;
+  const [name] = last.split("?");
+  return name ? decodeURIComponent(name) : null;
+}
+
+/**
+ * Remove every file this user has uploaded, across both apps' buckets.
+ *
+ * Two sources on purpose. Listing storage is the thorough one — RLS scopes it
+ * to the caller's own files, so it catches uploads that never got attached to
+ * anything. Reading it back out of the user's own rows is the reliable one,
+ * covering the case where a listing comes back empty for any reason. A silent
+ * miss here means an image outliving the account that owned it, which is the
+ * exact failure this is fixing.
+ *
+ * Returns false if anything could not be removed, so the caller can abort
+ * rather than delete the account and strand the files.
+ */
+async function deleteMyUploads(userId: string): Promise<boolean> {
+  const entryImages = new Set<string>();
+  const portraits = new Set<string>();
+
+  // Thorough source: RLS scopes a listing to the caller's own files, so this
+  // also catches uploads that never got attached to anything.
+  const { data: listedEntryImages } = await supabase.storage
+    .from("entry-images")
+    .list("", { limit: 1000 });
+  for (const file of listedEntryImages ?? []) if (file?.name) entryImages.add(file.name);
+
+  const { data: listedPortraits } = await supabase.storage
+    .from("character-portraits")
+    .list("", { limit: 1000 });
+  for (const file of listedPortraits ?? []) if (file?.name) portraits.add(file.name);
+
+  // Reliable source: read the filenames back out of the user's own rows, in
+  // case a listing comes back empty for any reason.
+  const { data: entries } = await supabase
+    .from("entries")
+    .select("properties")
+    .eq("user_id", userId);
+  for (const row of entries ?? []) {
+    const name = fileNameFromUrl((row as { properties?: { image_url?: string } })?.properties?.image_url);
+    if (name) entryImages.add(name);
+  }
+
+  const { data: characters } = await supabase
+    .from("characters")
+    .select("data")
+    .eq("user_id", userId);
+  for (const row of characters ?? []) {
+    const name = fileNameFromUrl((row as { data?: { portraitUrl?: string } })?.data?.portraitUrl);
+    if (name) portraits.add(name);
+  }
+
+  for (const [bucket, names] of [
+    ["entry-images", entryImages],
+    ["character-portraits", portraits],
+  ] as const) {
+    const list = [...names];
+    if (!list.length) continue;
+    const { error } = await supabase.storage.from(bucket).remove(list);
+    if (error) {
+      console.error(`[account] failed removing uploads from ${bucket}:`, error);
+      return false;
+    }
+  }
+  return true;
+}
+
 export default function AccountPage() {
   const { user, updatePassword, signOut } = useAuth();
   const navigate = useNavigate();
@@ -77,6 +150,25 @@ export default function AccountPage() {
   async function handleDelete() {
     setDelError(null);
     setDeleting(true);
+
+    // Uploads must go first, and must go through the Storage API: Supabase
+    // blocks deleting storage rows via SQL because that strands the physical
+    // files. So this cannot live in delete_own_account() — it has to happen
+    // here, while the user still has a session to authorise it with.
+    if (!user?.id) {
+      setDeleting(false);
+      setDelError("Could not read your account. Try signing in again.");
+      return;
+    }
+
+    const uploadsRemoved = await deleteMyUploads(user.id);
+    if (!uploadsRemoved) {
+      setDeleting(false);
+      setDelError(
+        "Could not remove your uploaded images, so nothing has been deleted. Please try again.",
+      );
+      return;
+    }
 
     // delete_own_account() takes no arguments and can only ever delete
     // auth.uid(), so no admin key is needed anywhere in the app.
