@@ -246,6 +246,12 @@ const ALLOWED_ORIGINS = [
 /** Vision calls bill per image, so cap how many one request can trigger. */
 const MAX_IMAGES = 6;
 
+/** AI imports per user per rolling 24h. Deliberately generous — a limit that
+ *  trips on legitimate enthusiasm gets removed rather than respected, and 23
+ *  entries in one sitting has already happened. Copying from a shared libram
+ *  is a plain database insert, costs nothing, and is not counted. */
+const DAILY_AI_LIMIT = 25;
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const origin = typeof req.headers.origin === "string" ? req.headers.origin : "";
   const originAllowed = ALLOWED_ORIGINS.includes(origin);
@@ -270,7 +276,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : "";
 
   if (!accessToken) {
-    return res.status(401).json({ error: "Please sign in to use this feature." });
+    // Wording differs from the server-side rejection below on purpose, so the
+    // two are distinguishable when someone reports "it says I'm not signed in".
+    return res.status(401).json({ error: "Not signed in — please sign in to use this feature." });
   }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -281,6 +289,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Server auth is not configured." });
   }
 
+  let userId: string;
   try {
     const check = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: { Authorization: `Bearer ${accessToken}`, apikey: supabaseAnonKey },
@@ -288,10 +297,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!check.ok) {
       return res.status(401).json({ error: "Your session has expired. Sign in again." });
     }
+    const user = (await check.json()) as { id?: string };
+    if (!user?.id) {
+      return res.status(401).json({ error: "Your session has expired. Sign in again." });
+    }
+    userId = user.id;
   } catch (e) {
     console.error("[parse-entry] session verification failed:", e);
     return res.status(503).json({ error: "Could not verify your session. Try again." });
   }
+
+  // Rate limit. Counted with the caller's own token, so RLS restricts it to
+  // their rows. They cannot clear the log to reset it — ai_usage grants
+  // select and insert only, no delete.
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  try {
+    const usage = await fetch(
+      `${supabaseUrl}/rest/v1/ai_usage?select=id&user_id=eq.${userId}&created_at=gte.${since}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          apikey: supabaseAnonKey,
+          Prefer: "count=exact",
+          Range: "0-0",
+        },
+      },
+    );
+    const used = Number(usage.headers.get("content-range")?.split("/")[1] ?? 0);
+    if (used >= DAILY_AI_LIMIT) {
+      return res.status(429).json({
+        error: `Daily limit reached — ${DAILY_AI_LIMIT} AI imports per day. Copying from a shared libram is unlimited.`,
+      });
+    }
+  } catch (e) {
+    // Fail open: a blip in the counter shouldn't block legitimate use, and the
+    // OpenRouter spend cap is the real backstop.
+    console.warn("[parse-entry] usage count failed, allowing request:", e);
+  }
+
+  // Logged before the AI call, not after, so repeated failures still consume
+  // quota — a failing request costs the same money as a working one.
+  void fetch(`${supabaseUrl}/rest/v1/ai_usage`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      apikey: supabaseAnonKey,
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify({ user_id: userId, endpoint: "parse-entry" }),
+  }).catch((e) => console.warn("[parse-entry] usage log failed:", e));
 
   try {
     const { text, image, images, entryType } = req.body;
