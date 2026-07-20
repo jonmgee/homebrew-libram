@@ -249,6 +249,17 @@ export default function LoginPage() {
             </button>
           )}
         </div>
+
+        {/* Linked from the login screen, not just the account page: someone
+            should be able to read what we store before handing over an email. */}
+        <p className="mt-4 text-center">
+          <a
+            href="/privacy.html"
+            className="text-xs italic text-[#b5a98e] underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
+          >
+            Privacy
+          </a>
+        </p>
       </SignInCard>
     </div>
   );

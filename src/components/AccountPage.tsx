@@ -204,6 +204,11 @@ export default function AccountPage() {
         <p className="phb-body mt-3 text-xs italic text-[var(--color-caption)]">
           One account covers both Homebrew Libram and PC on Parchment.
         </p>
+        <p className="phb-body mt-2 text-xs">
+          <a href="/privacy.html" className="underline underline-offset-2">
+            What we store, and who else sees it
+          </a>
+        </p>
       </div>
 
       {/* ── Change password ── */}

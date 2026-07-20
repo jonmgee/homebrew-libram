@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy — Homebrew Libram &amp; PC on Parchment</title>
+<meta name="description" content="What Homebrew Libram and PC on Parchment store, why, who else sees it, and how to delete all of it." />
+<style>
+  @font-face {
+    font-family: 'BookInsanityRemake';
+    src: url('/fonts/Bookinsanity.woff2') format('woff2');
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: 'BookInsanityRemake';
+    src: url('/fonts/Bookinsanity Bold.woff2') format('woff2');
+    font-weight: 700; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: 'MrEavesRemake';
+    src: url('/fonts/Mr Eaves Small Caps.woff2') format('woff2');
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: 'ScalySansRemake';
+    src: url('/fonts/Scaly Sans.woff2') format('woff2');
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+
+  :root {
+    --parchment: #EEE5CE;
+    --parchment-light: #FDF8EC;
+    --parchment-dark: #DCD3BA;
+    --ink: #2A2622;
+    --header: #58180D;
+    --gilding: #C9AD6A;
+    --gilding-dark: #9C7A2E;
+    --caption: #6B6156;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0 20px 80px;
+    background: var(--parchment);
+    color: var(--ink);
+    font-family: 'BookInsanityRemake', Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  main { max-width: 680px; margin: 0 auto; }
+
+  header { text-align: center; padding: 48px 0 8px; }
+
+  h1 {
+    font-family: 'MrEavesRemake', Georgia, serif;
+    color: var(--header);
+    font-size: 2.4rem;
+    margin: 0 0 6px;
+  }
+
+  .sub {
+    font-family: 'ScalySansRemake', system-ui, sans-serif;
+    color: var(--caption);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin: 0;
+  }
+
+  .rule {
+    height: 2px; width: 90px; margin: 22px auto 34px;
+    background: var(--gilding); border-radius: 2px;
+  }
+
+  h2 {
+    font-family: 'MrEavesRemake', Georgia, serif;
+    color: var(--header);
+    font-size: 1.5rem;
+    margin: 40px 0 10px;
+    border-bottom: 1px solid var(--gilding);
+    padding-bottom: 4px;
+  }
+
+  h3 {
+    font-family: 'ScalySansRemake', system-ui, sans-serif;
+    font-size: 1rem;
+    margin: 22px 0 6px;
+    color: var(--header);
+  }
+
+  p, li { font-size: 0.98rem; }
+  a { color: var(--header); }
+  strong { font-weight: 700; }
+  ul { padding-left: 22px; }
+  li { margin-bottom: 7px; }
+
+  .panel {
+    background: var(--parchment-light);
+    border: 1px solid var(--gilding-dark);
+    border-radius: 8px;
+    padding: 18px 24px;
+    margin: 26px 0;
+  }
+  .panel h2 { margin-top: 0; border: 0; }
+
+  footer {
+    margin-top: 56px; padding-top: 18px;
+    border-top: 1px solid var(--parchment-dark);
+    color: var(--caption);
+    font-family: 'ScalySansRemake', system-ui, sans-serif;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <header>
+    <h1>Privacy</h1>
+    <p class="sub">Homebrew Libram &amp; PC on Parchment · last updated 20 July 2026</p>
+  </header>
+  <div class="rule"></div>
+
+  <div class="panel">
+    <h2>The short version</h2>
+    <p>
+      One account covers both sites. We store your email address and whatever you
+      create — homebrew, characters and any images you upload. We don't track you,
+      there's no analytics and no advertising.
+    </p>
+    <p>
+      Two things worth knowing up front: <strong>images you upload are stored in a
+      public place</strong>, so anyone with the direct link can view them; and if you
+      use the AI import, <strong>the content you submit is sent to an AI company</strong>
+      to be read. Both are explained below.
+    </p>
+    <p style="margin-bottom:0">
+      You can delete your account and everything in it, yourself, instantly, from the
+      Account page. It really does delete it all.
+    </p>
+  </div>
+
+  <h2>Who we are</h2>
+  <p>
+    Homebrew Libram and PC on Parchment are run by <strong>Appwrights Guild</strong>, a
+    small hobby project based in the United Kingdom. For data protection purposes,
+    Appwrights Guild is the data controller. You can reach us at
+    <a href="mailto:appwrightsguild@proton.me">appwrightsguild@proton.me</a>.
+  </p>
+  <p>
+    The two sites share one account system and one database. An account made on either
+    works on both, and anything that happens to your account — a password change, or
+    deletion — applies to both.
+  </p>
+
+  <h2>What we store</h2>
+
+  <h3>Your account</h3>
+  <ul>
+    <li>Your <strong>email address</strong>.</li>
+    <li>Your <strong>password</strong>, stored only as a cryptographic hash. We cannot read it, and neither can anyone else.</li>
+    <li>The dates you signed up, last signed in, and confirmed your email.</li>
+  </ul>
+
+  <h3>What you create</h3>
+  <ul>
+    <li><strong>Homebrew entries</strong> — names, descriptions, stat blocks, tags, campaign names and anything else you type in.</li>
+    <li><strong>Characters</strong> — the whole sheet, including free-text boxes like backstory, appearance and personality. Whatever you write there, we store.</li>
+    <li><strong>Images</strong> you upload for entry artwork or character portraits.</li>
+    <li><strong>Share links</strong> you create.</li>
+  </ul>
+  <p>
+    These are meant for game content, but they're free-text boxes — if you type personal
+    details into a character's backstory, that gets stored too. Worth bearing in mind.
+  </p>
+
+  <h3>How often you use the AI import</h3>
+  <p>
+    We record the date and time of each AI import you run, against your account. This is
+    only used to enforce a daily limit, so one account can't run up a large bill. It is
+    not used to build any profile of you.
+  </p>
+
+  <h2>Uploaded images are publicly accessible</h2>
+  <p>
+    This one deserves its own heading. Images you upload are stored in a
+    <strong>public</strong> location, so anyone who has the direct link to an image can
+    view it <strong>without signing in</strong>.
+  </p>
+  <p>
+    The links contain a long random identifier, so they can't realistically be guessed
+    or listed, and nothing points to them unless you share an entry. But they are not
+    protected by your password. Please don't upload anything you'd be unhappy for a
+    stranger to see if the link got out.
+  </p>
+  <p>
+    When you delete your account, your uploaded images are deleted too, and the links
+    stop working immediately.
+  </p>
+
+  <h2>The AI import</h2>
+  <p>
+    Both sites can read homebrew or a character sheet using AI. This only happens when
+    you choose to use it.
+  </p>
+  <p>
+    When you do, <strong>the text or image you submit is sent to OpenRouter</strong>, which
+    passes it to <strong>Google's Gemini model</strong> to be read and turned into
+    structured data. We don't control what those companies do with it, and their terms
+    apply once it reaches them. If that's not something you want, simply don't use the
+    import feature — everything can be typed in by hand instead.
+  </p>
+  <p>
+    Copying an entry from a shared libram does <em>not</em> use AI. That's a straight
+    copy inside our own database, and nothing leaves it.
+  </p>
+
+  <h2>Sharing</h2>
+  <p>
+    If you create a share link, anything covered by that link becomes readable by
+    <strong>anyone who has it</strong>, without signing in. That's the point of it, but
+    it's worth being deliberate — a link that gets forwarded is a link that works.
+    Entries you've marked DM-only are excluded from shared librams and never sent to the
+    browser.
+  </p>
+  <p>
+    Someone viewing your shared libram can copy entries into their own. Once they do,
+    that copy belongs to them, and it stays in their account even if you later delete
+    yours. Those copies carry the content only — nothing identifying you travels with
+    them. Revoking a share link, or deleting your account, kills the link immediately
+    but does not reach into other people's collections.
+  </p>
+
+  <h2>How long we keep it</h2>
+  <p>
+    Until you delete it. There's no automatic expiry: your homebrew and characters stay
+    put until you remove them or delete your account.
+  </p>
+  <p>
+    When you delete your account, everything goes <strong>immediately and
+    permanently</strong> — the account, your entries, your characters, your share links,
+    your usage records and your uploaded images, across both sites. There's no grace
+    period, no archive and no backup copy kept afterwards. We can't undo it, so please
+    be sure.
+  </p>
+
+  <h2>Why we're allowed to store it</h2>
+  <p>
+    Our lawful basis is <strong>performance of a contract</strong>. You asked us to keep
+    your homebrew and characters, and we can't do that without storing them. The same
+    applies to the AI import, which runs only when you choose to use it.
+  </p>
+
+  <h2>Who else touches it</h2>
+  <ul>
+    <li><strong>Vercel</strong> hosts the websites.</li>
+    <li><strong>Supabase</strong> hosts the database, the login system and the image storage.</li>
+    <li><strong>OpenRouter</strong> and <strong>Google</strong> receive whatever you submit to the AI import, and only that.</li>
+  </ul>
+  <p>
+    Vercel and Supabase keep their own server logs, which include your IP address as a
+    normal part of serving web traffic. We don't use those logs to profile you or combine
+    them with anything else.
+  </p>
+  <p>
+    We do not sell your data, share it for advertising, or pass it to anyone else.
+  </p>
+
+  <h2>Cookies and tracking</h2>
+  <p>
+    There are none. No analytics, no advertising, no tracking pixels, no third-party
+    fonts. The only thing kept in your browser is the token that keeps you signed in,
+    which is required for the site to work at all and isn't used for anything else.
+  </p>
+
+  <h2>Your rights</h2>
+  <p>Under UK data protection law you can:</p>
+  <ul>
+    <li><strong>See your data</strong> — most of it is on screen whenever you're signed in.</li>
+    <li><strong>Correct it</strong> — edit anything, any time.</li>
+    <li><strong>Delete it</strong> — the Account page does this yourself, instantly, with no need to ask us.</li>
+    <li><strong>Get a copy</strong> — we haven't built an export button yet. Email us and we'll send you your data.</li>
+    <li><strong>Object</strong> to how we use it, or ask us to restrict it.</li>
+  </ul>
+  <p>
+    Changing the email address on an account isn't something you can do yourself yet —
+    email us and we'll sort it.
+  </p>
+
+  <h2>Children</h2>
+  <p>
+    These sites need an account, so they're intended for users aged 13 or over. They
+    collect no personal details beyond an email address, and we'd suggest younger
+    players avoid putting real names or personal details into character sheets — good
+    practice at the table anyway.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    If we change what we collect or who we send it to, we'll update this page and the
+    date at the top.
+  </p>
+
+  <h2>Complaints</h2>
+  <p>
+    If you think we've handled your data badly, please tell us first at
+    <a href="mailto:appwrightsguild@proton.me">appwrightsguild@proton.me</a> and we'll try
+    to put it right. You also have the right to complain to the Information
+    Commissioner's Office, the UK's data protection regulator, at
+    <a href="https://ico.org.uk/make-a-complaint/" rel="noopener noreferrer">ico.org.uk</a>.
+  </p>
+
+  <footer>
+    Appwrights Guild · <a href="mailto:appwrightsguild@proton.me">appwrightsguild@proton.me</a>
+    <br />
+    <a href="/">← Back</a>
+  </footer>
+
+</main>
+</body>
+</html>
