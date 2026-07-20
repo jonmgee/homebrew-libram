@@ -16,6 +16,7 @@ import ResetPasswordPage from "./components/ResetPasswordPage";
 import SharedEntryPage from "./components/SharedEntryPage";
 import SharedLibramPage from "./components/SharedLibramPage";
 import ShareSettingsPage from "./components/ShareSettingsPage";
+import AccountPage from "./components/AccountPage";
 
 function App() {
   return (
@@ -35,6 +36,14 @@ function App() {
               element={
                 <AuthGuard>
                   <ShareSettingsPage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/account"
+              element={
+                <AuthGuard>
+                  <AccountPage />
                 </AuthGuard>
               }
             />

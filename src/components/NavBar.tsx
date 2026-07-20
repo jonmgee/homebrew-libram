@@ -35,9 +35,22 @@ export default function NavBar() {
               <span className="hidden sm:inline">+ New Entry</span>
             </Link>
           )}
-          <span className="hidden text-xs text-[var(--color-footnotes)]/70 sm:inline">
+          {/* Email doubles as the account link on desktop; phones get a plain
+              "Account" instead, since the email is hidden there and the page
+              holds password change and account deletion — it has to be
+              reachable on the device people actually use. */}
+          <Link
+            to="/account"
+            className="phb-small-sc whitespace-nowrap rounded-md px-2 py-1 text-xs font-bold uppercase tracking-wider text-[var(--color-footnotes)]/80 transition-colors hover:text-[var(--color-gilding-light)] sm:hidden"
+          >
+            Account
+          </Link>
+          <Link
+            to="/account"
+            className="hidden text-xs text-[var(--color-footnotes)]/70 underline underline-offset-2 transition-colors hover:text-[var(--color-gilding-light)] sm:inline"
+          >
             {user.email}
-          </span>
+          </Link>
           <button
             type="button"
             onClick={signOut}
