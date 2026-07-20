@@ -11,6 +11,7 @@ import {
 import { formatEntryType, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
 import type { EntryType, DbEntry } from "../types";
 import { saveEntryWithImage } from "../lib/uploadImage";
+import { supabase } from "../lib/supabase";
 import { useDuplicateNameCheck } from "../lib/useDuplicateNameCheck";
 import { DuplicateNameWarning } from "./DuplicateNameWarning";
 import MonsterForm, { abilMod, modStr, crToProf, CR_LIST, SIZE_LIST, ABILITIES, SKILL_LIST, SKILL_ABIL, useTags as useMonsterTags, TagRow, RepeatBlock } from "./MonsterForm";
@@ -1088,9 +1089,17 @@ async function callParseApi(payload: {
   image?: string;
   entryType: EntryType;
 }): Promise<ParseResult> {
+  // The endpoint spends money on OpenRouter, so it now requires a signed-in
+  // user. Pass this session's access token for it to verify.
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Please sign in to use this feature.");
+
   const res = await fetch("/api/parse-entry", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
