@@ -3,15 +3,18 @@ import { useAuth } from "../context/AuthContext";
 
 /**
  * Shared header layout with PC on Parchment: site name on the left, then a
- * right-hand cluster of [primary action] [secondary] [Account] [Sign out].
- * Primary is filled, everything else is outlined and the same size, so the
- * hierarchy reads at a glance. Colours stay Libram's own.
+ * right-hand cluster of [primary action] [secondary] [Account]. Primary is
+ * filled, everything else is outlined and the same size, so the hierarchy
+ * reads at a glance. Colours stay Libram's own.
  *
- * Previously these four controls had four different treatments — plain text,
+ * Previously these controls had four different treatments — plain text,
  * outlined, an underlined email standing in for a button, and plain text again.
+ *
+ * Signing out lives on the Account page rather than as its own pill — it's a
+ * rare action, and dropping it keeps this ribbon uncluttered on mobile.
  */
 export default function NavBar() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
 
   if (!user) return null;
@@ -48,9 +51,6 @@ export default function NavBar() {
           <Link to="/account" className={secondary}>
             Account
           </Link>
-          <button type="button" onClick={signOut} className={secondary}>
-            Sign out
-          </button>
         </div>
       </nav>
     </header>

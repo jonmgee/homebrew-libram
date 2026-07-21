@@ -147,6 +147,11 @@ export default function AccountPage() {
     setPwDone(true);
   }
 
+  async function handleSignOut() {
+    await signOut();
+    navigate("/login", { replace: true });
+  }
+
   async function handleDelete() {
     setDelError(null);
     setDeleting(true);
@@ -209,6 +214,15 @@ export default function AccountPage() {
             What we store, and who else sees it
           </a>
         </p>
+        {/* Signing out lives here rather than as a header pill — a rare
+            action, and it keeps the top ribbon clear on mobile. */}
+        <button
+          type="button"
+          onClick={() => void handleSignOut()}
+          className="phb-small-sc mt-4 cursor-pointer rounded-md border border-[var(--color-gilding-dark)] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[var(--color-caption)] transition-colors hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
+        >
+          Sign out
+        </button>
       </div>
 
       {/* ── Change password ── */}
