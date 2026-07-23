@@ -106,8 +106,8 @@ export default function AccountPage() {
     setPwError(null);
     setPwDone(false);
 
-    if (newPassword.length < 6) {
-      setPwError("New password must be at least 6 characters.");
+    if (newPassword.length < 8) {
+      setPwError("New password must be at least 8 characters.");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -254,7 +254,7 @@ export default function AccountPage() {
               id="new"
               type="password"
               autoComplete="new-password"
-              placeholder="At least 6 characters"
+              placeholder="At least 8 characters"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="parchment-input w-full rounded-lg px-3 py-2 text-sm"
