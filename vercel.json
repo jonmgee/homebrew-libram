@@ -8,6 +8,14 @@
   ],
   "headers": [
     {
+      "source": "/(login|reset-password|account|share-libram|create|browse|entry)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/(share|create|browse|entry)/(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {

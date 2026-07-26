@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Private and account routes are excluded via an X-Robots-Tag: noindex header
+# (see vercel.json) rather than Disallow — crawlers must be able to fetch a URL
+# in order to see the noindex directive on it.
+
+Sitemap: https://homebrewlibram.com/sitemap.xml

@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string): Promise<{ error: string | null; user: User | null }> => {
-    // Homebrew Libram and PCs & Parchment share one Supabase project, so they
+    // Homebrew Libram and PC on Parchment share one Supabase project, so they
     // share one Site URL. Without an explicit redirect, every confirmation
     // email lands on whichever app the Site URL points at — regardless of
     // where the person actually signed up. Send them back where they started.
