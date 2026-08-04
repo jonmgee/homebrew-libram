@@ -13,8 +13,8 @@ const CARD_IMAGES: Record<string, string> = {
 };
 
 const CARD_SUBTITLES: Record<string, string> = {
-  treasure: "Weapons, armour, magic items, potions, gear, trinkets",
-  arcana: "Spells and scrolls",
+  treasure: "Weapons, armour, magic items, potions & misc",
+  arcana: "Spells",
   creatures: "Monsters and NPCs",
   character_options: "Backgrounds, feats, subclasses",
   tables: "Random tables and generators",

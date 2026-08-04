@@ -3,7 +3,7 @@ import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { getCategory, formatEntryType, type DbEntry } from "../types";
 import { entrySummary } from "../lib/entrySummary";
-import { getTypesForSubCategory } from "../lib/subcategories";
+import { getSubCategories, getTypesForSubCategory } from "../lib/subcategories";
 import StarRating from "./StarRating";
 
 type LoadState = "loading" | "loaded" | "error";
@@ -39,8 +39,10 @@ export default function BrowsePage() {
   } else if (subcategory) {
     const subLabel = subcategory.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     heading = subLabel;
-    backTo = `/browse/${category}`;
-    backLabel = cat?.label ?? "Category";
+    // Categories with a single sub-category skip their picker page, so go home
+    const hasPickerPage = cat ? getSubCategories(cat.slug).length > 1 : false;
+    backTo = hasPickerPage ? `/browse/${category}` : "/";
+    backLabel = hasPickerPage ? (cat?.label ?? "Category") : "Home";
   } else {
     heading = cat?.label ?? "Unknown Category";
     backTo = "/";

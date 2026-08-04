@@ -7,7 +7,7 @@ import EntryForm from "./EntryForm";
 
 const CATEGORY_ORDER: Record<string, EntryType[]> = {
   treasure: ["magic_item", "weapon", "armour", "potion", "adventuring_gear", "trinket"],
-  arcana: ["spell", "scroll"],
+  arcana: ["spell"],
   creatures: ["monster", "npc"],
   character_options: ["background", "feat", "subclass"],
 };
@@ -41,25 +41,25 @@ export default function CreateEntryInputPage() {
   // If it's a category slug, get the types for the dropdown
   const catTypes = useMemo(() => {
     if (!categorySlug) return [];
-    // Tables: no dropdown, go straight to table form
     if (categorySlug === "tables") return ["table" as EntryType];
     return CATEGORY_ORDER[categorySlug] ?? [];
   }, [categorySlug]);
 
-  const isTablesDirect = categorySlug === "tables";
+  // Categories with a single type (tables, arcana): no dropdown, straight to the form
+  const singleType = catTypes.length === 1 ? catTypes[0] : null;
 
-  // The entry type to render: either direct, or dropdown-selected, or table
-  const entryType = directType ?? (isTablesDirect ? "table" as EntryType : selectedType);
+  // The entry type to render: either direct, or single-type category, or dropdown-selected
+  const entryType = directType ?? singleType ?? selectedType;
 
-  // Only show heading/dropdown when it's a category with subtypes
-  const showSubtypePicker = !!categorySlug && !isTablesDirect;
+  // Only show heading/dropdown when it's a category with multiple subtypes
+  const showSubtypePicker = !!categorySlug && !singleType;
 
   // Heading text
   let heading: string;
   if (directType) {
     heading = formatEntryType(directType);
-  } else if (isTablesDirect) {
-    heading = "Table";
+  } else if (singleType) {
+    heading = formatEntryType(singleType);
   } else if (categorySlug) {
     const cat = getCategory(categorySlug);
     heading = `New ${cat?.label ?? categorySlug}`;

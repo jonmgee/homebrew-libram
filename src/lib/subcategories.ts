@@ -14,16 +14,16 @@ const SUBCATEGORY_MAP: Record<string, string> = {
   wondrous_item: "Magic Items",
   magic_item: "Magic Items",
   potion: "Potions",
-  adventuring_gear: "Adventuring Gear",
-  trinket: "Trinkets",
+  adventuring_gear: "Misc",
+  trinket: "Misc",
   spell: "Spells",
-  scroll: "Scrolls",
+  scroll: "Spells",
   monster: "Monsters",
   npc: "NPCs",
   background: "Backgrounds",
   feat: "Feats",
   subclass: "Subclasses",
-  table: "Misc",
+  table: "Tables",
 };
 
 export function getSubcategoryLabel(entryType: string): string {
@@ -52,12 +52,6 @@ export function getSubCategories(categorySlug: string): SubCategoryDef[] {
       subMap.set(slug, { slug, label, types: [] });
     }
     subMap.get(slug)!.types.push(entryType);
-  }
-
-  // Ensure a "Misc" exists even if no type maps to it
-  const miscSlug = "misc";
-  if (!subMap.has(miscSlug)) {
-    subMap.set(miscSlug, { slug: miscSlug, label: "Misc", types: [] });
   }
 
   return Array.from(subMap.values());

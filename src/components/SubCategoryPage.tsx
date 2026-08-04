@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
 import { getCategory } from "../types";
@@ -79,6 +79,12 @@ export default function SubCategoryPage() {
   }
 
   const subCategories = getSubCategories(cat.slug);
+
+  // Single sub-category: no picker needed, go straight to the list
+  const onlySub = subCategories.length === 1 ? subCategories[0] : undefined;
+  if (onlySub) {
+    return <Navigate to={`/browse/${cat.slug}/${onlySub.slug}`} replace />;
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
