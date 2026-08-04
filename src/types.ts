@@ -80,7 +80,7 @@ const ENTRY_TYPE_LABELS: Record<string, string> = {
   weapon: "Weapon",
   wondrous_item: "Magic Item",
   potion: "Potion",
-  adventuring_gear: "Adventuring Gear",
+  adventuring_gear: "Misc",
   trinket: "Trinket",
   spell: "Spell",
   scroll: "Scroll",

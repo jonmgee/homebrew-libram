@@ -6,7 +6,7 @@ import { CustomSelect } from "./MonsterForm";
 import EntryForm from "./EntryForm";
 
 const CATEGORY_ORDER: Record<string, EntryType[]> = {
-  treasure: ["magic_item", "weapon", "armour", "potion", "adventuring_gear", "trinket"],
+  treasure: ["magic_item", "weapon", "armour", "potion", "adventuring_gear"],
   arcana: ["spell"],
   creatures: ["monster", "npc"],
   character_options: ["background", "feat", "subclass"],
