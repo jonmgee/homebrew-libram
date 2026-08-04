@@ -1084,6 +1084,39 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+/**
+ * Downscale and re-encode an image before upload. Vercel rejects request
+ * bodies over 4.5MB at the platform level (a hard 413, before our code
+ * runs), and a single full-res iPad screenshot as PNG can blow that on
+ * its own once base64 adds a third. At this size the text is still
+ * perfectly legible to the model. Artwork cropping is unaffected: the
+ * AI returns coordinates normalized to 0-1000, applied to the original.
+ */
+const MAX_IMAGE_DIMENSION = 1568;
+
+async function prepareImage(file: File): Promise<string> {
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * scale));
+    const h = Math.max(1, Math.round(bmp.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return fileToBase64(file);
+    // JPEG has no alpha — flatten transparent PNGs onto white, not black
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(bmp, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    return dataUrl.slice(dataUrl.indexOf(",") + 1);
+  } catch {
+    // Undecodable image — send it untouched rather than block the import
+    return fileToBase64(file);
+  }
+}
+
 async function callParseApi(payload: {
   text?: string;
   image?: string;
@@ -1103,6 +1136,11 @@ async function callParseApi(payload: {
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
+    // 413 comes from Vercel's platform body-size cap, not our API, so the
+    // body is an HTML error page rather than JSON — name the real problem.
+    if (res.status === 413) {
+      throw new Error("Images too large to upload — try fewer images at once.");
+    }
     const err = await res.json().catch(() => ({ error: "Request failed" }));
     throw new Error(err.error ?? "Parse request failed");
   }
@@ -1206,7 +1244,7 @@ function ImportTab({
 
     for (const { file } of sources) {
       if (file.type.startsWith("image/")) {
-        images.push(await fileToBase64(file));
+        images.push(await prepareImage(file));
       } else if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
         textParts.push(await extractPdfText(file));
       } else {

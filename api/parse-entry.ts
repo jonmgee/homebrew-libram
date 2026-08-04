@@ -226,6 +226,15 @@ function stripMarkdownFence(raw: string): string {
   return raw.replace(/^```(?:json)?\s*/gm, "").replace(/```\s*$/gm, "").trim();
 }
 
+/** The client now re-encodes uploads as JPEG, but older cached bundles and
+ *  pasted screenshots still send PNG — label each image by its actual bytes. */
+function sniffImageMime(b64: string): string {
+  if (b64.startsWith("/9j/")) return "image/jpeg";
+  if (b64.startsWith("UklGR")) return "image/webp";
+  if (b64.startsWith("R0lGOD")) return "image/gif";
+  return "image/png";
+}
+
 /* ──────── Access control ────────
  * This endpoint spends real money on OpenRouter. It used to accept anonymous
  * POSTs from any origin, so anyone could drain the account or embed it in
@@ -382,7 +391,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           { type: "text", text: prompt + (typeof text === "string" ? text : "") },
           ...imageList.map((img) => ({
             type: "image_url",
-            image_url: { url: `data:image/png;base64,${img}`, detail: "high" },
+            image_url: { url: `data:${sniffImageMime(img)};base64,${img}`, detail: "high" },
           })),
         ],
       });
