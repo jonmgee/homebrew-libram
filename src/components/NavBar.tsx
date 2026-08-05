@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 /**
@@ -15,11 +15,8 @@ import { useAuth } from "../context/AuthContext";
  */
 export default function NavBar() {
   const { user } = useAuth();
-  const location = useLocation();
 
   if (!user) return null;
-
-  const onHome = location.pathname === "/";
 
   // Same footprint for every non-primary control.
   const secondary =
@@ -39,12 +36,13 @@ export default function NavBar() {
         </Link>
 
         <div className="flex items-center gap-2">
-          {!onHome && (
-            <Link to="/create" className={primary}>
-              <span className="sm:hidden">+ New</span>
-              <span className="hidden sm:inline">+ New Entry</span>
-            </Link>
-          )}
+          {/* Shown on every page, home included. It used to be hidden on home
+              as a duplicate of the hero link, but a control that appears and
+              disappears as you navigate is worse than a redundant one. */}
+          <Link to="/create" className={primary}>
+            <span className="sm:hidden">+ New</span>
+            <span className="hidden sm:inline">+ New Entry</span>
+          </Link>
           {/* Bookmarks sit here because they're reached constantly at the
               table. Sharing the whole libram — a rare, one-off action —
               moved to the Account page to make room. */}
@@ -53,7 +51,7 @@ export default function NavBar() {
             className={`${secondary} inline-flex items-center gap-1.5 !px-2.5`}
             title="Saved for the Table"
           >
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden="true">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
               <path
                 d="M6.5 3h11a1 1 0 0 1 1 1v17l-6.5-4.1L5.5 21V4a1 1 0 0 1 1-1z"
                 fill="var(--color-crimson)"
@@ -65,8 +63,21 @@ export default function NavBar() {
             <span className="hidden sm:inline">Table</span>
             <span className="sr-only sm:hidden">Saved for the Table</span>
           </Link>
-          <Link to="/account" className={secondary}>
-            Account
+          {/* Icon-only on mobile, like the ribbon: at 375px the four full
+              labels overflowed the bar and scrolled the whole page sideways. */}
+          <Link
+            to="/account"
+            className={`${secondary} inline-flex items-center gap-1.5 !px-2.5`}
+            title="Account"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+              <path
+                d="M12 12a4.25 4.25 0 1 0 0-8.5 4.25 4.25 0 0 0 0 8.5zm0 1.9c-4 0-7.25 2.4-7.25 5.35 0 .58.47 1.05 1.05 1.05h12.4c.58 0 1.05-.47 1.05-1.05 0-2.95-3.25-5.35-7.25-5.35z"
+                fill="currentColor"
+              />
+            </svg>
+            <span className="hidden sm:inline">Account</span>
+            <span className="sr-only sm:hidden">Account</span>
           </Link>
         </div>
       </nav>
