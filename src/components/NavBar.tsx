@@ -49,7 +49,7 @@ export default function NavBar() {
           <Link
             to="/browse/bookmarks"
             className={`${secondary} inline-flex items-center gap-1.5 !px-2.5`}
-            title="Saved for the Table"
+            title="Bookmarks"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
               <path
@@ -60,11 +60,13 @@ export default function NavBar() {
                 strokeLinejoin="round"
               />
             </svg>
-            <span className="hidden sm:inline">Table</span>
-            <span className="sr-only sm:hidden">Saved for the Table</span>
+            <span className="hidden md:inline">Bookmarks</span>
+            <span className="sr-only md:hidden">Bookmarks</span>
           </Link>
-          {/* Icon-only on mobile, like the ribbon: at 375px the four full
-              labels overflowed the bar and scrolled the whole page sideways. */}
+          {/* Both secondary controls stay icon-only below md. At 375px the
+              full labels overflowed the bar and scrolled the whole page
+              sideways; at 640px they fit with zero pixels to spare, which
+              one font-metric difference would break. */}
           <Link
             to="/account"
             className={`${secondary} inline-flex items-center gap-1.5 !px-2.5`}
@@ -76,8 +78,8 @@ export default function NavBar() {
                 fill="currentColor"
               />
             </svg>
-            <span className="hidden sm:inline">Account</span>
-            <span className="sr-only sm:hidden">Account</span>
+            <span className="hidden md:inline">Account</span>
+            <span className="sr-only md:hidden">Account</span>
           </Link>
         </div>
       </nav>

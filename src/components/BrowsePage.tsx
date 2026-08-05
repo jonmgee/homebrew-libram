@@ -35,7 +35,7 @@ export default function BrowsePage() {
   let backLabel: string;
 
   if (isBookmarks) {
-    heading = "Saved for the Table";
+    heading = "Bookmarks";
     backTo = "/";
     backLabel = "Home";
   } else if (isAll) {
@@ -118,7 +118,7 @@ export default function BrowsePage() {
   }, [category, subcategory, isAll, isBookmarks, cat]);
 
   /** Toggling from a card keeps the row visible until you navigate away, so
-   *  an accidental un-bookmark on the table list can be clicked straight back. */
+   *  an accidental un-bookmark on the bookmarks list can be clicked straight back. */
   async function toggleBookmark(id: string, next: boolean) {
     setEntries((prev) =>
       prev.map((e) => (e.id === id ? { ...e, bookmarked: next } : e)),
@@ -282,7 +282,7 @@ export default function BrowsePage() {
               {search.trim()
                 ? "No entries match your search."
                 : isBookmarks
-                  ? "Nothing saved for the table yet. Tap the bookmark ribbon on any entry to add it here."
+                  ? "No bookmarks yet. Tap the bookmark ribbon on any entry to add it here."
                   : "No entries yet in this category."}
             </p>
           ) : (

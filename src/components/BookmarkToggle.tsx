@@ -13,7 +13,7 @@ function Ribbon({ filled }: { filled: boolean }) {
 }
 
 /**
- * Crimson bookmark ribbon marking an entry as "saved for the table".
+ * Crimson bookmark ribbon marking an entry as bookmarked.
  * Interactive when `onChange` is given, read-only otherwise — mirrors
  * StarRating, which sits beside it.
  */
@@ -41,8 +41,8 @@ export default function BookmarkToggle({
       <span
         className={`${dim} inline-block shrink-0 align-middle`}
         role="img"
-        aria-label="Saved for the table"
-        title="Saved for the table"
+        aria-label="Bookmarked"
+        title="Bookmarked"
       >
         <Ribbon filled />
       </span>
@@ -55,10 +55,10 @@ export default function BookmarkToggle({
       aria-pressed={on}
       aria-label={
         on
-          ? `Remove ${name ?? "this entry"} from the table list`
-          : `Save ${name ?? "this entry"} for the table`
+          ? `Remove bookmark from ${name ?? "this entry"}`
+          : `Bookmark ${name ?? "this entry"}`
       }
-      title={on ? "Saved for the table — click to remove" : "Save for the table"}
+      title={on ? "Bookmarked — click to remove" : "Add bookmark"}
       className={
         className ??
         `${dim} cursor-pointer transition-transform hover:scale-115 focus-visible:outline-2 focus-visible:outline-[var(--color-crimson)]`
