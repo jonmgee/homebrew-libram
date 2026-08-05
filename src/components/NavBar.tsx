@@ -45,8 +45,25 @@ export default function NavBar() {
               <span className="hidden sm:inline">+ New Entry</span>
             </Link>
           )}
-          <Link to="/share-libram" className={secondary}>
-            Share
+          {/* Bookmarks sit here because they're reached constantly at the
+              table. Sharing the whole libram — a rare, one-off action —
+              moved to the Account page to make room. */}
+          <Link
+            to="/browse/bookmarks"
+            className={`${secondary} inline-flex items-center gap-1.5 !px-2.5`}
+            title="Saved for the Table"
+          >
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden="true">
+              <path
+                d="M6.5 3h11a1 1 0 0 1 1 1v17l-6.5-4.1L5.5 21V4a1 1 0 0 1 1-1z"
+                fill="var(--color-crimson)"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="hidden sm:inline">Table</span>
+            <span className="sr-only sm:hidden">Saved for the Table</span>
           </Link>
           <Link to="/account" className={secondary}>
             Account

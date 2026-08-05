@@ -30,7 +30,6 @@ const hoverTransition = { type: "spring" as const, stiffness: 300, damping: 15, 
 export default function HomePage() {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [total, setTotal] = useState(0);
-  const [bookmarked, setBookmarked] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,7 +37,7 @@ export default function HomePage() {
     async function fetchCounts() {
       const { data, error } = await supabase
         .from("entries")
-        .select("type, bookmarked");
+        .select("type");
 
       if (cancelled || error) return;
 
@@ -48,7 +47,6 @@ export default function HomePage() {
       }
       setCounts(typeCounts);
       setTotal(data?.length ?? 0);
-      setBookmarked((data ?? []).filter((r) => r.bookmarked).length);
     }
 
     fetchCounts();
@@ -115,51 +113,6 @@ export default function HomePage() {
         animate="visible"
         variants={containerVariants}
       >
-        {/* Session-prep list, first because it's what you reach for on game
-            night. No AI artwork for this one — a parchment leaf with a
-            ribbon marker, drawn to sit alongside the painted tiles. */}
-        <MotionLink
-          to="/browse/bookmarks"
-          className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
-          variants={cardVariants}
-          whileHover={{ scale: 1.02 }}
-          transition={hoverTransition}
-        >
-          <img
-            src="/assets/parchmentBackground.jpg"
-            alt=""
-            className="h-full w-full object-cover"
-          />
-          {/* Warm wash + vignette: raw parchment reads as a missing image
-              next to six dark painted tiles. */}
-          <div className="absolute inset-0 bg-[#3a2713]/70" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(0,0,0,0.6)_100%)]" />
-          <div className="absolute inset-0 flex items-center justify-center pb-[12%]">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-[44%] w-auto drop-shadow-[0_4px_6px_rgba(0,0,0,0.6)]"
-              aria-hidden="true"
-            >
-              <path
-                d="M6.5 3h11a1 1 0 0 1 1 1v17l-6.5-4.1L5.5 21V4a1 1 0 0 1 1-1z"
-                fill="var(--color-crimson)"
-                stroke="var(--color-gilding)"
-                strokeWidth="1.2"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/80 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-4">
-            <h2 className="font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
-              Saved for the Table
-            </h2>
-            <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
-              {bookmarked} entr{bookmarked === 1 ? "y" : "ies"}
-            </p>
-          </div>
-        </MotionLink>
-
         {CATEGORIES.map((cat) => {
           const entryCount = categoryCount(cat);
           return (

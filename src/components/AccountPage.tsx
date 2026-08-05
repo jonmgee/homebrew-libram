@@ -225,6 +225,24 @@ export default function AccountPage() {
         </button>
       </div>
 
+      {/* ── Share libram ── */}
+      {/* Moved off the header ribbon: sharing the whole collection is a rare
+          one-off, unlike the per-entry Share button on each detail page. */}
+      <div className="parchment-card gilded-border mb-6 p-6">
+        <h2 className="phb-h1 !text-xl">Share your libram</h2>
+        <p className="phb-body mt-2 text-xs italic text-[var(--color-caption)]">
+          Creates one public link to your whole collection. DM-only entries are
+          never included. Sharing a single entry is done from that entry's own
+          page.
+        </p>
+        <Link
+          to="/share-libram"
+          className="phb-small-sc mt-4 inline-block cursor-pointer rounded-md border border-[var(--color-gilding-dark)] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[var(--color-caption)] transition-colors hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
+        >
+          Share settings
+        </Link>
+      </div>
+
       {/* ── Change password ── */}
       <div className="parchment-card gilded-border mb-6 p-6">
         <h2 className="phb-h1 !text-xl">Change password</h2>
