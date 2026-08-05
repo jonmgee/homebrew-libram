@@ -63,6 +63,15 @@ function App() {
                 </AuthGuard>
               }
             />
+            {/* Must precede /browse/:category, which renders the tile picker */}
+            <Route
+              path="/browse/bookmarks"
+              element={
+                <AuthGuard>
+                  <BrowsePage />
+                </AuthGuard>
+              }
+            />
             <Route
               path="/browse/:category"
               element={

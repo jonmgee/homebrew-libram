@@ -137,6 +137,8 @@ export interface DbEntry {
   properties: Record<string, unknown>;
   /** Personal star rating, 1–5; null/undefined = unrated */
   rating?: number | null;
+  /** Saved to the "at the table" list for an upcoming session */
+  bookmarked?: boolean | null;
   /** Public share link token; null/undefined = not shared */
   share_token?: string | null;
 }

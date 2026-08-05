@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { formatEntryType, type DbEntry } from "../types";
 import MarkdownDescription from "./MarkdownDescription";
 import StarRating from "./StarRating";
+import BookmarkToggle from "./BookmarkToggle";
 import { CopyLinkField } from "./ShareSettingsPage";
 import SpellDetail from "./SpellDetail";
 import MonsterDetail from "./MonsterDetail";
@@ -251,6 +252,17 @@ export default function EntryDetailPage() {
     }
   }
 
+  async function handleBookmark(bookmarked: boolean) {
+    if (!entry) return;
+    const previous = !!entry.bookmarked;
+    setEntry({ ...entry, bookmarked }); // optimistic
+    const { error } = await supabase.from("entries").update({ bookmarked }).eq("id", entry.id);
+    if (error) {
+      console.error("Failed to save bookmark:", error);
+      setEntry((e) => (e ? { ...e, bookmarked: previous } : e));
+    }
+  }
+
   async function handleDelete() {
     if (!id) return;
     const { error } = await supabase.from("entries").delete().eq("id", id);
@@ -307,11 +319,18 @@ export default function EntryDetailPage() {
       )}
       <div className="parchment-card gilded-border page-enter mt-4 p-6 sm:p-8">
         <div className="mb-4 flex items-center justify-between gap-1.5">
-          <StarRating
-            value={entry.rating}
-            onChange={handleRate}
-            label={`Rate ${entry.name}`}
-          />
+          <div className="flex items-center gap-3">
+            <StarRating
+              value={entry.rating}
+              onChange={handleRate}
+              label={`Rate ${entry.name}`}
+            />
+            <BookmarkToggle
+              value={entry.bookmarked}
+              onChange={handleBookmark}
+              name={entry.name}
+            />
+          </div>
           <div className="flex items-center gap-1.5">
           <button
             onClick={handleShareToggle}

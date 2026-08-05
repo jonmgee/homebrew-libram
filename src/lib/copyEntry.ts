@@ -3,7 +3,7 @@ import type { DbEntry } from "../types";
 
 /**
  * Clone a shared entry into the signed-in user's own libram.
- * Rating and share state are personal, so they don't copy across.
+ * Rating, bookmark and share state are personal, so they don't copy across.
  * Returns the new entry's id.
  */
 export async function copyEntryToMyLibram(entry: DbEntry): Promise<string> {

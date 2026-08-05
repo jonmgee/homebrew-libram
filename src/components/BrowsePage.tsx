@@ -5,6 +5,7 @@ import { getCategory, formatEntryType, type DbEntry } from "../types";
 import { entrySummary } from "../lib/entrySummary";
 import { getSubCategories, getTypesForSubCategory } from "../lib/subcategories";
 import StarRating from "./StarRating";
+import BookmarkToggle from "./BookmarkToggle";
 
 type LoadState = "loading" | "loaded" | "error";
 type SortMode = "name" | "rating" | "newest";
@@ -24,15 +25,20 @@ export default function BrowsePage() {
   const { category, subcategory } = useParams<{ category: string; subcategory?: string }>();
   const location = useLocation();
   const isAll = category === "all" || location.pathname === "/browse/all";
+  const isBookmarks = category === "bookmarks" || location.pathname === "/browse/bookmarks";
 
-  const cat = isAll ? undefined : getCategory(category ?? "");
+  const cat = isAll || isBookmarks ? undefined : getCategory(category ?? "");
 
   // Build heading and back link
   let heading = "";
   let backTo: string;
   let backLabel: string;
 
-  if (isAll) {
+  if (isBookmarks) {
+    heading = "Saved for the Table";
+    backTo = "/";
+    backLabel = "Home";
+  } else if (isAll) {
     heading = "All Entries";
     backTo = "/";
     backLabel = "Home";
@@ -72,7 +78,9 @@ export default function BrowsePage() {
           .select("*")
           .order("name", { ascending: true });
 
-        if (isAll) {
+        if (isBookmarks) {
+          query = query.eq("bookmarked", true);
+        } else if (isAll) {
           // no filter — all entries
         } else if (subcategory && cat) {
           const types = getTypesForSubCategory(cat.slug, subcategory);
@@ -107,7 +115,25 @@ export default function BrowsePage() {
     return () => {
       cancelled = true;
     };
-  }, [category, subcategory, isAll, cat]);
+  }, [category, subcategory, isAll, isBookmarks, cat]);
+
+  /** Toggling from a card keeps the row visible until you navigate away, so
+   *  an accidental un-bookmark on the table list can be clicked straight back. */
+  async function toggleBookmark(id: string, next: boolean) {
+    setEntries((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, bookmarked: next } : e)),
+    );
+    const { error } = await supabase
+      .from("entries")
+      .update({ bookmarked: next })
+      .eq("id", id);
+    if (error) {
+      console.error("Failed to save bookmark:", error);
+      setEntries((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, bookmarked: !next } : e)),
+      );
+    }
+  }
 
   // ───── filtered view ─────
   const filtered = useMemo(() => {
@@ -255,7 +281,9 @@ export default function BrowsePage() {
             <p className="phb-description py-12 text-center">
               {search.trim()
                 ? "No entries match your search."
-                : "No entries yet in this category."}
+                : isBookmarks
+                  ? "Nothing saved for the table yet. Tap the bookmark ribbon on any entry to add it here."
+                  : "No entries yet in this category."}
             </p>
           ) : (
             <div className="space-y-2">
@@ -288,7 +316,7 @@ export default function BrowsePage() {
                           {entry.dm_only && (
                             <span className="dm-stamp shrink-0">DM</span>
                           )}
-                          {isAll && (
+                          {(isAll || isBookmarks) && (
                             <span className="wax-seal shrink-0">
                               {formatEntryType(entry.type)}
                             </span>
@@ -319,6 +347,13 @@ export default function BrowsePage() {
                           </div>
                         ) : (
                           <>
+                            <BookmarkToggle
+                              value={entry.bookmarked}
+                              name={entry.name}
+                              size="sm"
+                              className="quiet-action"
+                              onChange={(next) => toggleBookmark(entry.id, next)}
+                            />
                             <Link
                               to={`/entry/${entry.id}/edit`}
                               className="quiet-action"
