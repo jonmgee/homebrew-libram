@@ -274,8 +274,9 @@ export default function AccountPage() {
         <h2 className="phb-h1 !text-xl">Email updates</h2>
         <p className="phb-body mt-2 text-xs italic text-[var(--color-caption)]">
           Very occasionally we email about new features, or other Appwrights
-          Guild apps. One preference covers both sites, and it never affects
-          account emails like password resets.
+          Guild apps. We won't annoy you with nonsense, and we will never
+          sell your details — to anyone, ever. One preference covers both
+          sites, and it never affects account emails like password resets.
         </p>
         <label className="mt-4 flex cursor-pointer items-start gap-3">
           <input

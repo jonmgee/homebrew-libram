@@ -208,8 +208,9 @@ export default function LoginPage() {
                 className="mt-0.5 h-4 w-4 accent-[#C9A84C]"
               />
               <span className="phb-body text-xs leading-snug text-white/80">
-                Email me about new features and other Appwrights Guild apps —
-                occasional, and changeable any time in your account.
+                Email me about new features and other Appwrights Guild apps.
+                Occasional, changeable any time in your account — and we will
+                never sell your details, to anyone, ever.
               </span>
             </label>
           )}
