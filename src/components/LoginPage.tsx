@@ -27,6 +27,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [confirmMsg, setConfirmMsg] = useState<string | null>(null);
+  /** Ticked = happy to hear from us. Pre-ticked, but shown at the moment
+   *  the address is collected — which is what makes emailing later
+   *  defensible. Changeable any time on either app's account page. */
+  const [wantsEmail, setWantsEmail] = useState(true);
 
   const handleSignIn = async (e: FormEvent) => {
     e.preventDefault();
@@ -57,7 +61,7 @@ export default function LoginPage() {
     setSending(true);
     setError(null);
     setConfirmMsg(null);
-    const { error: err, user } = await signUp(email.trim(), password);
+    const { error: err, user } = await signUp(email.trim(), password, !wantsEmail);
     setSending(false);
     if (err) {
       setError(err);
@@ -191,6 +195,23 @@ export default function LoginPage() {
                 className="phb-body w-full rounded-lg border border-white/30 bg-white/30 px-4 py-2.5 text-sm text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:outline-none"
               />
             </div>
+          )}
+
+          {/* Email-updates preference (sign up only) — same flag as PC on
+              Parchment; one account, one preference. */}
+          {mode === "signup" && (
+            <label className="flex cursor-pointer items-start gap-2.5">
+              <input
+                type="checkbox"
+                checked={wantsEmail}
+                onChange={(e) => setWantsEmail(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-[#C9A84C]"
+              />
+              <span className="phb-body text-xs leading-snug text-white/80">
+                Email me about new features and other Appwrights Guild apps —
+                occasional, and changeable any time in your account.
+              </span>
+            </label>
           )}
 
           {/* Forgot password link (sign in only) */}

@@ -12,7 +12,7 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: string | null; user: User | null }>;
+  signUp: (email: string, password: string, contactOptOut?: boolean) => Promise<{ error: string | null; user: User | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
@@ -44,7 +44,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   };
 
-  const signUp = async (email: string, password: string): Promise<{ error: string | null; user: User | null }> => {
+  const signUp = async (
+    email: string,
+    password: string,
+    contactOptOut = false,
+  ): Promise<{ error: string | null; user: User | null }> => {
     // Homebrew Libram and PC on Parchment share one Supabase project, so they
     // share one Site URL. Without an explicit redirect, every confirmation
     // email lands on whichever app the Site URL points at — regardless of
@@ -52,7 +56,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        // The email-updates preference, recorded from the moment the account
+        // exists. Only an explicit opt-out is stored; changeable any time on
+        // either app's account page.
+        data: { contact_opt_out: contactOptOut },
+      },
     });
     return { error: error?.message ?? null, user: data.user };
   };

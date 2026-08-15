@@ -95,6 +95,32 @@ export default function AccountPage() {
   const [pwDone, setPwDone] = useState(false);
   const [pwSaving, setPwSaving] = useState(false);
 
+  // ── Contact preference ──
+  // Mirrors PC on Parchment's toggle exactly — one account, one flag
+  // (contact_opt_out in auth user metadata), so whichever app someone
+  // changes it in wins. Absent means contactable; only an explicit
+  // opt-out is stored.
+  const [optedOut, setOptedOut] = useState<boolean>(
+    () => user?.user_metadata?.contact_opt_out === true,
+  );
+  const [contactSaving, setContactSaving] = useState(false);
+  const [contactError, setContactError] = useState<string | null>(null);
+
+  async function handleContactToggle(nextOptedOut: boolean) {
+    setContactError(null);
+    setContactSaving(true);
+    // Optimistic — the checkbox should feel like a checkbox, not a request.
+    setOptedOut(nextOptedOut);
+    const { error } = await supabase.auth.updateUser({
+      data: { contact_opt_out: nextOptedOut },
+    });
+    setContactSaving(false);
+    if (error) {
+      setOptedOut(!nextOptedOut);
+      setContactError("Could not save that — please try again.");
+    }
+  }
+
   // ── Deletion ──
   const [confirmText, setConfirmText] = useState("");
   const [delError, setDelError] = useState<string | null>(null);
@@ -241,6 +267,33 @@ export default function AccountPage() {
         >
           Share settings
         </Link>
+      </div>
+
+      {/* ── Contact preference ── */}
+      <div className="parchment-card gilded-border mb-6 p-6">
+        <h2 className="phb-h1 !text-xl">Email updates</h2>
+        <p className="phb-body mt-2 text-xs italic text-[var(--color-caption)]">
+          Very occasionally we email about new features, or other Appwrights
+          Guild apps. One preference covers both sites, and it never affects
+          account emails like password resets.
+        </p>
+        <label className="mt-4 flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={!optedOut}
+            disabled={contactSaving}
+            onChange={(e) => void handleContactToggle(!e.target.checked)}
+            className="mt-0.5 h-5 w-5 accent-[var(--color-header)]"
+          />
+          <span className="phb-body text-sm">
+            Email me about updates and new apps
+          </span>
+        </label>
+        {contactError && (
+          <p className="phb-body mt-2 text-xs !text-[var(--color-crimson)]">
+            {contactError}
+          </p>
+        )}
       </div>
 
       {/* ── Change password ── */}
