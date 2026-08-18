@@ -317,8 +317,8 @@ export default function EntryDetailPage() {
           </p>
         </div>
       )}
-      <div className="parchment-card gilded-border page-enter mt-4 p-6 sm:p-8">
-        <div className="mb-4 flex items-center justify-between gap-1.5">
+      <div className="parchment-card gilded-border page-enter print-entry mt-4 p-6 sm:p-8">
+        <div className="mb-4 flex items-center justify-between gap-1.5 print:hidden">
           <div className="flex items-center gap-3">
             <StarRating
               value={entry.rating}
@@ -343,6 +343,12 @@ export default function EntryDetailPage() {
           >
             {entry.share_token ? "Shared ✓" : shareBusy ? "Sharing…" : "Share"}
           </button>
+          <button
+            onClick={() => window.print()}
+            className="phb-small-sc cursor-pointer rounded-md border border-parchment-dark px-3 py-1 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
+          >
+            Print
+          </button>
           <Link
             to={`/entry/${id}/edit`}
             className="phb-small-sc rounded-md border border-parchment-dark px-3 py-1 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
@@ -358,7 +364,7 @@ export default function EntryDetailPage() {
           </div>
         </div>
         {sharePanel && entry.share_token && (
-          <div className="phb-note mb-4">
+          <div className="phb-note mb-4 print:hidden">
             <div className="space-y-2 px-1 py-1.5">
               <p className="text-xs font-bold uppercase tracking-wider">
                 Anyone with this link can view this entry (read-only):
@@ -381,7 +387,7 @@ export default function EntryDetailPage() {
           </div>
         )}
         {deleteConfirm && (
-          <div className="mb-4 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 text-sm">
+          <div className="mb-4 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 text-sm print:hidden">
             <p className="phb-body text-crimson">Are you sure? This cannot be undone.</p>
             {deleteError && <p className="mt-1 text-xs text-crimson">{deleteError}</p>}
             <div className="mt-2 flex gap-2">

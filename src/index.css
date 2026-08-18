@@ -492,6 +492,70 @@ body {
   animation: page-enter 0.35s ease-out both;
 }
 
+/* ──────────── Print: just the entry, compact ──────────── */
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  /* Show only the entry card */
+  body * {
+    visibility: hidden;
+  }
+  .print-entry,
+  .print-entry * {
+    visibility: visible;
+  }
+  .print-entry {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 105mm; /* classic stat-block column, not a full page */
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    animation: none !important;
+  }
+
+  /* Keep the PHB colours on paper */
+  .phb-statblock,
+  .phb-taper-rule,
+  .phb-note,
+  .phb-table th,
+  .phb-table tbody tr:nth-child(odd),
+  .wax-seal,
+  .dm-stamp {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* A stat block can be taller than a page — let it flow, but never
+     split an individual trait/action paragraph or table row. */
+  .phb-statblock {
+    box-shadow: none;
+  }
+  .phb-statblock .phb-entry,
+  .phb-action-header,
+  .phb-stat-line,
+  .phb-ability-grid,
+  .phb-table tbody tr {
+    break-inside: avoid;
+  }
+
+  /* Images shrink politely on the narrow column */
+  .print-entry img {
+    max-width: 38mm !important;
+    max-height: 45mm !important;
+  }
+}
+
 /* ──────────── Category / sub-category descriptions ──────────── */
 .phb-description {
   font-family: var(--font-phb);

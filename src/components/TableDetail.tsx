@@ -94,7 +94,7 @@ export default function TableDetail({ entry }: { entry: DbEntry }) {
       {cols.length > 0 && rows.length > 0 && (
         <div className="clear-both mt-6">
           {dieSize && (
-            <div className="mb-3 flex items-center gap-3">
+            <div className="mb-3 flex items-center gap-3 print:hidden">
               <button
                 type="button"
                 onClick={rollDie}

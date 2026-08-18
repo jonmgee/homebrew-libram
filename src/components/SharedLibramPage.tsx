@@ -146,14 +146,21 @@ export default function SharedLibramPage() {
             >
               &larr; Back to the shared libram
             </button>
-            <div className="parchment-card gilded-border page-enter mt-4 p-6 sm:p-8">
+            <div className="parchment-card gilded-border page-enter print-entry mt-4 p-6 sm:p-8">
               <div className="overflow-hidden">
                 <EntryImage entry={selected} />
                 {C && <C entry={selected} />}
               </div>
             </div>
-            <div className="mt-5">
+            <div className="mt-5 flex flex-wrap items-center gap-3">
               <CopyToLibramButton entry={selected} />
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="phb-small-sc cursor-pointer rounded-md border border-parchment-dark px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
+              >
+                Print
+              </button>
             </div>
           </>
         )}

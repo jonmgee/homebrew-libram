@@ -97,13 +97,20 @@ export default function SharedEntryPage() {
         )}
         {loadState === "loaded" && entry && (
           <>
-            <div className="parchment-card gilded-border page-enter p-6 sm:p-8">
+            <div className="parchment-card gilded-border page-enter print-entry p-6 sm:p-8">
               <div className="overflow-hidden">
                 <EntryImage entry={entry} />
                 {C && <C entry={entry} />}
               </div>
             </div>
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="phb-small-sc cursor-pointer rounded-md border border-parchment-dark px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
+              >
+                Print
+              </button>
               <CopyToLibramButton entry={entry} />
               <p className="phb-description text-xs">
                 Shared read-only from the owner's Homebrew Libram.
