@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 type Mode = "signin" | "signup" | "forgot";
@@ -20,7 +20,12 @@ export default function LoginPage() {
     if (user) navigate("/");
   }, [user, navigate]);
 
-  const [mode, setMode] = useState<Mode>("signin");
+  /** The landing page's "Create a free account" links here with ?mode=signup,
+   *  so that CTA opens the sign-up form rather than the sign-in one. */
+  const [searchParams] = useSearchParams();
+  const [mode, setMode] = useState<Mode>(
+    searchParams.get("mode") === "signup" ? "signup" : "signin",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

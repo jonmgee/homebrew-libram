@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import AuthGuard from "./components/AuthGuard";
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
 import HomePage from "./components/HomePage";
+import LandingPage from "./components/LandingPage";
 import SubCategoryPage from "./components/SubCategoryPage";
 import BrowsePage from "./components/BrowsePage";
 import CreateEntryPage from "./components/CreateEntryPage";
@@ -17,6 +18,32 @@ import SharedEntryPage from "./components/SharedEntryPage";
 import SharedLibramPage from "./components/SharedLibramPage";
 import ShareSettingsPage from "./components/ShareSettingsPage";
 import AccountPage from "./components/AccountPage";
+
+/**
+ * "/" is the public front door. Signed out it shows the landing page —
+ * previously it redirected straight to a bare sign-in card, so nobody could
+ * see what the app did before making an account. Signed in it's the library
+ * home, still behind AuthGuard so the oath and install prompts are unchanged.
+ */
+function RootRoute() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] max-w-md items-center justify-center px-4">
+        <p className="phb-description text-sm text-[#766649]">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!user) return <LandingPage />;
+
+  return (
+    <AuthGuard>
+      <HomePage />
+    </AuthGuard>
+  );
+}
 
 function App() {
   return (
@@ -47,14 +74,7 @@ function App() {
                 </AuthGuard>
               }
             />
-            <Route
-              path="/"
-              element={
-                <AuthGuard>
-                  <HomePage />
-                </AuthGuard>
-              }
-            />
+            <Route path="/" element={<RootRoute />} />
             <Route
               path="/browse/all"
               element={
