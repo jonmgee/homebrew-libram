@@ -88,9 +88,19 @@ function ArmourDetail({ entry }: { entry: DbEntry }) {
   const stealth = p.stealth_disadvantage as boolean | undefined;
   const cost = (p.cost as string) ?? "";
   const w = p.weight as number | undefined;
+  // Same fix as WeaponDetail: armour is usually magic armour, and until the
+  // form collected a type this line was blank while the two facts the entry
+  // did hold went unshown.
+  const rarity = (p.rarity as string) ?? "";
+  const att = p.requires_attunement as boolean | undefined;
   return (
     <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
-      <p className="phb-body mt-1 text-base"><span className="font-semibold capitalize">{at}</span>{bonus !== "+0" && <span className="text-ink-light"> ({bonus})</span>}{stealth && <span className="ml-2 phb-description text-sm">&mdash; Disadvantage on Stealth</span>}</p>
+      {(at || stealth) && (
+        <p className="phb-body mt-1 text-base"><span className="font-semibold capitalize">{at}</span>{bonus !== "+0" && <span className="text-ink-light"> ({bonus})</span>}{stealth && <span className="ml-2 phb-description text-sm">&mdash; Disadvantage on Stealth</span>}</p>
+      )}
+      {(rarity || att) && (
+        <p className="phb-description mt-1 text-base">{rarity}{att && <span className={rarity ? "ml-1 not-italic" : "not-italic"}>(requires attunement)</span>}</p>
+      )}
       {(cost || w !== undefined) && <div className="phb-description mt-2 flex gap-4 text-sm">{cost && <span>Cost: {cost}</span>}{w !== undefined && <span>Weight: {w} lb</span>}</div>}
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
       {renderTags(entry.tags)}

@@ -218,7 +218,26 @@ function CustomSelect<T extends string>({
    in types.ts, which the detail page has always rendered — until now nothing
    collected them, so every weapon saved carried only the treasure fields. */
 const DAMAGE_TYPES = ["", "slashing", "piercing", "bludgeoning"] as const;
-const WEAPON_BONUSES = ["+0", "+1", "+2", "+3"] as const;
+/* Shared by weapons and armour: both store an enhancement under "bonus". */
+const ITEM_BONUSES = ["+0", "+1", "+2", "+3"] as const;
+const ARMOUR_TYPES = ["", "light", "medium", "heavy", "shield"] as const;
+
+/* Attunement and stealth ask the same question the same way. Written once so
+   a change to one cannot quietly leave the other behind. */
+function YesNoToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  const cls = (on: boolean) =>
+    `flex-1 rounded-lg border px-3 py-2 text-sm font-[var(--font-phb)] transition-colors ${
+      on
+        ? "border-[var(--color-gilding-dark)] bg-[#58180d] font-bold text-[#eee5ce]"
+        : "border-[var(--color-parchment-dark)] bg-[var(--color-parchment)] text-[#766649] hover:border-[var(--color-gilding-dark)]"
+    }`;
+  return (
+    <div className="flex gap-3">
+      <button type="button" onClick={() => onChange(false)} className={cls(!value)}>No</button>
+      <button type="button" onClick={() => onChange(true)} className={cls(value)}>Yes</button>
+    </div>
+  );
+}
 
 const RARITY_WITH_NONE = ["", "common", "uncommon", "rare", "very rare", "legendary", "artifact"] as const;
 
@@ -769,11 +788,14 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
   // they are written to properties and rendered only for a weapon.
   const [damageDice, setDamageDice] = useState("");
   const [damageType, setDamageType] = useState("");
-  const [weaponBonus, setWeaponBonus] = useState("+0");
+  const [itemBonus, setItemBonus] = useState("+0");
   const [weaponProps, setWeaponProps] = useState("");
   const [cost, setCost] = useState("");
   const [weight, setWeight] = useState("");
+  const [armourType, setArmourType] = useState("");
+  const [stealthDis, setStealthDis] = useState(false);
   const isWeapon = entryType === "weapon";
+  const isArmour = entryType === "armour";
   const [attunement, setAttunement] = useState(false);
   const [attunementBy, setAttunementBy] = useState("");
   const [description, setDescription] = useState("");
@@ -829,7 +851,9 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
       const readStr = (k: string) => (typeof props[k] === "string" ? (props[k] as string) : "");
       if (readStr("damage_dice")) setDamageDice(readStr("damage_dice"));
       if (readStr("damage_type")) setDamageType(readStr("damage_type"));
-      if (readStr("bonus")) setWeaponBonus(readStr("bonus"));
+      if (readStr("bonus")) setItemBonus(readStr("bonus"));
+      if (readStr("armour_type")) setArmourType(readStr("armour_type"));
+      if (typeof props.stealth_disadvantage === "boolean") setStealthDis(props.stealth_disadvantage);
       if (readStr("properties")) setWeaponProps(readStr("properties"));
       if (readStr("cost")) setCost(readStr("cost"));
       if (typeof props.weight === "number") setWeight(String(props.weight));
@@ -868,8 +892,18 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
         // as a blank damage line on the detail page.
         if (damageDice.trim()) properties.damage_dice = damageDice.trim();
         if (damageType) properties.damage_type = damageType;
-        if (weaponBonus && weaponBonus !== "+0") properties.bonus = weaponBonus;
+        if (itemBonus && itemBonus !== "+0") properties.bonus = itemBonus;
         if (weaponProps.trim()) properties.properties = weaponProps.trim();
+      }
+      if (isArmour) {
+        if (armourType) properties.armour_type = armourType;
+        if (itemBonus && itemBonus !== "+0") properties.bonus = itemBonus;
+        // Written even when false: unlike the others, "no Stealth penalty" is
+        // a fact worth recording, and the sheet reads it to decide whether to
+        // offer the Disadvantage tick.
+        properties.stealth_disadvantage = stealthDis;
+      }
+      if (isWeapon || isArmour) {
         if (cost.trim()) properties.cost = cost.trim();
         const w = Number(weight);
         if (weight.trim() !== "" && Number.isFinite(w)) properties.weight = w;
@@ -966,9 +1000,9 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
             <div className="w-28">
               <label className={labelCls}>Bonus</label>
               <CustomSelect
-                value={weaponBonus}
-                onChange={setWeaponBonus}
-                options={WEAPON_BONUSES}
+                value={itemBonus}
+                onChange={setItemBonus}
+                options={ITEM_BONUSES}
                 getLabel={(v) => v}
               />
             </div>
@@ -984,31 +1018,69 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
             </div>
           </div>
 
+        </>
+      )}
+
+      {/* ───── Armour: what it is ─────
+           Same shape as the weapon block and for the same reason:
+           ArmourProperties and ArmourDetail have always described armour_type,
+           bonus and stealth_disadvantage, and no form ever collected them. */}
+      {isArmour && (
+        <>
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className={labelCls}>Cost</label>
-              <input
-                type="text"
-                value={cost}
-                onChange={(e) => setCost(e.target.value)}
-                placeholder="e.g. 15 gp"
-                className={inputCls}
+              <label className={labelCls}>Armour type</label>
+              <CustomSelect
+                value={armourType}
+                onChange={setArmourType}
+                options={ARMOUR_TYPES}
+                getLabel={(v) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : "None")}
               />
             </div>
             <div className="w-28">
-              <label className={labelCls}>Weight (lb)</label>
-              <input
-                type="number"
-                min={0}
-                step="0.1"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                placeholder="3"
-                className={inputCls}
+              <label className={labelCls}>Bonus</label>
+              <CustomSelect
+                value={itemBonus}
+                onChange={setItemBonus}
+                options={ITEM_BONUSES}
+                getLabel={(v) => v}
               />
             </div>
           </div>
+
+          <div>
+            <label className={labelCls}>Disadvantage on Stealth</label>
+            <YesNoToggle value={stealthDis} onChange={setStealthDis} />
+          </div>
         </>
+      )}
+
+      {/* ───── Cost and weight, for the two types whose detail pages show them ───── */}
+      {(isWeapon || isArmour) && (
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <label className={labelCls}>Cost</label>
+            <input
+              type="text"
+              value={cost}
+              onChange={(e) => setCost(e.target.value)}
+              placeholder="e.g. 15 gp"
+              className={inputCls}
+            />
+          </div>
+          <div className="w-28">
+            <label className={labelCls}>Weight (lb)</label>
+            <input
+              type="number"
+              min={0}
+              step="0.1"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="3"
+              className={inputCls}
+            />
+          </div>
+        </div>
       )}
 
       {/* ───── Rarity ───── */}
@@ -1020,30 +1092,7 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
       {/* ───── Attunement ───── */}
       <div>
         <label className={labelCls}>Attunement</label>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setAttunement(false)}
-            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-[var(--font-phb)] transition-colors ${
-              !attunement
-                ? "border-[var(--color-gilding-dark)] bg-[#58180d] font-bold text-[#eee5ce]"
-                : "border-[var(--color-parchment-dark)] bg-[var(--color-parchment)] text-[#766649] hover:border-[var(--color-gilding-dark)]"
-            }`}
-          >
-            No
-          </button>
-          <button
-            type="button"
-            onClick={() => setAttunement(true)}
-            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-[var(--font-phb)] transition-colors ${
-              attunement
-                ? "border-[var(--color-gilding-dark)] bg-[#58180d] font-bold text-[#eee5ce]"
-                : "border-[var(--color-parchment-dark)] bg-[var(--color-parchment)] text-[#766649] hover:border-[var(--color-gilding-dark)]"
-            }`}
-          >
-            Yes
-          </button>
-        </div>
+        <YesNoToggle value={attunement} onChange={setAttunement} />
         {attunement && (
           <input
             type="text"
