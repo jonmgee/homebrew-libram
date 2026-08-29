@@ -214,6 +214,12 @@ function CustomSelect<T extends string>({
 }
 
 /* ──────── Rarity values (with None) ──────── */
+/* Weapon damage types and enhancement bonuses. These mirror WeaponProperties
+   in types.ts, which the detail page has always rendered — until now nothing
+   collected them, so every weapon saved carried only the treasure fields. */
+const DAMAGE_TYPES = ["", "slashing", "piercing", "bludgeoning"] as const;
+const WEAPON_BONUSES = ["+0", "+1", "+2", "+3"] as const;
+
 const RARITY_WITH_NONE = ["", "common", "uncommon", "rare", "very rare", "legendary", "artifact"] as const;
 
 const RARITY_LABELS: Record<string, string> = {
@@ -759,6 +765,15 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
   const [name, setName] = useState("");
   const dupWarning = useDuplicateNameCheck(name, initialData);
   const [rarity, setRarity] = useState("");
+  // Weapon-only. Held unconditionally because hooks cannot be conditional;
+  // they are written to properties and rendered only for a weapon.
+  const [damageDice, setDamageDice] = useState("");
+  const [damageType, setDamageType] = useState("");
+  const [weaponBonus, setWeaponBonus] = useState("+0");
+  const [weaponProps, setWeaponProps] = useState("");
+  const [cost, setCost] = useState("");
+  const [weight, setWeight] = useState("");
+  const isWeapon = entryType === "weapon";
   const [attunement, setAttunement] = useState(false);
   const [attunementBy, setAttunementBy] = useState("");
   const [description, setDescription] = useState("");
@@ -810,6 +825,14 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
       if (attBy) setAttunementBy(attBy);
       const imgUrl = initialData.properties?.image_url as string | undefined;
       if (imgUrl) setImagePreview(imgUrl);
+      const props = initialData.properties ?? {};
+      const readStr = (k: string) => (typeof props[k] === "string" ? (props[k] as string) : "");
+      if (readStr("damage_dice")) setDamageDice(readStr("damage_dice"));
+      if (readStr("damage_type")) setDamageType(readStr("damage_type"));
+      if (readStr("bonus")) setWeaponBonus(readStr("bonus"));
+      if (readStr("properties")) setWeaponProps(readStr("properties"));
+      if (readStr("cost")) setCost(readStr("cost"));
+      if (typeof props.weight === "number") setWeight(String(props.weight));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -838,6 +861,18 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
       properties.requires_attunement = attunement;
       if (attunement && attunementBy.trim()) {
         properties.attunement_by = attunementBy.trim();
+      }
+      if (isWeapon) {
+        // Only what was actually filled in: an absent key reads as "not
+        // recorded" everywhere downstream, while an empty string would print
+        // as a blank damage line on the detail page.
+        if (damageDice.trim()) properties.damage_dice = damageDice.trim();
+        if (damageType) properties.damage_type = damageType;
+        if (weaponBonus && weaponBonus !== "+0") properties.bonus = weaponBonus;
+        if (weaponProps.trim()) properties.properties = weaponProps.trim();
+        if (cost.trim()) properties.cost = cost.trim();
+        const w = Number(weight);
+        if (weight.trim() !== "" && Number.isFinite(w)) properties.weight = w;
       }
 
       const imageToUpload = imageFile ?? capturedImage?.file ?? null;
@@ -898,6 +933,83 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
         />
         <DuplicateNameWarning warning={dupWarning} />
       </div>
+
+      {/* ───── Weapon: what it does ─────
+           Above rarity, because the damage is the first thing anyone asks of
+           a weapon and the magic is the qualifier. Only a weapon shows these;
+           every other treasure type keeps the form it had. */}
+      {isWeapon && (
+        <>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className={labelCls}>Damage</label>
+              <input
+                type="text"
+                value={damageDice}
+                onChange={(e) => setDamageDice(e.target.value)}
+                placeholder="e.g. 1d8"
+                className={inputCls}
+              />
+            </div>
+            <div className="flex-1">
+              <label className={labelCls}>Damage type</label>
+              <CustomSelect
+                value={damageType}
+                onChange={setDamageType}
+                options={DAMAGE_TYPES}
+                getLabel={(v) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : "None")}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="w-28">
+              <label className={labelCls}>Bonus</label>
+              <CustomSelect
+                value={weaponBonus}
+                onChange={setWeaponBonus}
+                options={WEAPON_BONUSES}
+                getLabel={(v) => v}
+              />
+            </div>
+            <div className="flex-1">
+              <label className={labelCls}>Properties</label>
+              <input
+                type="text"
+                value={weaponProps}
+                onChange={(e) => setWeaponProps(e.target.value)}
+                placeholder="e.g. Versatile (1d10), Finesse"
+                className={inputCls}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className={labelCls}>Cost</label>
+              <input
+                type="text"
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+                placeholder="e.g. 15 gp"
+                className={inputCls}
+              />
+            </div>
+            <div className="w-28">
+              <label className={labelCls}>Weight (lb)</label>
+              <input
+                type="number"
+                min={0}
+                step="0.1"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="3"
+                className={inputCls}
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ───── Rarity ───── */}
       <div>
