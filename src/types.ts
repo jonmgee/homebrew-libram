@@ -69,6 +69,23 @@ export const CATEGORIES: Category[] = [
   },
 ];
 
+/**
+ * The entry types actually on offer today, by category.
+ *
+ * `CATEGORIES[].types` is deliberately wider: it still lists the retired types
+ * (wondrous_item, trinket, scroll) so that any old row carrying one keeps
+ * turning up in Browse. But nothing should be *created* as one, or *moved*
+ * into one, so the create dropdown and the move picker both read this list.
+ * Keeping it in one place is what stops the two drifting apart.
+ */
+export const LIVE_TYPES: Record<CategorySlug, EntryType[]> = {
+  treasure: ["magic_item", "weapon", "armour", "potion", "adventuring_gear"],
+  arcana: ["spell"],
+  creatures: ["monster", "npc"],
+  character_options: ["background", "feat", "subclass"],
+  tables: ["table"],
+};
+
 export function getCategory(slug: string): Category | undefined {
   return CATEGORIES.find((c) => c.slug === slug);
 }

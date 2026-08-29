@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { formatEntryType, type DbEntry } from "../types";
+import { formatEntryType, type DbEntry, type EntryType } from "../types";
 import MarkdownDescription from "./MarkdownDescription";
 import StarRating from "./StarRating";
 import BookmarkToggle from "./BookmarkToggle";
+import MoveEntryPanel from "./MoveEntryPanel";
 import { CopyLinkField } from "./ShareSettingsPage";
 import SpellDetail from "./SpellDetail";
 import MonsterDetail from "./MonsterDetail";
@@ -236,6 +237,30 @@ export default function EntryDetailPage() {
   const [sharePanel, setSharePanel] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
 
+  const [movePanel, setMovePanel] = useState(false);
+  const [moveBusy, setMoveBusy] = useState(false);
+  const [moveError, setMoveError] = useState<string | null>(null);
+
+  /**
+   * Category membership is derived from `type` alone, so re-typing an entry
+   * is the whole move — Browse, the home counts and the detail renderer all
+   * follow. Ratings, bookmarks, share links and the image are columns on the
+   * same row and are untouched.
+   */
+  async function handleMove(type: EntryType) {
+    if (!entry) return;
+    setMoveBusy(true);
+    setMoveError(null);
+    const { error } = await supabase.from("entries").update({ type }).eq("id", entry.id);
+    setMoveBusy(false);
+    if (error) {
+      setMoveError(error.message);
+      return;
+    }
+    setEntry({ ...entry, type });
+    setMovePanel(false);
+  }
+
   async function handleShareToggle() {
     if (!entry) return;
     if (entry.share_token) { setSharePanel((v) => !v); return; }
@@ -338,7 +363,9 @@ export default function EntryDetailPage() {
         </div>
       )}
       <div className="parchment-card gilded-border page-enter print-entry mt-4 p-6 sm:p-8">
-        <div className="mb-4 flex items-center justify-between gap-1.5 print:hidden">
+        {/* Wraps because there are now six controls here: at 375px the row
+            used to run off the edge of the card. */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-y-2 gap-x-1.5 print:hidden">
           <div className="flex items-center gap-3">
             <StarRating
               value={entry.rating}
@@ -351,7 +378,7 @@ export default function EntryDetailPage() {
               name={entry.name}
             />
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center justify-end gap-1.5">
           <button
             onClick={handleShareToggle}
             disabled={shareBusy}
@@ -368,6 +395,12 @@ export default function EntryDetailPage() {
             className="phb-small-sc cursor-pointer rounded-md border border-parchment-dark px-3 py-1 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
           >
             Print
+          </button>
+          <button
+            onClick={() => { setMovePanel((v) => !v); setMoveError(null); }}
+            className="phb-small-sc cursor-pointer rounded-md border border-parchment-dark px-3 py-1 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:border-[var(--color-header)] hover:text-[var(--color-header)]"
+          >
+            Move
           </button>
           <Link
             to={`/entry/${id}/edit`}
@@ -405,6 +438,15 @@ export default function EntryDetailPage() {
               </button>
             </div>
           </div>
+        )}
+        {movePanel && (
+          <MoveEntryPanel
+            current={entry.type}
+            busy={moveBusy}
+            error={moveError}
+            onMove={handleMove}
+            onCancel={() => { setMovePanel(false); setMoveError(null); }}
+          />
         )}
         {deleteConfirm && (
           <div className="mb-4 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 text-sm print:hidden">

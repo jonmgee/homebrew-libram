@@ -1,16 +1,9 @@
 import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getCategory, formatEntryType } from "../types";
+import { getCategory, formatEntryType, LIVE_TYPES } from "../types";
 import type { EntryType } from "../types";
 import { CustomSelect } from "./MonsterForm";
 import EntryForm from "./EntryForm";
-
-const CATEGORY_ORDER: Record<string, EntryType[]> = {
-  treasure: ["magic_item", "weapon", "armour", "potion", "adventuring_gear"],
-  arcana: ["spell"],
-  creatures: ["monster", "npc"],
-  character_options: ["background", "feat", "subclass"],
-};
 
 export default function CreateEntryInputPage() {
   const { type } = useParams<{ type: string }>();
@@ -41,8 +34,7 @@ export default function CreateEntryInputPage() {
   // If it's a category slug, get the types for the dropdown
   const catTypes = useMemo(() => {
     if (!categorySlug) return [];
-    if (categorySlug === "tables") return ["table" as EntryType];
-    return CATEGORY_ORDER[categorySlug] ?? [];
+    return LIVE_TYPES[categorySlug as keyof typeof LIVE_TYPES] ?? [];
   }, [categorySlug]);
 
   // Categories with a single type (tables, arcana): no dropdown, straight to the form
