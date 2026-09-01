@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { copyEntryToMyLibram } from "../lib/copyEntry";
+import { useMyEntryNames, nameKey } from "../lib/useMyEntryNames";
 import { useAuth } from "../context/AuthContext";
 import type { DbEntry } from "../types";
 import { RENDERERS, EntryImage } from "./EntryDetailPage";
@@ -14,6 +15,8 @@ export function CopyToLibramButton({ entry }: { entry: DbEntry }) {
   const navigate = useNavigate();
   const [copying, setCopying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const mine = useMyEntryNames();
+  const duplicate = !!mine?.has(nameKey(entry.name));
 
   if (!user) {
     return (
@@ -48,6 +51,12 @@ export function CopyToLibramButton({ entry }: { entry: DbEntry }) {
         {copying ? "Copying…" : "Copy to my Libram"}
       </button>
       {error && <span className="phb-body text-sm text-crimson">{error}</span>}
+      {/* A warning, not a block: two different things can share a name. */}
+      {duplicate && !copying && (
+        <span className="phb-description text-sm">
+          You already have an entry called "{entry.name}".
+        </span>
+      )}
     </div>
   );
 }

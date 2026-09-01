@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { copyAllToMyLibram } from "../lib/copyEntry";
+import { useMyEntryNames, nameKey } from "../lib/useMyEntryNames";
 import { useAuth } from "../context/AuthContext";
 import { formatEntryType, type DbEntry } from "../types";
 import { entrySummary } from "../lib/entrySummary";
@@ -11,12 +12,20 @@ import SharedHeader from "./SharedHeader";
 
 type LoadState = "loading" | "loaded" | "not_found" | "error";
 
-function CopyAllButton({ entries }: { entries: DbEntry[] }) {
+function CopyAllButton({ entries, mine }: { entries: DbEntry[]; mine: Set<string> | null }) {
   const { user } = useAuth();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [includeDupes, setIncludeDupes] = useState(false);
+
+  // Split before copying rather than skipping silently: a name collision
+  // between two different things is possible, so the duplicates are counted
+  // out loud and can be included on purpose.
+  const dupes = mine ? entries.filter((e) => mine.has(nameKey(e.name))) : [];
+  const fresh = mine ? entries.filter((e) => !mine.has(nameKey(e.name))) : entries;
+  const toCopy = includeDupes ? entries : fresh;
 
   if (!user || !entries.length) return null;
 
@@ -36,7 +45,9 @@ function CopyAllButton({ entries }: { entries: DbEntry[] }) {
     return (
       <div className="flex flex-wrap items-center gap-2">
         <span className="phb-small-sc text-xs font-bold uppercase tracking-wider text-caption">
-          Add all {entries.length} entries to your libram?
+          {dupes.length
+            ? `Add ${toCopy.length} entr${toCopy.length === 1 ? "y" : "ies"} to your libram?`
+            : `Add all ${entries.length} entries to your libram?`}
         </span>
         <button
           type="button"
@@ -45,7 +56,7 @@ function CopyAllButton({ entries }: { entries: DbEntry[] }) {
             setBusy(true);
             setError(null);
             try {
-              setDone(await copyAllToMyLibram(entries));
+              setDone(await copyAllToMyLibram(toCopy));
             } catch (e) {
               setError(e instanceof Error ? e.message : "Copy failed");
               setBusy(false);
@@ -54,7 +65,7 @@ function CopyAllButton({ entries }: { entries: DbEntry[] }) {
           }}
           className="phb-small-sc cursor-pointer rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-header)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[var(--color-parchment-light)] transition-colors hover:bg-[#6e2a1a]"
         >
-          {busy ? "Copying…" : "Yes, copy all"}
+          {busy ? "Copying…" : dupes.length ? `Yes, copy ${toCopy.length}` : "Yes, copy all"}
         </button>
         <button
           type="button"
@@ -65,6 +76,22 @@ function CopyAllButton({ entries }: { entries: DbEntry[] }) {
           Cancel
         </button>
         {error && <span className="phb-body text-sm text-crimson">{error}</span>}
+        {dupes.length > 0 && (
+          <label className="flex w-full cursor-pointer items-start gap-2 pt-1">
+            <input
+              type="checkbox"
+              checked={includeDupes}
+              onChange={(e) => setIncludeDupes(e.target.checked)}
+              disabled={busy}
+              className="mt-0.5 shrink-0 cursor-pointer accent-[var(--color-header)]"
+            />
+            <span className="phb-description text-xs !not-italic">
+              {dupes.length} of these {dupes.length === 1 ? "shares its name with an entry" : "share their names with entries"}{" "}
+              you already have{dupes.length <= 6 ? ` (${dupes.map((d) => d.name).join(", ")})` : ""}.
+              Skipped unless you tick this.
+            </span>
+          </label>
+        )}
       </div>
     );
   }
@@ -88,6 +115,7 @@ export default function SharedLibramPage() {
   const [entries, setEntries] = useState<DbEntry[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [search, setSearch] = useState("");
+  const mine = useMyEntryNames();
 
   useEffect(() => {
     if (!token) { setLoadState("not_found"); return; }
@@ -174,7 +202,7 @@ export default function SharedLibramPage() {
               </p>
             </div>
             <div className="mb-4 flex justify-center">
-              <CopyAllButton entries={entries} />
+              <CopyAllButton entries={entries} mine={mine} />
             </div>
             <input
               type="text"
@@ -201,6 +229,11 @@ export default function SharedLibramPage() {
                     )}
                     <h3 className="phb-h3 !mb-0 !border-none !pb-0 !text-base">{entry.name}</h3>
                     <span className="wax-seal shrink-0">{formatEntryType(entry.type)}</span>
+                    {mine?.has(nameKey(entry.name)) && (
+                      <span className="phb-small-sc shrink-0 rounded-md border border-parchment-dark px-1.5 py-0.5 text-[0.65rem] uppercase tracking-wider text-caption">
+                        Already yours
+                      </span>
+                    )}
                   </div>
                   <p className="phb-description mt-1 line-clamp-1 text-sm">
                     {entrySummary(entry) || "—"}
