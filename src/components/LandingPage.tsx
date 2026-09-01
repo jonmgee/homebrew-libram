@@ -141,11 +141,6 @@ function ItemPanel() {
               <strong>Moonlit Edge.</strong> While attuned, you can see normally in
               darkness, both magical and nonmagical, to a distance of 60 feet.
             </p>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {["longsword", "attunement", "moon"].map((t) => (
-                <span key={t} className="phb-tag">{t}</span>
-              ))}
-            </div>
           </div>
           <img
             src="/assets/weapons.webp"

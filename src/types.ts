@@ -148,6 +148,15 @@ export interface DbEntry {
   description: string;
   source: string;
   dm_only: boolean;
+  /**
+   * Withdrawn as a feature: no form collects tags, nothing renders them and
+   * nothing searches them. Categories say what an entry is, stars say whether
+   * it's any good and bookmarks say whether it's needed on Saturday, which
+   * left tags answering nothing — and 19% of the ones the importer invented
+   * only restated the type. The column and its existing strings are kept so
+   * the decision stays reversible; copyEntry still carries them across, and
+   * an edit deliberately doesn't write the column.
+   */
   tags: string[];
   campaign: string;
   created_at: string;

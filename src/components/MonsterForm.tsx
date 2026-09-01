@@ -211,7 +211,6 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
 
   /* Flavour */
   const [description, setDescription] = useState("");
-  const tags = useTags();
   const [imgFile, setImgFile] = useState<File|null>(null);
   const [imgPrev, setImgPrev] = useState<string|null>(null);
   const [saving, setSaving] = useState(false);
@@ -270,12 +269,6 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
       }
     }
     if (typeof parsedData.description === "string") setDescription(parsedData.description);
-    if (Array.isArray(parsedData.tags)) {
-      tags.reset();
-      for (const t of parsedData.tags) {
-        if (typeof t === "string") tags.add(t);
-      }
-    }
     setPrepopNotice(true);
     setTimeout(() => setPrepopNotice(false), 6000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -329,10 +322,6 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
         setHasLeg(true);
       }
     }
-    tags.reset();
-    for (const t of initialData.tags) {
-      if (typeof t === "string") tags.add(t);
-    }
     const imgUrl = initialData.properties?.image_url as string | undefined;
     if (imgUrl) setImgPrev(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -381,7 +370,6 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
         name: name.trim(),
         type: "monster",
         description: description.trim(),
-        tags: tags.tags,
         properties: props,
       }, imageToUpload, navigate, initialData?.id, existingImageUrl);
     } catch (err) {
@@ -532,10 +520,6 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
         <div>
           <label className={labelCls}>Description</label>
           <textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="Lore, flavour text, lair description…" className={textareaCls} />
-        </div>
-        <div>
-          <label className={labelCls}>Tags</label>
-          <TagRow hook={tags} />
         </div>
         <div>
           <label className={labelCls}>Image</label>

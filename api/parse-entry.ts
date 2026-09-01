@@ -16,10 +16,9 @@ const PROMPTS: Record<string, string> = {
   "rarity": one of "None", "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact",
   "attunement": boolean,
   "attunement_by": "string or null",
-  "description": "string",
-  "tags": ["array of strings"]
+  "description": "string"
 }
-Use null for unknown, false for attunement, "None" for rarity. Infer tags.
+Use null for unknown, false for attunement, "None" for rarity.
 ${VERBATIM_NOTE}
 Content:\n`,
 
@@ -29,10 +28,9 @@ Content:\n`,
   "rarity": one of "None", "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact",
   "attunement": boolean,
   "attunement_by": "string or null",
-  "description": "string",
-  "tags": ["array of strings"]
+  "description": "string"
 }
-Use null for unknown, false for attunement, "None" for rarity. Infer tags.
+Use null for unknown, false for attunement, "None" for rarity.
 ${VERBATIM_NOTE}
 Content:\n`,
 
@@ -42,8 +40,7 @@ Content:\n`,
   "rarity": one of "None", "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact",
   "attunement": boolean,
   "attunement_by": "string or null",
-  "description": "string",
-  "tags": ["array of strings"]
+  "description": "string"
 }
 Use null for unknown, false for attunement, "None" for rarity.
 ${VERBATIM_NOTE}
@@ -55,8 +52,7 @@ Content:\n`,
   "rarity": one of "None", "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact",
   "attunement": boolean,
   "attunement_by": "string or null",
-  "description": "string",
-  "tags": ["array of strings"]
+  "description": "string"
 }
 Use null for unknown, false for attunement, "None" for rarity.
 ${VERBATIM_NOTE}
@@ -68,8 +64,7 @@ Content:\n`,
   "rarity": one of "None", "Common", "Uncommon", "Rare", "Very Rare", "Legendary", "Artifact",
   "attunement": boolean,
   "attunement_by": "string or null",
-  "description": "string",
-  "tags": ["array of strings"]
+  "description": "string"
 }
 Use null for unknown, false for attunement, "None" for rarity.
 ${VERBATIM_NOTE}
@@ -78,40 +73,36 @@ Content:\n`,
   trinket: `Extract and return JSON only — no preamble, no fences.
 {
   "name": "string",
-  "description": "string",
-  "tags": ["array of strings"]
+  "description": "string"
 }
-Use null for unknown. Infer tags.
+Use null for unknown.
 ${VERBATIM_NOTE}
 Content:\n`,
 
   npc: `Extract NPC fields and return JSON only — no preamble, no fences.
 {
   "name": "string",
-  "description": "string",
-  "tags": ["array of strings"]
+  "description": "string"
 }
-Name is NPC name or title. Description captures role/appearance/background. Infer tags like "blacksmith", "noble", "quest-giver". Use null for unknown.
+Name is NPC name or title. Description captures role/appearance/background. Use null for unknown.
 ${VERBATIM_NOTE}
 Content:\n`,
 
   background: `Extract background fields and return JSON only — no preamble, no fences.
 {
   "name": "string",
-  "description": "string",
-  "tags": ["array of strings"]
+  "description": "string"
 }
-Name is background title (e.g. "Acolyte", "Criminal"). Description summarises flavour and benefits. Infer tags like "roleplay", "skills". Use null for unknown.
+Name is background title (e.g. "Acolyte", "Criminal"). Description summarises flavour and benefits. Use null for unknown.
 ${VERBATIM_NOTE}
 Content:\n`,
 
   feat: `Extract feat fields and return JSON only — no preamble, no fences.
 {
   "name": "string",
-  "description": "string",
-  "tags": ["array of strings"]
+  "description": "string"
 }
-Name is feat title (e.g. "Tough", "Alert"). Description captures mechanical benefit. Infer tags like "combat", "roleplay". Use null for unknown.
+Name is feat title (e.g. "Tough", "Alert"). Description captures mechanical benefit. Use null for unknown.
 ${VERBATIM_NOTE}
 Content:\n`,
 
@@ -124,12 +115,12 @@ Content:\n`,
   "components": ["V", "S", "M"],
   "material": "string or null",
   "duration": "string", "concentration": boolean,
-  "description": "string", "tags": ["array of strings"]
+  "description": "string"
 }
 Map "1st" to "1", "2nd" to "2", and "0"/"cantrip" to "cantrip". A line like "5th-level evocation" means level "5", school "evocation".
 material is the text in parentheses after the M component, without the parentheses.
 Set concentration true if the duration mentions concentration; the duration value itself should not repeat the word "Concentration" (e.g. "Concentration, up to 1 minute" → duration "1 minute", concentration true).
-Include any "At Higher Levels" paragraph at the end of the description as **At Higher Levels.** followed by the text. Infer school and tags. Use null/false/[] for unknowns.
+Include any "At Higher Levels" paragraph at the end of the description as **At Higher Levels.** followed by the text. Infer the school. Use null/false/[] for unknowns.
 ${VERBATIM_NOTE}
 Content:\n`,
 
@@ -143,7 +134,7 @@ Content:\n`,
   "components": ["V", "S", "M"],
   "material": "string or null",
   "duration": "string", "concentration": boolean,
-  "description": "string", "tags": ["array of strings"]
+  "description": "string"
 }
 Name often "Scroll of [Spell]". Extract spell properties + rarity. Use null/false/[]/None.
 ${VERBATIM_NOTE}
@@ -154,8 +145,7 @@ Content:\n`,
   "name": "string",
   "parent_class": "string",
   "description": "string",
-  "level_features": [ { "level": number, "desc": "string" } ],
-  "tags": ["array of strings"]
+  "level_features": [ { "level": number, "desc": "string" } ]
 }
 Name is subclass title, parent_class is base class. Extract level features as named blocks. Use null/[] for unknowns.
 ${VERBATIM_NOTE}
@@ -177,7 +167,7 @@ Content:\n`,
   "bonus_actions": [ { "name": "string", "desc": "string" } ],
   "reactions": [ { "name": "string", "desc": "string" } ],
   "legendary_actions": { "per_round": number, "actions": [ { "name": "string", "desc": "string" } ] },
-  "description": "string", "tags": ["array of strings"]
+  "description": "string"
 }
 Ability scores as plain numbers — a printed "24 (+7)" means 24; ignore the modifier in parentheses.
 ac: keep any armour note, e.g. "17 (natural armor)". hp: keep the dice formula, e.g. "168 (16d12 + 64)". cr: keep XP if printed, e.g. "11 (7,200 XP)".
@@ -193,8 +183,7 @@ Content:\n`,
   "name": "string", "description": "string",
   "die_type": "string — d4/d6/d8/d10/d12/d20/d100",
   "columns": ["array of column header strings"],
-  "rows": [ ["roll", "cell", "cell"], ... ],
-  "tags": ["array of strings"]
+  "rows": [ ["roll", "cell", "cell"], ... ]
 }
 CRITICAL: Expand roll ranges into one row per individual roll value.
 Example: input "1-2: A merchant" → rows [["1", "A merchant"], ["2", "A merchant"]].
@@ -442,7 +431,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Shared
     if (typeof parsed.name === "string") result.name = parsed.name.trim();
     if (typeof parsed.description === "string") result.description = parsed.description.trim();
-    if (Array.isArray(parsed.tags)) result.tags = parsed.tags.filter((t): t is string => typeof t === "string");
     if (typeof parsed.rarity === "string") {
       const r = parsed.rarity.trim();
       result.rarity = (r === "None" || r === "") ? "" : r.toLowerCase();

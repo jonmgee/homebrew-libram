@@ -16,11 +16,6 @@ type LoadState = "loading" | "loaded" | "error" | "not_found";
 
 const SH = "phb-small-sc block text-sm font-bold uppercase tracking-wider text-caption mb-1";
 
-function renderTags(tags: string[]) {
-  if (!tags || !tags.length) return null;
-  return <div className="mt-4 flex flex-wrap gap-1.5">{tags.map(t => <span key={t} className="phb-tag">{t}</span>)}</div>;
-}
-
 function renderMeta(entry: DbEntry) {
   const p: React.ReactNode[] = [];
   if (entry.source) p.push(<span key="s" className="phb-description text-sm">Source: {entry.source}</span>);
@@ -46,7 +41,6 @@ function MagicItemDetail({ entry }: { entry: DbEntry }) {
       <p className="phb-description mt-1 text-base">{[r, sub].filter(Boolean).join(", ")}{att && <span className="ml-1 not-italic">(requires attunement)</span>}</p>
       {ch !== undefined && ch > 0 && <p className="phb-description mt-1 text-sm">Charges: {ch}</p>}
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
-      {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
   );
@@ -76,7 +70,6 @@ function WeaponDetail({ entry }: { entry: DbEntry }) {
       {props && <p className="phb-description mt-1 text-sm">{props}</p>}
       {(cost || w !== undefined) && <div className="phb-description mt-2 flex gap-4 text-sm">{cost && <span>Cost: {cost}</span>}{w !== undefined && <span>Weight: {w} lb</span>}</div>}
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
-      {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
   );
@@ -104,7 +97,6 @@ function ArmourDetail({ entry }: { entry: DbEntry }) {
       )}
       {(cost || w !== undefined) && <div className="phb-description mt-2 flex gap-4 text-sm">{cost && <span>Cost: {cost}</span>}{w !== undefined && <span>Weight: {w} lb</span>}</div>}
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
-      {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
   );
@@ -121,7 +113,6 @@ function PotionDetail({ entry }: { entry: DbEntry }) {
       {eff && <div className="phb-body mt-4"><span className={SH}>Effect</span><p className="mt-1 text-base leading-relaxed">{eff}</p></div>}
       {dur && <p className="phb-description mt-2 text-sm">Duration: {dur}</p>}
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
-      {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
   );
@@ -140,7 +131,6 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
       {(cost || w !== undefined || qty > 1) && <div className="phb-description mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">{cost && <span>Cost: {cost}</span>}{w !== undefined && <span>Weight: {w} lb</span>}{qty > 1 && <span>Quantity: {qty}</span>}</div>}
       {props && <p className="phb-description mt-2 text-sm">{props}</p>}
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
-      {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
   );
@@ -150,7 +140,6 @@ function TrinketDetail({ entry }: { entry: DbEntry }) {
   return (
     <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
-      {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
   );
@@ -161,7 +150,6 @@ function SimpleDetail({ entry }: { entry: DbEntry }) {
     <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
       <p className="phb-description mt-1 text-sm">{formatEntryType(entry.type)}</p>
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
-      {renderTags(entry.tags)}
       {renderMeta(entry)}
     </>
   );

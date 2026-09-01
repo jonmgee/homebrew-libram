@@ -78,11 +78,6 @@ export default function SpellDetail({ entry }: { entry: DbEntry }) {
         </p>
       )}
 
-      {entry.tags && entry.tags.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {entry.tags.map(t => <span key={t} className="phb-tag">{t}</span>)}
-        </div>
-      )}
 
       {(entry.source || entry.campaign) && (
         <div className="mt-8 flex flex-wrap gap-x-6 gap-y-1 border-t border-parchment-dark pt-4">

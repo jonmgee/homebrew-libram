@@ -34,7 +34,6 @@ type SaveData = {
   name: string;
   type: string;
   description: string;
-  tags: string[];
   properties: Record<string, unknown>;
 };
 
@@ -69,10 +68,11 @@ export async function saveEntryWithImage(
 
     const { error: updateError } = await supabase
       .from("entries")
+      // tags is deliberately absent: the feature was withdrawn from the UI but
+      // the existing strings stay in the column, and an edit shouldn't wipe them.
       .update({
         name: data.name,
         description: data.description,
-        tags: data.tags,
         properties,
       })
       .eq("id", editId);

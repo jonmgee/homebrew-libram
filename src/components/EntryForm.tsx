@@ -113,37 +113,6 @@ export default function EntryForm({ entryType, initialData }: EntryFormProps) {
   );
 }
 
-/* ──────── Simple tag input hook ──────── */
-function useTagInput(initial: string[] = []) {
-  const [tags, setTags] = useState<string[]>(initial);
-  const [input, setInput] = useState("");
-
-  const addTag = (raw: string) => {
-    const tag = raw.trim();
-    if (tag && !tags.includes(tag)) {
-      setTags((prev) => [...prev, tag]);
-    }
-    setInput("");
-  };
-
-  const removeTag = (tag: string) => {
-    setTags((prev) => prev.filter((t) => t !== tag));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      addTag(input);
-    }
-    if (e.key === "Backspace" && !input && tags.length > 0) {
-      removeTag(tags[tags.length - 1]!);
-    }
-  };
-
-  const resetTags = () => setTags([]);
-  return { tags, input, setInput, addTag, removeTag, handleKeyDown, resetTags };
-}
-
 /* ──────── Generic custom dropdown ──────── */
 function CustomSelect<T extends string>({
   value,
@@ -318,7 +287,6 @@ function SubclassForm({ parsedData, capturedImage, initialData }: { parsedData?:
   const dupWarning = useDuplicateNameCheck(name, initialData);
   const [parentClass, setParentClass] = useState("");
   const [description, setDescription] = useState("");
-  const tags = useTagInput();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -340,12 +308,6 @@ function SubclassForm({ parsedData, capturedImage, initialData }: { parsedData?:
         desc: typeof (f as any).desc === "string" ? (f as any).desc : "",
       })));
     }
-    if (Array.isArray(parsedData.tags)) {
-      tags.resetTags();
-      for (const t of parsedData.tags) {
-        if (typeof t === "string") tags.addTag(t);
-      }
-    }
     setPrepopNotice(true);
     setTimeout(() => setPrepopNotice(false), 6000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -360,10 +322,6 @@ function SubclassForm({ parsedData, capturedImage, initialData }: { parsedData?:
     if (pc) setParentClass(pc);
     const lf = initialData.properties?.level_features as { level: number; desc: string }[] | undefined;
     if (lf && lf.length) setFeatures(lf);
-    tags.resetTags();
-    for (const t of initialData.tags) {
-      if (typeof t === "string") tags.addTag(t);
-    }
     const imgUrl = initialData.properties?.image_url as string | undefined;
     if (imgUrl) setImagePreview(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -406,14 +364,12 @@ function SubclassForm({ parsedData, capturedImage, initialData }: { parsedData?:
         name: name.trim(),
         type: "subclass",
         description: description.trim(),
-        tags: tags.tags,
         properties,
       }, imageToUpload, navigate, initialData?.id, existingImageUrl);
       if (!initialData) {
         setName("");
         setParentClass("");
         setDescription("");
-        tags.resetTags();
         setFeatures([]);
         setImageFile(null);
         setImagePreview(null);
@@ -481,20 +437,6 @@ function SubclassForm({ parsedData, capturedImage, initialData }: { parsedData?:
         </div>
       </div>
 
-      <div>
-        <label className={labelCls}>Tags</label>
-        <div className="flex flex-wrap gap-1.5">
-          {tags.tags.map((tag) => (
-            <span key={tag} className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]">
-              {tag}
-              <button type="button" onClick={() => tags.removeTag(tag)} className="ml-0.5 text-[#766649] hover:text-[#58180d]">
-                <FontAwesomeIcon icon={faTimes} className="size-2.5" />
-              </button>
-            </span>
-          ))}
-        </div>
-        <input type="text" value={tags.input} onChange={(e) => tags.setInput(e.target.value)} onKeyDown={tags.handleKeyDown} onBlur={() => { if (tags.input.trim()) tags.addTag(tags.input); }} placeholder="Type a tag and press Enter or comma…" className={`mt-1.5 ${inputCls}`} />
-      </div>
 
       <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
 
@@ -518,7 +460,6 @@ function TableForm({ parsedData, capturedImage, initialData }: { parsedData?: Pa
   const [description, setDescription] = useState("");
   const [dieType, setDieType] = useState("");
   const [columns, setColumns] = useState<string[]>([""]);
-  const tags = useTagInput();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -544,12 +485,6 @@ function TableForm({ parsedData, capturedImage, initialData }: { parsedData?: Pa
         return r;
       }));
     }
-    if (Array.isArray(parsedData.tags)) {
-      tags.resetTags();
-      for (const t of parsedData.tags) {
-        if (typeof t === "string") tags.addTag(t);
-      }
-    }
     setPrepopNotice(true);
     setTimeout(() => setPrepopNotice(false), 6000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -566,10 +501,6 @@ function TableForm({ parsedData, capturedImage, initialData }: { parsedData?: Pa
     if (cols && cols.length) setColumns(cols);
     const rows = initialData.properties?.rows as string[][] | undefined;
     if (rows && rows.length) setCells(rows);
-    tags.resetTags();
-    for (const t of initialData.tags) {
-      if (typeof t === "string") tags.addTag(t);
-    }
     const imgUrl = initialData.properties?.image_url as string | undefined;
     if (imgUrl) setImagePreview(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -648,13 +579,11 @@ function TableForm({ parsedData, capturedImage, initialData }: { parsedData?: Pa
         name: name.trim(),
         type: "table",
         description: description.trim(),
-        tags: tags.tags,
         properties,
       }, imageToUpload, navigate, initialData?.id, existingImageUrl);
       if (!initialData) {
         setName("");
         setDescription("");
-        tags.resetTags();
         setDieType("");
         setColumns([""]);
         setCells([]);
@@ -757,20 +686,6 @@ function TableForm({ parsedData, capturedImage, initialData }: { parsedData?: Pa
         </div>
       )}
 
-      <div>
-        <label className={labelCls}>Tags</label>
-        <div className="flex flex-wrap gap-1.5">
-          {tags.tags.map((tag) => (
-            <span key={tag} className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]">
-              {tag}
-              <button type="button" onClick={() => tags.removeTag(tag)} className="ml-0.5 text-[#766649] hover:text-[#58180d]">
-                <FontAwesomeIcon icon={faTimes} className="size-2.5" />
-              </button>
-            </span>
-          ))}
-        </div>
-        <input type="text" value={tags.input} onChange={(e) => tags.setInput(e.target.value)} onKeyDown={tags.handleKeyDown} onBlur={() => { if (tags.input.trim()) tags.addTag(tags.input); }} placeholder="Type a tag and press Enter or comma…" className={`mt-1.5 ${inputCls}`} />
-      </div>
 
       <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
 
@@ -799,7 +714,6 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
   const [attunement, setAttunement] = useState(false);
   const [attunementBy, setAttunementBy] = useState("");
   const [description, setDescription] = useState("");
-  const tags = useTagInput();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -817,13 +731,6 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
       setAttunement(typeof parsedData.attunement === "boolean" ? parsedData.attunement : false);
       setAttunementBy(typeof parsedData.attunement_by === "string" ? parsedData.attunement_by : "");
       setDescription(typeof parsedData.description === "string" ? parsedData.description : "");
-      tags.resetTags();
-      const parsedTags = parsedData.tags;
-      if (Array.isArray(parsedTags)) {
-        for (const t of parsedTags) {
-          if (typeof t === "string") tags.addTag(t);
-        }
-      }
       setPrepopNotice(true);
       setTimeout(() => setPrepopNotice(false), 6000);
     }
@@ -835,10 +742,6 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
     if (initialData) {
       setName(initialData.name);
       setDescription(initialData.description);
-      tags.resetTags();
-      for (const t of initialData.tags) {
-        if (typeof t === "string") tags.addTag(t);
-      }
       const r = initialData.properties?.rarity as string | undefined;
       if (r) setRarity(r);
       const att = initialData.properties?.requires_attunement as boolean | undefined;
@@ -915,7 +818,6 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
         name: name.trim(),
         type: entryType,
         description: description.trim(),
-        tags: tags.tags,
         properties,
       }, imageToUpload, navigate, initialData?.id, existingImageUrl);
     } catch (err) {
@@ -1115,36 +1017,6 @@ function TreasureForm({ entryType, parsedData, capturedImage, initialData }: { e
         />
       </div>
 
-      {/* ───── Tags ───── */}
-      <div>
-        <label className={labelCls}>Tags</label>
-        <div className="flex flex-wrap gap-1.5">
-          {tags.tags.map((tag) => (
-            <span
-              key={tag}
-              className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]"
-            >
-              {tag}
-              <button
-                type="button"
-                onClick={() => tags.removeTag(tag)}
-                className="ml-0.5 text-[#766649] hover:text-[#58180d]"
-              >
-                <FontAwesomeIcon icon={faTimes} className="size-2.5" />
-              </button>
-            </span>
-          ))}
-        </div>
-        <input
-          type="text"
-          value={tags.input}
-          onChange={(e) => tags.setInput(e.target.value)}
-          onKeyDown={tags.handleKeyDown}
-          onBlur={() => { if (tags.input.trim()) tags.addTag(tags.input); }}
-          placeholder="Type a tag and press Enter or comma…"
-          className={`mt-1.5 ${inputCls}`}
-        />
-      </div>
 
       {/* ───── Image upload ───── */}
       <div>
@@ -1664,7 +1536,6 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
   const [name, setName] = useState("");
   const dupWarning = useDuplicateNameCheck(name, initialData);
   const [description, setDescription] = useState("");
-  const tags = useTagInput();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -1679,12 +1550,6 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
     if (!parsedData) return;
     if (typeof parsedData.name === "string") setName(parsedData.name);
     if (typeof parsedData.description === "string") setDescription(parsedData.description);
-    if (Array.isArray(parsedData.tags)) {
-      tags.resetTags();
-      for (const t of parsedData.tags) {
-        if (typeof t === "string") tags.addTag(t);
-      }
-    }
     setPrepopNotice(true);
     setTimeout(() => setPrepopNotice(false), 6000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1695,10 +1560,6 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
     if (!initialData) return;
     setName(initialData.name);
     setDescription(initialData.description);
-    tags.resetTags();
-    for (const t of initialData.tags) {
-      if (typeof t === "string") tags.addTag(t);
-    }
     const imgUrl = initialData.properties?.image_url as string | undefined;
     if (imgUrl) setImagePreview(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1820,11 +1681,10 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
         name: name.trim(),
         type: entryType,
         description: description.trim(),
-        tags: tags.tags,
         properties,
       }, imageToUpload, navigate, initialData?.id, existingImageUrl);
       if (!initialData) {
-        setName(""); setDescription(""); tags.resetTags(); setImageFile(null); setImagePreview(null);
+        setName(""); setDescription(""); setImageFile(null); setImagePreview(null);
         setShowStatBlock(false); setSize(""); setCreatureType(""); setAlignment(""); setCr("");
         setAc(""); setHp(""); setSpeed("");
         setStr(10); setDex(10); setCon(10); setIntel(10); setWis(10); setCha(10);
@@ -1864,18 +1724,6 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
         <textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="Describe this entry…" className={textareaCls} />
       </div>
 
-      <div>
-        <label className={labelCls}>Tags</label>
-        <div className="flex flex-wrap gap-1.5">
-          {tags.tags.map(tag => (
-            <span key={tag} className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]">
-              {tag}
-              <button type="button" onClick={()=>tags.removeTag(tag)} className="ml-0.5 text-[#766649] hover:text-[#58180d]"><FontAwesomeIcon icon={faTimes} className="size-2.5" /></button>
-            </span>
-          ))}
-        </div>
-        <input type="text" value={tags.input} onChange={e=>tags.setInput(e.target.value)} onKeyDown={tags.handleKeyDown} onBlur={()=>{if(tags.input.trim())tags.addTag(tags.input);}} placeholder="Type a tag and press Enter or comma…" className={`mt-1.5 ${inputCls}`} />
-      </div>
 
       <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
 
@@ -2017,7 +1865,6 @@ function SpellScrollForm({ entryType, parsedData, capturedImage, initialData }: 
   const [concentration, setConcentration] = useState(false);
   const [rarity, setRarity] = useState("");
   const [description, setDescription] = useState("");
-  const tags = useTagInput();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -2047,12 +1894,6 @@ function SpellScrollForm({ entryType, parsedData, capturedImage, initialData }: 
       }
     }
     if (typeof parsedData.rarity === "string") setRarity(parsedData.rarity);
-    if (Array.isArray(parsedData.tags)) {
-      tags.resetTags();
-      for (const t of parsedData.tags) {
-        if (typeof t === "string") tags.addTag(t);
-      }
-    }
     setPrepopNotice(true);
     setTimeout(() => setPrepopNotice(false), 6000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2079,10 +1920,6 @@ function SpellScrollForm({ entryType, parsedData, capturedImage, initialData }: 
     if (typeof p.duration === "string") setDuration(p.duration);
     if (typeof p.concentration === "boolean") setConcentration(p.concentration);
     if (typeof p.rarity === "string") setRarity(p.rarity);
-    tags.resetTags();
-    for (const t of initialData.tags) {
-      if (typeof t === "string") tags.addTag(t);
-    }
     const imgUrl = initialData.properties?.image_url as string | undefined;
     if (imgUrl) setImagePreview(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2140,7 +1977,6 @@ function SpellScrollForm({ entryType, parsedData, capturedImage, initialData }: 
         name: name.trim(),
         type: actualType,
         description: description.trim(),
-        tags: tags.tags,
         properties,
       }, imageToUpload, navigate, initialData?.id, existingImageUrl);
     } catch (err) {
@@ -2289,20 +2125,6 @@ function SpellScrollForm({ entryType, parsedData, capturedImage, initialData }: 
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the spell's effect…" className={textareaCls} />
       </div>
 
-      <div>
-        <label className={labelCls}>Tags</label>
-        <div className="flex flex-wrap gap-1.5">
-          {tags.tags.map((tag) => (
-            <span key={tag} className="flex items-center gap-1 rounded-md border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-2 py-0.5 text-xs font-[var(--font-phb)] text-[#58180d]">
-              {tag}
-              <button type="button" onClick={() => tags.removeTag(tag)} className="ml-0.5 text-[#766649] hover:text-[#58180d]">
-                <FontAwesomeIcon icon={faTimes} className="size-2.5" />
-              </button>
-            </span>
-          ))}
-        </div>
-        <input type="text" value={tags.input} onChange={(e) => tags.setInput(e.target.value)} onKeyDown={tags.handleKeyDown} onBlur={() => { if (tags.input.trim()) tags.addTag(tags.input); }} placeholder="Type a tag and press Enter or comma…" className={`mt-1.5 ${inputCls}`} />
-      </div>
 
       <ImageUpload fileRef={fileRef} imageFile={imageFile} imagePreview={imagePreview} setImageFile={setImageFile} setImagePreview={setImagePreview} handleImage={handleImage} />
 
