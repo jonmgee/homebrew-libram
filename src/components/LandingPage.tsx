@@ -190,6 +190,13 @@ export default function LandingPage() {
         <p className="phb-description mt-3 text-xs italic">
           Free, no ads, no limit on what you store.
         </p>
+        {/* All three Guild apps authenticate against the one Supabase project,
+            so an account really is shared. Sits under the sign-up button
+            because that's the moment someone is about to make a second one. */}
+        <p className="phb-description mx-auto mt-1 max-w-md text-xs italic">
+          Already use PC on Parchment or Plot and Weave? The same login works
+          here &mdash; no need to sign up again.
+        </p>
 
         <div className="mt-8">
           <Shot src="/assets/shots/shot-shelves.webp" alt="The Homebrew Libram home page, showing shelves for treasure, arcana, creatures, character options and tables" />

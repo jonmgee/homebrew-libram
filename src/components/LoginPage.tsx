@@ -98,7 +98,9 @@ export default function LoginPage() {
   // Mirrors the wording on PC on Parchment's login. Both apps run on one
   // Supabase project, so an account genuinely works on both — but only PC on
   // Parchment said so, leaving the cross-reference one-directional.
-  const subtext = mode === "signin" ? "Use your PC on Parchment account, or create one" : mode === "signup" ? "One account for Homebrew Libram and PC on Parchment" : "Enter your email to receive a reset link";
+  // Named two of the three apps, having been written before Plot and Weave
+  // joined the same Supabase project. The full list lives in the note below.
+  const subtext = mode === "signin" ? "Use your Appwrights Guild account, or create one" : mode === "signup" ? "One account for every Appwrights Guild app" : "Enter your email to receive a reset link";
   const buttonLabel = sending ? "Please wait…" : mode === "forgot" ? "Send reset link" : title;
 
   return (
@@ -276,6 +278,15 @@ export default function LoginPage() {
             </button>
           )}
         </div>
+
+        {/* The landing page says this too, but this is where the wasted
+            action happens: the three Guild apps share one Supabase project,
+            so a second account here would just be a second account. */}
+        <p className="mt-4 border-t border-[#C9A84C]/25 pt-4 text-center text-xs italic leading-relaxed text-[#b5a98e]">
+          One login covers Homebrew Libram, PC on Parchment and Plot and Weave.
+          If you have an account for any of them, sign in with it &mdash; there
+          is no need to create another.
+        </p>
 
         {/* Linked from the login screen, not just the account page: someone
             should be able to read what we store before handing over an email. */}
