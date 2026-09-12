@@ -8,7 +8,7 @@ import {
   faUpload,
   faPlus,
 } from "@fortawesome/free-solid-svg-icons";
-import { formatEntryType, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS } from "../types";
+import { formatEntryType, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS, npcHasStatBlock } from "../types";
 import type { EntryType, DbEntry } from "../types";
 import { saveEntryWithImage } from "../lib/uploadImage";
 import { supabase } from "../lib/supabase";
@@ -1569,6 +1569,13 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
 
   // ── Stat block state (NPC only) ──
   const [showStatBlock, setShowStatBlock] = useState(false);
+  /**
+   * Whether the user actually pressed the stat-block toggle. Clearing an
+   * entry's properties is only permitted off the back of this: "off because
+   * you said so" then can't be confused with "off because the form failed to
+   * load the stats", which is the bug that made this guard necessary.
+   */
+  const [statToggleTouched, setStatToggleTouched] = useState(false);
   const [size, setSize] = useState("");
   const [creatureType, setCreatureType] = useState("");
   const [alignment, setAlignment] = useState("");
@@ -1618,6 +1625,77 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
   const addLair = () => setLairActs(p => [...p,{name:"",desc:""}]);
   const updLair = (i:number,f:"name"|"desc",v:string) => setLairActs(p => p.map((a,j) => j===i ? {...a,[f]:v} : a));
   const remLair = (i:number) => setLairActs(p => p.filter((_,j) => j!==i));
+
+  /**
+   * Read the stat block back when editing.
+   *
+   * Without this, opening an NPC for editing showed the toggle off and every
+   * field blank — the stats were in the row the whole time, just never loaded.
+   * Worse, saving from that state wrote an empty `properties` straight over
+   * them, because handleSubmit skips the whole block when the toggle is off.
+   *
+   * Mirrors MonsterForm's restore, which has always done this correctly, and
+   * reverses the same lossy pair: saving throws and skills are stored as
+   * rendered strings ("dex +5", "Stealth +7"), so the profiencies behind them
+   * are recovered by matching names rather than read back directly.
+   */
+  useEffect(() => {
+    if (!initialData) return;
+    const p = initialData.properties ?? {};
+    if (typeof p.size === "string") setSize(p.size);
+    if (typeof p.creature_type === "string") setCreatureType(p.creature_type);
+    if (typeof p.alignment === "string") setAlignment(p.alignment);
+    if (typeof p.cr === "string") setCr(p.cr);
+    if (typeof p.ac === "string") setAc(p.ac);
+    if (typeof p.hp === "string") setHp(p.hp);
+    if (typeof p.speed === "string") setSpeed(p.speed);
+    if (typeof p.ability_str === "number") setStr(p.ability_str);
+    if (typeof p.ability_dex === "number") setDex(p.ability_dex);
+    if (typeof p.ability_con === "number") setCon(p.ability_con);
+    if (typeof p.ability_int === "number") setIntel(p.ability_int);
+    if (typeof p.ability_wis === "number") setWis(p.ability_wis);
+    if (typeof p.ability_cha === "number") setCha(p.ability_cha);
+    if (typeof p.saving_throws === "string") {
+      const savesStr = p.saving_throws.toLowerCase();
+      setSaveProfs(prev => ({ ...prev, ...Object.fromEntries(ABILITIES.map(a => [a, savesStr.includes(a.toLowerCase())])) }));
+    }
+    if (typeof p.skills === "string") {
+      setSkillProfs(p.skills.split(",").map((x: string) => x.trim().split(" ").slice(0, -1).join(" ")).filter((x: string) => SKILL_LIST.includes(x)));
+    }
+    if (typeof p.damage_vulnerabilities === "string") p.damage_vulnerabilities.split(",").forEach((t: string) => vuln.add(t.trim()));
+    if (typeof p.damage_resistances === "string") p.damage_resistances.split(",").forEach((t: string) => resist.add(t.trim()));
+    if (typeof p.damage_immunities === "string") p.damage_immunities.split(",").forEach((t: string) => immune.add(t.trim()));
+    if (typeof p.condition_immunities === "string") p.condition_immunities.split(",").forEach((t: string) => condImm.add(t.trim()));
+    if (typeof p.senses === "string") setSenses(p.senses);
+    if (typeof p.languages === "string") setLanguages(p.languages);
+    if (Array.isArray(p.traits)) setTraits(p.traits as {name:string;desc:string}[]);
+    if (Array.isArray(p.actions)) setActions(p.actions as {name:string;desc:string}[]);
+    if (Array.isArray(p.bonus_actions)) setBonusActions(p.bonus_actions as {name:string;desc:string}[]);
+    if (Array.isArray(p.reactions)) setReactions(p.reactions as {name:string;desc:string}[]);
+    if (typeof p.spellcasting === "object" && p.spellcasting !== null) {
+      const sc = p.spellcasting as {ability?: string; save_dc?: number; attack_bonus?: number; spells?: string};
+      setHasSpell(true);
+      if (typeof sc.ability === "string") setSpellAbil(sc.ability);
+      if (typeof sc.save_dc === "number") setSpellSave(sc.save_dc);
+      if (typeof sc.attack_bonus === "number") setSpellAtk(sc.attack_bonus);
+      if (typeof sc.spells === "string") setSpellList(sc.spells);
+    }
+    if (Array.isArray(p.lair_actions) && p.lair_actions.length > 0) {
+      setLairActs(p.lair_actions as {name:string;desc:string}[]);
+      setHasLair(true);
+    }
+    if (typeof p.legendary_actions === "object" && p.legendary_actions !== null) {
+      const la = p.legendary_actions as {per_round?: number; actions?: {name:string;desc:string}[]};
+      if (typeof la.per_round === "number") setLegPer(la.per_round);
+      if (Array.isArray(la.actions) && la.actions.length > 0) {
+        setLegActs(la.actions as {name:string;desc:string}[]);
+        setHasLeg(true);
+      }
+    }
+    // Last, so the block is only opened once its fields are filled.
+    if (npcHasStatBlock(initialData)) setShowStatBlock(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const sbToggleCls = (active: boolean) =>
     `rounded-lg border px-3 py-1 text-xs font-[var(--font-phb)] transition-colors ${active ? "border-[var(--color-gilding-dark)] bg-[#58180d] font-bold text-[#eee5ce]" : "border-[var(--color-parchment-dark)] bg-[var(--color-parchment)] text-[#766649] hover:border-[var(--color-gilding-dark)]"}`;
@@ -1682,10 +1760,10 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
         type: entryType,
         description: description.trim(),
         properties,
-      }, imageToUpload, navigate, initialData?.id, existingImageUrl);
+      }, imageToUpload, navigate, initialData?.id, existingImageUrl, statToggleTouched);
       if (!initialData) {
         setName(""); setDescription(""); setImageFile(null); setImagePreview(null);
-        setShowStatBlock(false); setSize(""); setCreatureType(""); setAlignment(""); setCr("");
+        setShowStatBlock(false); setStatToggleTouched(false); setSize(""); setCreatureType(""); setAlignment(""); setCr("");
         setAc(""); setHp(""); setSpeed("");
         setStr(10); setDex(10); setCon(10); setIntel(10); setWis(10); setCha(10);
         setSaveProfs({STR:false,DEX:false,CON:false,INT:false,WIS:false,CHA:false});
@@ -1732,8 +1810,8 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
           <div className="flex items-center justify-between">
             <span className="font-[var(--font-title)] text-sm font-bold text-[#58180d]">Include Full Stat Block</span>
             <div className="flex gap-2">
-              <button type="button" onClick={()=>setShowStatBlock(false)} className={sbToggleCls(!showStatBlock)}>No</button>
-              <button type="button" onClick={()=>setShowStatBlock(true)} className={sbToggleCls(showStatBlock)}>Yes</button>
+              <button type="button" onClick={()=>{setShowStatBlock(false); setStatToggleTouched(true);}} className={sbToggleCls(!showStatBlock)}>No</button>
+              <button type="button" onClick={()=>{setShowStatBlock(true); setStatToggleTouched(true);}} className={sbToggleCls(showStatBlock)}>Yes</button>
             </div>
           </div>
 
@@ -1843,7 +1921,7 @@ function SimpleForm({ entryType, parsedData, capturedImage, initialData }: { ent
         </div>
       )}
 
-      <SaveButton saving={saving} disabled={!name.trim()} />
+      <SaveButton saving={saving} disabled={!name.trim()} label={initialData ? "Save Changes" : "Save Entry"} />
     </form>
   );
 }

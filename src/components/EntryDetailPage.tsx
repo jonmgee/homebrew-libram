@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { formatEntryType, type DbEntry, type EntryType } from "../types";
+import { formatEntryType, npcHasStatBlock, type DbEntry, type EntryType } from "../types";
 import MarkdownDescription from "./MarkdownDescription";
 import StarRating from "./StarRating";
 import BookmarkToggle from "./BookmarkToggle";
@@ -155,6 +155,21 @@ function SimpleDetail({ entry }: { entry: DbEntry }) {
   );
 }
 
+/**
+ * An NPC may or may not carry a stat block — the form makes it optional, and
+ * most don't have one. Where there is one it's a monster in every way the
+ * layout cares about, so MonsterDetail renders it: it reads exactly the keys
+ * the NPC form writes and carries no monster-specific wording. Where there
+ * isn't, the plain layout is right, since an empty stat block reads worse
+ * than none at all.
+ *
+ * Until this existed, `npc` pointed straight at SimpleDetail, so a stat block
+ * typed into the form saved correctly and then appeared nowhere.
+ */
+function NpcDetail({ entry }: { entry: DbEntry }) {
+  return npcHasStatBlock(entry) ? <MonsterDetail entry={entry} /> : <SimpleDetail entry={entry} />;
+}
+
 /* ─── Type lookup ─── */
 
 export const RENDERERS: Record<string, React.FC<{ entry: DbEntry }>> = {
@@ -164,7 +179,7 @@ export const RENDERERS: Record<string, React.FC<{ entry: DbEntry }>> = {
   potion: PotionDetail,
   adventuring_gear: AdventuringGearDetail,
   trinket: TrinketDetail,
-  npc: SimpleDetail,
+  npc: NpcDetail,
   background: SimpleDetail,
   feat: SimpleDetail,
   spell: SpellDetail,

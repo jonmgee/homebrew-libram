@@ -110,6 +110,16 @@ const ENTRY_TYPE_LABELS: Record<string, string> = {
   magic_item: "Magic Item",
 };
 
+/**
+ * Does this NPC carry a stat block? The NPC form makes one optional, so most
+ * don't, and the answer decides both which layout renders the entry and
+ * whether the edit form opens the stat-block section.
+ */
+export function npcHasStatBlock(entry: { properties?: Record<string, unknown> | null }): boolean {
+  const p = entry.properties ?? {};
+  return ["ac", "hp", "cr", "speed", "ability_str", "actions", "traits"].some((k) => k in p);
+}
+
 export function formatEntryType(type: string): string {
   return ENTRY_TYPE_LABELS[type] ?? type;
 }
