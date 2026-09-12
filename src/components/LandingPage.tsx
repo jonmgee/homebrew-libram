@@ -71,10 +71,31 @@ function Cta({ children, to, variant = "primary" }: { children: React.ReactNode;
   );
 }
 
-function Shot({ src, alt }: { src: string; alt: string }) {
+/**
+ * `hero` is for the one shot above the fold, and does two things.
+ *
+ * It loads eagerly: lazy-loading an image that is already in view just means
+ * it can arrive after first paint, so the page looks emptier on landing than
+ * it is. The three chapter shots below the fold stay lazy, which is what the
+ * attribute is for.
+ *
+ * And it's capped. Uncropped, this shot rendered 1080px tall at 1280x800 —
+ * taller than the viewport — which pushed Chapter I more than two screens
+ * down; on a 375px phone the Chapter I eyebrow landed at y=811 against an
+ * 812px fold. Cropping from the top keeps the app header and the first row
+ * of shelves, which is the part that reads at this scale anyway: the full
+ * grid scaled to a phone is six illegible thumbnails.
+ */
+function Shot({ src, alt, hero = false }: { src: string; alt: string; hero?: boolean }) {
   return (
     <div className="gilded-border overflow-hidden rounded-lg shadow-[0_8px_20px_rgba(26,10,0,0.22)]">
-      <img src={src} alt={alt} loading="lazy" className="block w-full" />
+      <img
+        src={src}
+        alt={alt}
+        loading={hero ? "eager" : "lazy"}
+        fetchPriority={hero ? "high" : undefined}
+        className={`block w-full ${hero ? "max-h-[30vh] object-cover object-top" : ""}`}
+      />
     </div>
   );
 }
@@ -199,7 +220,7 @@ export default function LandingPage() {
         </p>
 
         <div className="mt-8">
-          <Shot src="/assets/shots/shot-shelves.webp" alt="The Homebrew Libram home page, showing shelves for treasure, arcana, creatures, character options and tables" />
+          <Shot hero src="/assets/shots/shot-shelves.webp" alt="The Homebrew Libram home page, showing shelves for treasure, arcana, creatures, character options and tables" />
         </div>
       </section>
 
