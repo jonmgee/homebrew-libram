@@ -71,31 +71,11 @@ function Cta({ children, to, variant = "primary" }: { children: React.ReactNode;
   );
 }
 
-/**
- * `hero` is for the one shot above the fold, and does two things.
- *
- * It loads eagerly: lazy-loading an image that is already in view just means
- * it can arrive after first paint, so the page looks emptier on landing than
- * it is. The three chapter shots below the fold stay lazy, which is what the
- * attribute is for.
- *
- * And it's capped. Uncropped, this shot rendered 1080px tall at 1280x800 —
- * taller than the viewport — which pushed Chapter I more than two screens
- * down; on a 375px phone the Chapter I eyebrow landed at y=811 against an
- * 812px fold. Cropping from the top keeps the app header and the first row
- * of shelves, which is the part that reads at this scale anyway: the full
- * grid scaled to a phone is six illegible thumbnails.
- */
-function Shot({ src, alt, hero = false }: { src: string; alt: string; hero?: boolean }) {
+/** Every shot is a chapter shot now, and every one of them is below the fold. */
+function Shot({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="gilded-border overflow-hidden rounded-lg shadow-[0_8px_20px_rgba(26,10,0,0.22)]">
-      <img
-        src={src}
-        alt={alt}
-        loading={hero ? "eager" : "lazy"}
-        fetchPriority={hero ? "high" : undefined}
-        className={`block w-full ${hero ? "max-h-[30vh] object-cover object-top" : ""}`}
-      />
+      <img src={src} alt={alt} loading="lazy" className="block w-full" />
     </div>
   );
 }
@@ -204,23 +184,11 @@ export default function LandingPage() {
         <p className="phb-body mx-auto max-w-2xl text-base leading-relaxed sm:text-lg">
           Your homebrew, organised like a proper tome — and ready at the table.
         </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Cta to="/login?mode=signup">Create a free account</Cta>
-          <Cta to="/login" variant="ghost">Sign in</Cta>
-        </div>
-        <p className="phb-description mt-3 text-xs italic">
-          Free, no ads, no limit on what you store.
-        </p>
-        {/* All three Guild apps authenticate against the one Supabase project,
-            so an account really is shared. Sits under the sign-up button
-            because that's the moment someone is about to make a second one. */}
-        <p className="phb-description mx-auto mt-1 max-w-md text-xs italic">
-          Already use PC on Parchment or Plot and Weave? The same login works
-          here &mdash; no need to sign up again.
-        </p>
-
-        <div className="mt-8">
-          <Shot hero src="/assets/shots/shot-shelves.webp" alt="The Homebrew Libram home page, showing shelves for treasure, arcana, creatures, character options and tables" />
+        {/* The loose buttons and the shelves screenshot that used to sit here
+            are gone: the same card that closes the page now opens it, and the
+            chapters start within the first screen instead of two below it. */}
+        <div className="mt-6">
+          <StartCard />
         </div>
       </section>
 
@@ -270,24 +238,45 @@ export default function LandingPage() {
 
       {/* ── Closing ── */}
       <section className="pb-4 pt-16 text-center">
-        <div className="parchment-card gilded-border px-6 py-10">
-          <h2 className="phb-h1 !text-2xl">Start your own Libram</h2>
-          <p className="phb-body mx-auto mt-3 max-w-xl text-sm leading-relaxed">
-            Bring the folder of screenshots you&rsquo;ve been meaning to sort out.
-            It takes a few seconds an entry.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Cta to="/login?mode=signup">Create a free account</Cta>
-            <Cta to="/login" variant="ghost">I already have one</Cta>
-          </div>
-          <p className="phb-description mt-5 text-xs italic">
-            An Appwright&rsquo;s Guild tool.{" "}
-            <a href="/privacy.html" className="underline underline-offset-2">
-              What we store, and who else sees it
-            </a>
-          </p>
-        </div>
+        <StartCard />
       </section>
+    </div>
+  );
+}
+
+/**
+ * The sign-up card, used twice: once under the wordmark and again at the
+ * foot of the page. One component rather than two copies, so the top and
+ * bottom can't drift apart.
+ */
+function StartCard() {
+  return (
+    <div className="parchment-card gilded-border px-6 py-10">
+      <h2 className="phb-h1 !text-2xl">Start your own Libram</h2>
+      <p className="phb-body mx-auto mt-3 max-w-xl text-sm leading-relaxed">
+        Bring the folder of screenshots you&rsquo;ve been meaning to sort out.
+        It takes a few seconds an entry.
+      </p>
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <Cta to="/login?mode=signup">Create a free account</Cta>
+        <Cta to="/login" variant="ghost">I already have one</Cta>
+      </div>
+      <p className="phb-description mt-4 text-xs italic">
+        Free, no ads, no limit on what you store.
+      </p>
+      {/* All three Guild apps authenticate against the one Supabase project,
+          so an account really is shared. Sits under the sign-up button
+          because that's the moment someone is about to make a second one. */}
+      <p className="phb-description mx-auto mt-1 max-w-md text-xs italic">
+        Already use PC on Parchment or Plot and Weave? The same login works
+        here &mdash; no need to sign up again.
+      </p>
+      <p className="phb-description mt-5 text-xs italic">
+        An Appwright&rsquo;s Guild tool.{" "}
+        <a href="/privacy.html" className="underline underline-offset-2">
+          What we store, and who else sees it
+        </a>
+      </p>
     </div>
   );
 }
