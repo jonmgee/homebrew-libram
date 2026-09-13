@@ -188,7 +188,7 @@ Content:\n`,
 description is the introductory lore only. hit_die is the die size: "D10 per Fighter level" or "1d10" means 10.
 skill_options lists the skills offered; "Choose any three skills" means skill_choose 3 and skill_options [].
 features: one entry per class feature, each with its full text verbatim and markdown-formatted. A feature gained at several levels (e.g. Ability Score Improvement at 4, 8, 12, 16 and 19) gets one entry per level. Leave out subclass features.
-resources: only the class table's columns that count uses or points of a class feature (e.g. Rages, Channel Divinity, Focus Points). Never the Proficiency Bonus, Cantrips, Prepared Spells or spell slot columns. by_level holds the value at levels 1 to 20 in order, with "—" as 0. pool is true when the number is a pool of points rather than a count of uses.
+resources: only the class table's columns that count uses or points of a class feature (e.g. Rages, Channel Divinity, Focus Points). Never the Proficiency Bonus, Cantrips, Prepared Spells or spell slot columns. Never a feature whose uses depend on an ability modifier or the Proficiency Bonus (e.g. "a number of times equal to your Intelligence modifier") — it has no column in the table, so it is a feature only, not a resource; do not invent numbers for it. by_level holds the value at levels 1 to 20 in order, with "—" as 0. pool is true only when the number is a pool of points to spend (like Lay on Hands hit points), not a count of uses.
 subclass_level is the level the class gains its subclass feature (3 if not stated).
 Use null/[] for unknowns.
 ${VERBATIM_NOTE}
