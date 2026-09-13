@@ -16,7 +16,7 @@ const CARD_SUBTITLES: Record<string, string> = {
   treasure: "Weapons, armour, magic items, potions & misc",
   arcana: "Spells",
   creatures: "Monsters and NPCs",
-  character_options: "Backgrounds, feats, subclasses",
+  character_options: "Backgrounds, feats, classes, subclasses, species",
   tables: "Random tables and generators",
 };
 

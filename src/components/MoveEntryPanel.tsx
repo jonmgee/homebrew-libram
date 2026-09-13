@@ -25,7 +25,9 @@ const FORM_FAMILY: Record<string, string> = {
   npc: "simple",
   background: "simple",
   feat: "simple",
+  class: "class",
   subclass: "subclass",
+  species: "species",
   table: "table",
 };
 
@@ -35,7 +37,9 @@ const FAMILY_LOSES: Record<string, string> = {
   arcana: "the spell's level, school, casting time and components",
   monster: "the whole stat block — AC, hit points, abilities and actions",
   simple: "nothing beyond the description",
+  class: "the class's core traits, level table and features",
   subclass: "the parent class and its feature list",
+  species: "its size, speed and traits",
   table: "the die and every row of the table",
 };
 

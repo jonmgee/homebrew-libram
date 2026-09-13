@@ -32,7 +32,9 @@ const SUBCAT_IMAGES: Record<string, string> = {
   npcs: "/assets/npcs.webp",
   backgrounds: "/assets/backgrounds.webp",
   feats: "/assets/feats.webp",
+  classes: "/assets/classes.webp",
   subclasses: "/assets/subclasses.webp",
+  species: "/assets/species.webp",
   misc: "/assets/misc.webp",
 };
 

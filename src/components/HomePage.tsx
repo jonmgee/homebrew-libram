@@ -142,7 +142,7 @@ export default function HomePage() {
                       : cat.label === "Creatures"
                         ? "Monsters and NPCs"
                         : cat.label === "Character Options"
-                          ? "Backgrounds, feats, subclasses"
+                          ? "Backgrounds, feats, classes, subclasses, species"
                           : "Random tables and generators"}
                 </p>
                 <p className="mt-0.5 text-xs leading-tight text-[#C9A84C]/70 drop-shadow">

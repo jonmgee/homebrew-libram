@@ -13,7 +13,9 @@ export type EntryType =
   | "npc"
   | "background"
   | "feat"
+  | "class"
   | "subclass"
+  | "species"
   | "table"
   // legacy — mapped to treasure for backwards compatibility
   | "magic_item";
@@ -60,7 +62,8 @@ export const CATEGORIES: Category[] = [
   {
     slug: "character_options",
     label: "Character Options",
-    types: ["background", "feat", "subclass"],
+    // Alphabetical by tile label: Backgrounds, Classes, Feats, Species, Subclasses.
+    types: ["background", "class", "feat", "species", "subclass"],
   },
   {
     slug: "tables",
@@ -82,7 +85,7 @@ export const LIVE_TYPES: Record<CategorySlug, EntryType[]> = {
   treasure: ["magic_item", "weapon", "armour", "potion", "adventuring_gear"],
   arcana: ["spell"],
   creatures: ["monster", "npc"],
-  character_options: ["background", "feat", "subclass"],
+  character_options: ["background", "class", "feat", "species", "subclass"],
   tables: ["table"],
 };
 
@@ -105,7 +108,9 @@ const ENTRY_TYPE_LABELS: Record<string, string> = {
   npc: "NPC",
   background: "Background",
   feat: "Feat",
+  class: "Class",
   subclass: "Subclass",
+  species: "Species",
   table: "Table",
   magic_item: "Magic Item",
 };
@@ -404,3 +409,127 @@ export const DIE_OPTIONS = [
   "d20",
   "d100",
 ] as const;
+
+// ──────────────── Species ────────────────
+//
+// Species and Class are the two types PC on Parchment reads to fill in a
+// character sheet, the same way it fills one from an SRD species or class.
+// Their property keys are therefore a contract with another app, written up
+// in docs/class-species-contract.md: rename one here and the sheet silently
+// stops seeing it. Both are 2024 (5.5e) shapes only.
+
+export interface SpeciesTrait {
+  name: string;
+  desc: string;
+}
+
+export interface SpeciesProperties {
+  /** "Humanoid" for every SRD species; kept for the odd homebrew that isn't. */
+  creature_type: string;
+  /** More than one = the player chooses, as with the SRD Human ("Medium or Small"). */
+  sizes: string[];
+  /** Walking speed in feet. */
+  speed: number;
+  traits: SpeciesTrait[];
+}
+
+export const SPECIES_SIZE_OPTIONS = ["Tiny", "Small", "Medium", "Large"] as const;
+
+// ──────────────── Class ────────────────
+
+/** Lower-case ability keys, exactly as PC on Parchment stores them. */
+export const ABILITY_KEYS = ["str", "dex", "con", "int", "wis", "cha"] as const;
+export type AbilityKey = (typeof ABILITY_KEYS)[number];
+
+export const ABILITY_NAMES: Record<AbilityKey, string> = {
+  str: "Strength",
+  dex: "Dexterity",
+  con: "Constitution",
+  int: "Intelligence",
+  wis: "Wisdom",
+  cha: "Charisma",
+};
+
+/** Skill ids match PC on Parchment's, so a class's list lands on its sheet as-is. */
+export const CLASS_SKILLS: { id: string; label: string }[] = [
+  { id: "acrobatics", label: "Acrobatics" },
+  { id: "animal-handling", label: "Animal Handling" },
+  { id: "arcana", label: "Arcana" },
+  { id: "athletics", label: "Athletics" },
+  { id: "deception", label: "Deception" },
+  { id: "history", label: "History" },
+  { id: "insight", label: "Insight" },
+  { id: "intimidation", label: "Intimidation" },
+  { id: "investigation", label: "Investigation" },
+  { id: "medicine", label: "Medicine" },
+  { id: "nature", label: "Nature" },
+  { id: "perception", label: "Perception" },
+  { id: "performance", label: "Performance" },
+  { id: "persuasion", label: "Persuasion" },
+  { id: "religion", label: "Religion" },
+  { id: "sleight-of-hand", label: "Sleight of Hand" },
+  { id: "stealth", label: "Stealth" },
+  { id: "survival", label: "Survival" },
+];
+
+export const HIT_DIE_OPTIONS = [6, 8, 10, 12] as const;
+
+export interface ArmorTraining {
+  light: boolean;
+  medium: boolean;
+  heavy: boolean;
+  shields: boolean;
+}
+
+export interface ClassFeature {
+  level: number;
+  name: string;
+  desc: string;
+}
+
+export interface ClassResource {
+  /** What the tracker is called on the sheet, e.g. "Rage". */
+  name: string;
+  /** Uses at each class level: always 20 numbers, index 0 = level 1, 0 until gained. */
+  by_level: number[];
+  /** A pool of points rather than a count of uses, like Lay on Hands. */
+  pool?: boolean;
+}
+
+export interface ClassProperties {
+  hit_die: number;
+  /** Display only — the 2024 class tables print it, the sheet doesn't use it. */
+  primary_ability: string;
+  saves: AbilityKey[];
+  /** Absent for a class that doesn't cast. */
+  spell_ability?: AbilityKey;
+  armor_training: ArmorTraining;
+  weapon_profs: string;
+  tool_profs: string;
+  skill_choose: number;
+  /** Empty = choose from any skill, as the Bard does. */
+  skill_options: string[];
+  starting_equipment: string;
+  /** The level the class picks its subclass; 3 for every 2024 class. */
+  subclass_level: number;
+  features: ClassFeature[];
+  resources: ClassResource[];
+}
+
+/**
+ * Names PC on Parchment already recognises. A homebrew entry with one of these
+ * names would be shadowed by the SRD version on the sheet, so the forms suggest
+ * a suffix instead. Copied from PC on Parchment's src/lib/srd.ts (SRD 5.2.1).
+ */
+export const SRD_CLASS_NAMES = [
+  "Barbarian", "Bard", "Cleric", "Druid", "Fighter", "Monk",
+  "Paladin", "Ranger", "Rogue", "Sorcerer", "Warlock", "Wizard",
+];
+export const SRD_SPECIES_NAMES = [
+  "Dragonborn", "Dwarf", "Elf", "Gnome", "Goliath", "Halfling", "Human", "Orc", "Tiefling",
+];
+
+export function srdNameClash(name: string, srdNames: string[]): string | null {
+  const key = name.trim().toLowerCase();
+  return srdNames.find((n) => n.toLowerCase() === key) ?? null;
+}
