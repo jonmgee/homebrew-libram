@@ -406,11 +406,6 @@ function SubclassForm({ parsedData, capturedImage, initialData }: { parsedData?:
       </div>
 
       <div>
-        <label className={labelCls}>Name</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. School of Evocation" className={inputCls} required />
-      </div>
-
-      <div>
         <label className={labelCls}>Parent Class</label>
         <input type="text" value={parentClass} onChange={(e) => setParentClass(e.target.value)} placeholder="e.g. Wizard, Fighter, Rogue" className={inputCls} />
       </div>
