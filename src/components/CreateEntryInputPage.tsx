@@ -25,7 +25,7 @@ export default function CreateEntryInputPage() {
     if (!type) return null;
     const knownTypes: EntryType[] = [
       "magic_item", "weapon", "armour", "potion", "adventuring_gear", "trinket",
-      "spell", "scroll", "monster", "npc", "background", "feat", "subclass", "table",
+      "spell", "scroll", "monster", "npc", "background", "feat", "class", "subclass", "species", "table",
     ];
     if (knownTypes.includes(type as EntryType)) return type as EntryType;
     return null;

@@ -151,6 +151,49 @@ Name is subclass title, parent_class is base class. Extract level features as na
 ${VERBATIM_NOTE}
 Content:\n`,
 
+  species: `Extract species fields (D&D 2024 rules) and return JSON only — no preamble, no fences.
+{
+  "name": "string",
+  "description": "string",
+  "creature_type": "string",
+  "sizes": [ one or more of "Tiny", "Small", "Medium", "Large" ],
+  "speed": number,
+  "traits": [ { "name": "string", "desc": "string" } ]
+}
+description is the introductory lore only; every named trait block goes in traits instead, with its text verbatim and markdown-formatted.
+"Size: Medium (about 4–7 feet tall) or Small" means sizes ["Medium", "Small"]. "Speed: 30 feet" means speed 30. creature_type is usually "Humanoid".
+If the source is an older-style race listing Ability Score Increase, Age, Alignment or Languages, keep each of those as a trait too — do not drop them.
+Use null/[] for unknowns.
+${VERBATIM_NOTE}
+Content:\n`,
+
+  class: `Extract class fields (D&D 2024 rules) and return JSON only — no preamble, no fences.
+{
+  "name": "string",
+  "description": "string",
+  "primary_ability": "string",
+  "hit_die": number,
+  "saves": [ ability names, e.g. "Strength" ],
+  "skill_choose": number,
+  "skill_options": [ skill names ],
+  "weapon_profs": "string",
+  "tool_profs": "string",
+  "armor_training": { "light": boolean, "medium": boolean, "heavy": boolean, "shields": boolean },
+  "starting_equipment": "string",
+  "spell_ability": ability name or null,
+  "subclass_level": number,
+  "features": [ { "level": number, "name": "string", "desc": "string" } ],
+  "resources": [ { "name": "string", "by_level": [ 20 numbers ], "pool": boolean } ]
+}
+description is the introductory lore only. hit_die is the die size: "D10 per Fighter level" or "1d10" means 10.
+skill_options lists the skills offered; "Choose any three skills" means skill_choose 3 and skill_options [].
+features: one entry per class feature, each with its full text verbatim and markdown-formatted. A feature gained at several levels (e.g. Ability Score Improvement at 4, 8, 12, 16 and 19) gets one entry per level. Leave out subclass features.
+resources: only the class table's columns that count uses or points of a class feature (e.g. Rages, Channel Divinity, Focus Points). Never the Proficiency Bonus, Cantrips, Prepared Spells or spell slot columns. by_level holds the value at levels 1 to 20 in order, with "—" as 0. pool is true when the number is a pool of points rather than a count of uses.
+subclass_level is the level the class gains its subclass feature (3 if not stated).
+Use null/[] for unknowns.
+${VERBATIM_NOTE}
+Content:\n`,
+
   monster: `Extract monster stat block and return JSON only — no preamble, no fences.
 {
   "name": "string", "size": one of "Tiny","Small","Medium","Large","Huge","Gargantuan",
@@ -454,6 +497,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Subclass
     if (typeof parsed.parent_class === "string") result.parent_class = parsed.parent_class.trim();
     if (Array.isArray(parsed.level_features)) result.level_features = parsed.level_features;
+
+    // Species
+    if (Array.isArray(parsed.sizes)) result.sizes = parsed.sizes.filter((x): x is string => typeof x === "string");
+    if (typeof parsed.speed === "number") result.speed = parsed.speed;
+
+    // Class
+    if (typeof parsed.hit_die === "number" || typeof parsed.hit_die === "string") result.hit_die = parsed.hit_die;
+    if (typeof parsed.primary_ability === "string") result.primary_ability = parsed.primary_ability.trim();
+    if (Array.isArray(parsed.saves)) result.saves = parsed.saves;
+    if (typeof parsed.skill_choose === "number") result.skill_choose = parsed.skill_choose;
+    if (Array.isArray(parsed.skill_options)) result.skill_options = parsed.skill_options;
+    if (typeof parsed.weapon_profs === "string") result.weapon_profs = parsed.weapon_profs.trim();
+    if (typeof parsed.tool_profs === "string") result.tool_profs = parsed.tool_profs.trim();
+    if (typeof parsed.armor_training === "object" && parsed.armor_training !== null) result.armor_training = parsed.armor_training;
+    if (typeof parsed.starting_equipment === "string") result.starting_equipment = parsed.starting_equipment.trim();
+    if (typeof parsed.spell_ability === "string") result.spell_ability = parsed.spell_ability.trim();
+    if (typeof parsed.subclass_level === "number") result.subclass_level = parsed.subclass_level;
+    if (Array.isArray(parsed.features)) result.features = parsed.features;
+    if (Array.isArray(parsed.resources)) result.resources = parsed.resources;
 
     // Monster/NPC stat block
     if (typeof parsed.size === "string") result.size = parsed.size.trim();

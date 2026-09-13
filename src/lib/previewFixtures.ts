@@ -396,6 +396,65 @@ export const PREVIEW_ENTRIES: DbEntry[] = [
     },
   },
 
+  {
+    id: id(),
+    name: "Lanternfolk",
+    type: "species",
+    description:
+      "Lanternfolk are born with a steady ember glowing beneath the breastbone. It brightens when they are glad and gutters when they lie, which makes them honest company and poor card players.",
+    source: "Codex of the Umbral Court",
+    dm_only: false,
+    tags: [],
+    campaign: "",
+    created_at: at("2026-06-16"),
+    properties: {
+      creature_type: "Humanoid",
+      sizes: ["Medium", "Small"],
+      speed: 30,
+      traits: [
+        { name: "Inner Light", desc: "You shed Dim Light in a 10-foot radius. You can suppress or restore it as a Bonus Action." },
+        { name: "Darkvision", desc: "You have Darkvision with a range of 60 feet." },
+        { name: "Ember Heart", desc: "You have Resistance to Cold damage, and you have Advantage on saving throws you make to avoid or end the Frightened condition." },
+      ],
+    },
+  },
+  {
+    id: id(),
+    name: "Graveward",
+    type: "class",
+    description:
+      "Gravewards keep the roads between the living and the dead. They carry a lantern, a spade and an oath, and they are very good with all three.",
+    source: "Codex of the Umbral Court",
+    dm_only: false,
+    tags: [],
+    campaign: "",
+    created_at: at("2026-06-17"),
+    properties: {
+      hit_die: 10,
+      primary_ability: "Wisdom",
+      saves: ["con", "wis"],
+      armor_training: { light: true, medium: true, heavy: false, shields: true },
+      weapon_profs: "Simple and Martial weapons",
+      tool_profs: "",
+      skill_choose: 2,
+      skill_options: ["athletics", "insight", "medicine", "perception", "religion", "survival"],
+      starting_equipment: "Choose A or B: (A) Scale Mail, Shield, Warhammer, Explorer's Pack, Lantern and 8 GP; or (B) 110 GP",
+      spell_ability: "wis",
+      subclass_level: 3,
+      features: [
+        { level: 1, name: "Grave Sense", desc: "As a Bonus Action you learn the location of any Undead within 30 feet of you until the end of your turn." },
+        { level: 1, name: "Lantern Rites", desc: "You can expend a use of Lantern Rites to cast *Light* or to force an Undead within 30 feet to make a Wisdom saving throw or have the Frightened condition until the end of your next turn." },
+        { level: 2, name: "Spellcasting", desc: "You prepare Graveward spells from the Cleric list, using Wisdom as your spellcasting ability." },
+        { level: 3, name: "Graveward Subclass", desc: "You choose a Graveward subclass." },
+        { level: 4, name: "Ability Score Improvement", desc: "You gain the Ability Score Improvement feat or another feat for which you qualify." },
+        { level: 5, name: "Extra Attack", desc: "You can attack twice instead of once whenever you take the Attack action on your turn." },
+      ],
+      resources: [
+        { name: "Lantern Rites", by_level: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5] },
+      ],
+    },
+  },
+
   // ── Tables ────────────────────────────────────────────────
   {
     id: id(),

@@ -65,6 +65,18 @@ export function entrySummary(entry: DbEntry): string {
     case "feat":
     case "subclass":
       return firstLine(entry.description);
+    case "species": {
+      const sizes = Array.isArray(props.sizes) ? (props.sizes as string[]).join(" or ") : "";
+      const speed = props.speed ? `Speed ${props.speed} ft.` : "";
+      const parts = [sizes, speed].filter(Boolean);
+      return parts.length > 0 ? parts.join(" — ") : firstLine(entry.description);
+    }
+    case "class": {
+      const hitDie = props.hit_die ? `d${props.hit_die} hit die` : "";
+      const spell = typeof props.spell_ability === "string" ? "Spellcaster" : "";
+      const parts = [hitDie, spell].filter(Boolean);
+      return parts.length > 0 ? parts.join(" — ") : firstLine(entry.description);
+    }
     case "table": {
       const dieType = (props.die_type as string | undefined) ?? "";
       return dieType || firstLine(entry.description);

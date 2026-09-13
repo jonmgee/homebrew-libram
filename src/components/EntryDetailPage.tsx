@@ -11,6 +11,8 @@ import SpellDetail from "./SpellDetail";
 import MonsterDetail from "./MonsterDetail";
 import SubclassDetail from "./SubclassDetail";
 import TableDetail from "./TableDetail";
+import SpeciesDetail from "./SpeciesDetail";
+import ClassDetail from "./ClassDetail";
 
 type LoadState = "loading" | "loaded" | "error" | "not_found";
 
@@ -185,7 +187,9 @@ export const RENDERERS: Record<string, React.FC<{ entry: DbEntry }>> = {
   spell: SpellDetail,
   scroll: SpellDetail,
   monster: MonsterDetail,
+  class: ClassDetail,
   subclass: SubclassDetail,
+  species: SpeciesDetail,
   table: TableDetail,
 };
 

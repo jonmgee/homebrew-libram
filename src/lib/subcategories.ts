@@ -22,7 +22,9 @@ const SUBCATEGORY_MAP: Record<string, string> = {
   npc: "NPCs",
   background: "Backgrounds",
   feat: "Feats",
+  class: "Classes",
   subclass: "Subclasses",
+  species: "Species",
   table: "Tables",
 };
 
