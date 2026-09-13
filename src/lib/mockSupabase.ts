@@ -28,7 +28,9 @@ const mockSession = {
     app_metadata: {},
     user_metadata: {},
     aud: "authenticated",
-    created_at: new Date().toISOString(),
+    // An established account, so preview mode shows the What's New dialog
+    // the way a returning reader sees it rather than as a brand-new sign-up.
+    created_at: "2026-06-01T00:00:00.000Z",
   },
   access_token: "preview",
   token_type: "bearer",

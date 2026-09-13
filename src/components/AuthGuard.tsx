@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PwaPrompt from "./PwaPrompt";
+import { setOathOpen } from "../lib/oathGate";
 
 const LS_KEY = "libram_oath_accepted";
 
@@ -102,6 +103,11 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
     prevUserRef.current = user;
   }, [user]);
+
+  useEffect(() => {
+    setOathOpen(showOath);
+    return () => setOathOpen(false);
+  }, [showOath]);
 
   const handleAccept = () => {
     localStorage.setItem(LS_KEY, "true");

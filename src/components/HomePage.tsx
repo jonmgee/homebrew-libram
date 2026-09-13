@@ -1,3 +1,4 @@
+import WhatsNew from "./WhatsNew";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -59,6 +60,7 @@ export default function HomePage() {
 
   return (
     <>
+      <WhatsNew />
       <div className="mx-auto max-w-5xl px-4 pt-12">
         <header className="mb-6 text-center">
           <h1 className="whitespace-nowrap text-center">
