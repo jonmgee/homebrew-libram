@@ -62,7 +62,8 @@ export const CATEGORIES: Category[] = [
   {
     slug: "character_options",
     label: "Character Options",
-    types: ["background", "feat", "class", "subclass", "species"],
+    // Alphabetical by tile label: Backgrounds, Classes, Feats, Species, Subclasses.
+    types: ["background", "class", "feat", "species", "subclass"],
   },
   {
     slug: "tables",
@@ -84,7 +85,7 @@ export const LIVE_TYPES: Record<CategorySlug, EntryType[]> = {
   treasure: ["magic_item", "weapon", "armour", "potion", "adventuring_gear"],
   arcana: ["spell"],
   creatures: ["monster", "npc"],
-  character_options: ["background", "feat", "class", "subclass", "species"],
+  character_options: ["background", "class", "feat", "species", "subclass"],
   tables: ["table"],
 };
 
