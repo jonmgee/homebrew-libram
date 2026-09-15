@@ -416,7 +416,7 @@ export const DIE_OPTIONS = [
 // character sheet, the same way it fills one from an SRD species or class.
 // Their property keys are therefore a contract with another app, written up
 // in docs/class-species-contract.md: rename one here and the sheet silently
-// stops seeing it. Both are 2024 (5.5e) shapes only.
+// stops seeing it. Shapes follow the 2024 rules; both its sheets read them.
 
 export interface SpeciesTrait {
   name: string;

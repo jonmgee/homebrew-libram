@@ -5,7 +5,7 @@ fill in a character sheet the same way it already does for SRD classes and
 species. This file is the only thing the two apps agree on, so treat every key
 below as load-bearing: renaming one on either side silently breaks the other.
 
-Scope: the **2024 (5.5e) sheet only**. Multiclassing rules are not part of v1.
+Scope: written for the 2024 (5.5e) sheet; since 15 September 2026 the 2014 sheet reads them too. Size, speed and traits mean the same in both editions. Class tables differ, so a class written from a 2014 source will fill a 2014 sheet as the author wrote it, with no translation. Multiclassing rules are not part of v1.
 
 ## Where the data lives
 
@@ -91,8 +91,8 @@ per keystroke.
 > Homebrew Libram now stores homebrew classes and species (entries with
 > `type` "class" and "species"). Read
 > `~/Desktop/Claude Code/Homebrew Libram/docs/class-species-contract.md` — it
-> is the contract for their `properties` shape — and make the 2024 (5.5e)
-> sheet treat them exactly like SRD classes and species: the auto-fill offer
+> is the contract for their `properties` shape — and make the sheet
+> treat them exactly like SRD classes and species: the auto-fill offer
 > when a class or species name is typed, the level-up feature offers, and the
 > limited-use tracker raises. Match SRD names first, homebrew second. Don't
 > touch the 2e sheet, and leave spell slots manual. `libram.ts` currently says
