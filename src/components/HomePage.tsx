@@ -88,15 +88,14 @@ export default function HomePage() {
           className="gilded-border relative block overflow-hidden"
           aria-label="Create New Entry"
         >
-          <video
-            autoPlay
-            muted
-            playsInline
-            loop
+          <img
+            src="/assets/hero.webp"
+            alt=""
+            width={1200}
+            height={404}
+            fetchPriority="high"
             className="block w-full"
-          >
-            <source src="/assets/Hero.mp4" type="video/mp4" />
-          </video>
+          />
           <div className="absolute inset-x-0 bottom-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <p className="text-center font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
