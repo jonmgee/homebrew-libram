@@ -21,12 +21,19 @@ const RANDOM_PICK_TYPES = new Set([
   "monster",
 ]);
 
-/** Every word of the query must begin a word somewhere in the text. */
-function wordStartRegex(query: string): RegExp {
+/**
+ * Every word of the query must begin a word somewhere in the text.
+ *
+ * One plain scan per query word. The first version folded the words into a
+ * single regex of lookaheads, which the engine re-ran from every character of
+ * every description — a one-letter search froze the page for seconds.
+ */
+function wordStartMatcher(query: string): (text: string) => boolean {
   const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const escaped = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  // One lookahead per word, so "holy sword" matches whatever order the words come in.
-  return new RegExp(escaped.map((w) => `(?=[\\s\\S]*(?:^|[^\\p{L}\\p{N}])${w})`).join(""), "iu");
+  const res = words.map(
+    (w) => new RegExp(`(?:^|[^\\p{L}\\p{N}])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "iu"),
+  );
+  return (text) => res.every((re) => re.test(text));
 }
 
 export default function BrowsePage() {
@@ -153,11 +160,11 @@ export default function BrowsePage() {
     // ahead of ones matched only somewhere in their description.
     let nameHit: Set<string> | null = null;
     if (search.trim()) {
-      const re = wordStartRegex(search);
+      const matches = wordStartMatcher(search);
       nameHit = new Set();
       result = result.filter((e) => {
-        if (re.test(e.name)) { nameHit!.add(e.id); return true; }
-        return re.test(e.description);
+        if (matches(e.name)) { nameHit!.add(e.id); return true; }
+        return matches(e.description);
       });
     }
 
