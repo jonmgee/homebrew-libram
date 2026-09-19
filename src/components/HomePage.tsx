@@ -85,9 +85,10 @@ export default function HomePage() {
       <div className="mx-auto max-w-5xl px-4">
         <Link
           to="/create"
-          className="gilded-border relative block overflow-hidden"
+          className="gilded-border mounted relative block"
           aria-label="Create New Entry"
         >
+          <div className="mount">
           <img
             src="/assets/hero.webp"
             alt=""
@@ -105,6 +106,7 @@ export default function HomePage() {
               Click here to add the next legendary item to the Libram
             </p>
           </div>
+          </div>
         </Link>
       </div>
 
@@ -120,11 +122,12 @@ export default function HomePage() {
             <MotionLink
               key={cat.slug}
               to={`/browse/${cat.slug}`}
-              className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
+              className="gilded-border mounted relative block aspect-square rounded-lg"
               variants={cardVariants}
               whileHover={{ scale: 1.02 }}
               transition={hoverTransition}
             >
+              <div className="mount">
               <img
                 src={CATEGORY_IMAGES[cat.slug]}
                 alt={cat.label}
@@ -150,17 +153,19 @@ export default function HomePage() {
                   {entryCount} entr{entryCount === 1 ? "y" : "ies"}
                 </p>
               </div>
+              </div>
             </MotionLink>
           );
         })}
 
         <MotionLink
           to="/browse/all"
-          className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
+          className="gilded-border mounted relative block aspect-square rounded-lg"
           variants={cardVariants}
           whileHover={{ scale: 1.02 }}
           transition={hoverTransition}
         >
+          <div className="mount">
           <img
             src={CATEGORY_IMAGES.all}
             alt="All Items"
@@ -174,6 +179,7 @@ export default function HomePage() {
             <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
               {total} entr{total === 1 ? "y" : "ies"}
             </p>
+          </div>
           </div>
         </MotionLink>
       </motion.nav>

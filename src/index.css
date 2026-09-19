@@ -197,6 +197,29 @@ body {
   transition: box-shadow 0.2s ease;
 }
 
+/*
+ * A sketch mounted before framing: cream mat inside the gilded frame, the
+ * picture set in with a fine ink line and a little lift. Wash artwork on a
+ * parchment page had no edge of its own — the old rendered tiles were dark
+ * enough to make their own.
+ */
+.mounted {
+  background-color: var(--color-parchment-light);
+  padding: 0.6rem;
+}
+.mounted > .mount {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+  box-shadow:
+    inset 0 0 0 1px rgba(60, 40, 20, 0.45),
+    0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.mounted.aspect-square > .mount {
+  position: absolute;
+  inset: 0.6rem;
+}
+
 .gilded-border:hover {
   box-shadow:
     0 0 0 1px var(--color-gilding-light),
