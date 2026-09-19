@@ -21,6 +21,14 @@ const RANDOM_PICK_TYPES = new Set([
   "monster",
 ]);
 
+/** Every word of the query must begin a word somewhere in the text. */
+function wordStartRegex(query: string): RegExp {
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const escaped = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  // One lookahead per word, so "holy sword" matches whatever order the words come in.
+  return new RegExp(escaped.map((w) => `(?=[\\s\\S]*(?:^|[^\\p{L}\\p{N}])${w})`).join(""), "iu");
+}
+
 export default function BrowsePage() {
   const { category, subcategory } = useParams<{ category: string; subcategory?: string }>();
   const location = useLocation();
@@ -135,17 +143,22 @@ export default function BrowsePage() {
     }
   }
 
-  // ───── filtered view ─────
+    // ───── filtered view ─────
   const filtered = useMemo(() => {
     let result = entries;
 
+    // Word-start matches only: "ring" finds Ring of Shadows and rings, not
+    // "during" and "bring", which is how a search for rings once returned a
+    // holy sword and two subclasses. Entries matched on their name sort
+    // ahead of ones matched only somewhere in their description.
+    let nameHit: Set<string> | null = null;
     if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      result = result.filter(
-        (e) =>
-          e.name.toLowerCase().includes(q) ||
-          e.description.toLowerCase().includes(q),
-      );
+      const re = wordStartRegex(search);
+      nameHit = new Set();
+      result = result.filter((e) => {
+        if (re.test(e.name)) { nameHit!.add(e.id); return true; }
+        return re.test(e.description);
+      });
     }
 
     if (hideDmOnly) {
@@ -160,6 +173,11 @@ export default function BrowsePage() {
       result = [...result].sort((a, b) => b.created_at.localeCompare(a.created_at));
     }
     // "name" keeps the alphabetical order the query returned
+
+    if (nameHit) {
+      const hits = nameHit;
+      result = [...result].sort((a, b) => Number(hits.has(b.id)) - Number(hits.has(a.id)));
+    }
 
     return result;
   }, [entries, search, hideDmOnly, sortMode]);
