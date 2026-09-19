@@ -53,11 +53,12 @@ export default function CreateEntryPage() {
             <MotionLink
               key={cat.slug}
               to={`/create/${cat.slug}`}
-              className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
+              className="gilded-border mounted relative block aspect-square rounded-lg"
               variants={cardVariants}
               whileHover={{ scale: 1.02 }}
               transition={hoverTransition}
             >
+              <div className="mount">
               <img
                 src={img}
                 alt={cat.label}
@@ -71,6 +72,7 @@ export default function CreateEntryPage() {
                 <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
                   {subtitle}
                 </p>
+              </div>
               </div>
             </MotionLink>
           );
