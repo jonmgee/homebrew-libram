@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
           Homebrew Libram
         </p>
         <p className="mb-4 text-center font-[var(--font-sans)] text-xs italic leading-relaxed text-[#C9A84C] drop-shadow-sm">
-          The digital tome for all your DnD homebrew content
+          The digital tome for all your D&D homebrew content
         </p>
 
         {done ? (
