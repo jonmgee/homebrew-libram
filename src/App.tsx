@@ -45,6 +45,16 @@ function RootRoute() {
   );
 }
 
+/* Border trial: ?border=ink|ink-shadow|double|red sticks for the session. */
+(() => {
+  try {
+    const q = new URLSearchParams(window.location.search).get("border");
+    if (q) sessionStorage.setItem("border-trial", q);
+    const v = sessionStorage.getItem("border-trial");
+    if (v) document.documentElement.dataset.border = v;
+  } catch { /* storage blocked: the trial just doesn't apply */ }
+})();
+
 function App() {
   return (
     <BrowserRouter>

@@ -591,3 +591,36 @@ body {
   padding: 0.125rem 0.5rem;
   border-radius: 0.25rem;
 }
+
+/*
+ * Tile border trial. Add ?border=ink | ink-shadow | double | red to any URL
+ * to see the whole set of tiles in that frame instead of the gilded one.
+ * Temporary: the winner gets folded into .gilded-border and this goes.
+ */
+html[data-border="ink"] .gilded-border,
+html[data-border="ink-shadow"] .gilded-border,
+html[data-border="double"] .gilded-border,
+html[data-border="red"] .gilded-border {
+  border: 1px solid #2e2114;
+  border-radius: 4px;
+  box-shadow: none;
+}
+html[data-border="ink-shadow"] .gilded-border {
+  box-shadow: 0 2px 6px rgba(46, 33, 20, 0.25);
+}
+html[data-border="double"] .gilded-border {
+  box-shadow: 0 0 0 3px var(--color-parchment), 0 0 0 4px #2e2114;
+}
+html[data-border="red"] .gilded-border {
+  border-color: var(--color-header);
+}
+html[data-border="red"] .gilded-border:hover {
+  box-shadow: 0 0 0 1px var(--color-header);
+}
+html[data-border="ink"] .gilded-border:hover,
+html[data-border="ink-shadow"] .gilded-border:hover {
+  box-shadow: 0 0 0 1px #2e2114, 0 2px 8px rgba(46, 33, 20, 0.3);
+}
+html[data-border="double"] .gilded-border:hover {
+  box-shadow: 0 0 0 3px var(--color-parchment), 0 0 0 4px var(--color-header);
+}
