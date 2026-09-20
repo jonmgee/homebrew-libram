@@ -203,6 +203,13 @@ body {
   box-shadow: 0 0 0 3px var(--color-parchment), 0 0 0 4px var(--color-header);
 }
 
+/* The home title's word where it overlaps the seal: a parchment stroke
+   painted beneath the ink so the ring never touches the letters. */
+.title-tuck {
+  paint-order: stroke fill;
+  -webkit-text-stroke: 0.09em var(--color-parchment);
+}
+
 /* ──────────── Wax-seal badge ──────────── */
 .wax-seal {
   display: inline-flex;

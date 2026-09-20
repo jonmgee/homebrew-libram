@@ -64,15 +64,18 @@ export default function HomePage() {
       <div className="mx-auto max-w-5xl px-4 pt-12">
         <header className="mb-6 text-center">
           <h1 className="whitespace-nowrap text-center">
-            {/* The favicon's seal stands in for the initial: an ink stamp on
-                the page rather than an illuminated capital. The H inside it
-                carries the word, so the visible text starts at "OMEBREW". */}
+            {/* The favicon's seal stands in for the initial, and the word
+                tucks into it the way text sits against an illuminated
+                capital: the O rides over the seal's ring, and a parchment
+                stroke under the O's ink keeps a hair of clear page between
+                letter and ring, so the ring shows only through the O's
+                counter. The seal sits under the text (z-0 vs relative). */}
             <img
               src="/assets/seal-h.webp"
               alt="H"
-              className="mr-[0.04em] inline-block h-[2.05em] w-[2.05em] align-[-0.9em] text-3xl sm:text-4xl md:text-6xl"
+              className="relative z-0 -mr-[0.48em] inline-block h-[2.05em] w-[2.05em] align-[-0.9em] text-3xl sm:text-4xl md:text-6xl"
             />
-            <span className="font-[var(--font-title)] inline-block text-3xl uppercase tracking-[0.08em] text-[#2e2114] align-middle sm:text-4xl md:text-6xl">
+            <span className="title-tuck relative z-10 inline-block font-[var(--font-title)] text-3xl uppercase tracking-[0.08em] text-[#2e2114] align-middle sm:text-4xl md:text-6xl">
               OMEBREW LIBRAM
             </span>
           </h1>
