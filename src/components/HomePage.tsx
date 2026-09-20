@@ -97,7 +97,7 @@ export default function HomePage() {
             src="/assets/hero.webp"
             alt=""
             width={1200}
-            height={395}
+            height={393}
             fetchPriority="high"
             className="block w-full"
           />
