@@ -70,7 +70,7 @@ export default function HomePage() {
             <img
               src="/assets/seal-h.webp"
               alt="H"
-              className="mr-[0.04em] inline-block h-[2.05em] w-[2.05em] align-[-0.7em] text-3xl sm:text-4xl md:text-6xl"
+              className="mr-[0.04em] inline-block h-[2.05em] w-[2.05em] align-[-0.9em] text-3xl sm:text-4xl md:text-6xl"
             />
             <span className="font-[var(--font-title)] inline-block text-3xl uppercase tracking-[0.08em] text-[#2e2114] align-middle sm:text-4xl md:text-6xl">
               OMEBREW LIBRAM
