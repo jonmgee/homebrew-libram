@@ -64,12 +64,14 @@ export default function HomePage() {
       <div className="mx-auto max-w-5xl px-4 pt-12">
         <header className="mb-6 text-center">
           <h1 className="whitespace-nowrap text-center">
-            {/* Flat ink, no shadow, no illuminated capital: the artwork is
-                sketchbook studies now, and a decorated initial read as the
-                one thing still dressed for a finished tome. */}
-            <span className="font-[var(--font-dropcap)] inline-block text-3xl leading-[0.8] text-[#2e2114] align-middle sm:text-4xl md:text-6xl">
-              H
-            </span>
+            {/* The favicon's seal stands in for the initial: an ink stamp on
+                the page rather than an illuminated capital. The H inside it
+                carries the word, so the visible text starts at "OMEBREW". */}
+            <img
+              src="/assets/seal-h.webp"
+              alt="H"
+              className="mr-[0.04em] inline-block h-[1.7em] w-[1.7em] align-[-0.5em] text-3xl sm:text-4xl md:text-6xl"
+            />
             <span className="font-[var(--font-title)] inline-block text-3xl uppercase tracking-[0.08em] text-[#2e2114] align-middle sm:text-4xl md:text-6xl">
               OMEBREW LIBRAM
             </span>
