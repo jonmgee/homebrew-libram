@@ -79,7 +79,7 @@ export default function HomePage() {
           <img
             src="/assets/phb-horizontalRule.svg"
             alt=""
-            className="mx-auto mb-4 mt-4 w-72 sm:w-96"
+            className="mx-auto mb-4 mt-0 w-72 sm:w-96"
           />
           <p className="font-[var(--font-sans)] text-base italic leading-relaxed text-[#766649]">
             The digital tome for all your D&D homebrew content. Import photos and screenshots or create from scratch
