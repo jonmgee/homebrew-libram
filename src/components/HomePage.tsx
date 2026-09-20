@@ -75,8 +75,8 @@ export default function HomePage() {
               alt="H"
               className="relative z-0 -mr-[0.48em] inline-block h-[2.05em] w-[2.05em] align-[-0.9em] text-3xl sm:text-4xl md:text-6xl"
             />
-            <span className="title-tuck relative z-10 inline-block font-[var(--font-title)] text-3xl uppercase tracking-[0.08em] text-[#2e2114] align-middle sm:text-4xl md:text-6xl">
-              OMEBREW LIBRAM
+            <span className="relative z-10 inline-block font-[var(--font-title)] text-3xl uppercase tracking-[0.08em] text-[#2e2114] align-middle sm:text-4xl md:text-6xl">
+              <span className="title-tuck">O</span>MEBREW LIBRAM
             </span>
           </h1>
           <img
