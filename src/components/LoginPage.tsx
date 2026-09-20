@@ -126,7 +126,7 @@ export default function LoginPage() {
           Homebrew Libram
         </p>
         <p className="mb-1 text-center font-[var(--font-sans)] text-xs italic leading-relaxed text-[#C9A84C] drop-shadow-sm">
-          The digital tome for all your DnD homebrew content
+          The digital tome for all your D&D homebrew content
         </p>
         <p className="mb-4 text-center font-[var(--font-phb)] text-[10px] uppercase tracking-widest text-[#b5a98e]">
           An Appwright&rsquo;s Guild tool

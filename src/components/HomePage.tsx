@@ -64,20 +64,28 @@ export default function HomePage() {
       <div className="mx-auto max-w-5xl px-4 pt-12">
         <header className="mb-6 text-center">
           <h1 className="whitespace-nowrap text-center">
-            <span className="font-[var(--font-dropcap)] inline-block text-4xl leading-[0.8] text-[#58180d] drop-shadow-[0_2px_3px_rgba(88,24,13,0.35)] align-middle sm:text-5xl md:text-8xl">
-              H
-            </span>
-            <span className="font-[var(--font-title)] inline-block text-3xl uppercase tracking-[0.08em] text-[#58180d] drop-shadow-[0_2px_3px_rgba(88,24,13,0.35)] align-middle sm:text-4xl md:text-6xl">
-              OMEBREW LIBRAM
+            {/* The favicon's seal stands in for the initial, and the word
+                tucks into it the way text sits against an illuminated
+                capital: the O rides over the seal's ring, and a parchment
+                stroke under the O's ink keeps a hair of clear page between
+                letter and ring, so the ring shows only through the O's
+                counter. The seal sits under the text (z-0 vs relative). */}
+            <img
+              src="/assets/seal-h.webp"
+              alt="H"
+              className="relative z-0 -mr-[0.48em] inline-block h-[2.05em] w-[2.05em] align-[-0.9em] text-3xl sm:text-4xl md:text-6xl"
+            />
+            <span className="relative z-10 inline-block font-[var(--font-title)] text-3xl uppercase tracking-[0.08em] text-[#2e2114] align-middle sm:text-4xl md:text-6xl">
+              <span className="title-tuck">O</span>MEBREW LIBRAM
             </span>
           </h1>
           <img
             src="/assets/phb-horizontalRule.svg"
             alt=""
-            className="mx-auto mb-4 mt-4 w-72 sm:w-96"
+            className="mx-auto mb-4 mt-0 w-72 sm:w-96"
           />
           <p className="font-[var(--font-sans)] text-base italic leading-relaxed text-[#766649]">
-            The digital tome for all your DnD homebrew content. Import photos and screenshots or create from scratch
+            The digital tome for all your D&D homebrew content. Import photos and screenshots or create from scratch
           </p>
         </header>
       </div>
@@ -88,15 +96,14 @@ export default function HomePage() {
           className="gilded-border relative block overflow-hidden"
           aria-label="Create New Entry"
         >
-          <video
-            autoPlay
-            muted
-            playsInline
-            loop
+          <img
+            src="/assets/hero.webp"
+            alt=""
+            width={1200}
+            height={393}
+            fetchPriority="high"
             className="block w-full"
-          >
-            <source src="/assets/Hero.mp4" type="video/mp4" />
-          </video>
+          />
           <div className="absolute inset-x-0 bottom-0 h-[40%] bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <p className="text-center font-[var(--font-title)] text-lg font-bold text-[#E0E5C1] drop-shadow-md">
