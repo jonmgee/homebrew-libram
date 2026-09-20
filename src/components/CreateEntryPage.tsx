@@ -5,11 +5,11 @@ import { CATEGORIES } from "../types";
 const MotionLink = motion(Link);
 
 const CARD_IMAGES: Record<string, string> = {
-  treasure: "/assets/treasure-create.png",
-  arcana: "/assets/arcana-create.png",
-  creatures: "/assets/creatures-create.png",
-  character_options: "/assets/character_options-create.png",
-  tables: "/assets/tables-create.png",
+  treasure: "/assets/treasure-create.webp",
+  arcana: "/assets/arcana-create.webp",
+  creatures: "/assets/creatures-create.webp",
+  character_options: "/assets/character_options-create.webp",
+  tables: "/assets/tables-create.webp",
 };
 
 const CARD_SUBTITLES: Record<string, string> = {
