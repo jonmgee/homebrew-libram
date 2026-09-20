@@ -109,12 +109,11 @@ export default function SubCategoryPage() {
             <MotionLink
               key={sub.slug}
               to={`/browse/${cat.slug}/${sub.slug}`}
-              className="gilded-border mounted relative block aspect-square rounded-lg"
+              className="gilded-border relative block aspect-square overflow-hidden rounded-lg"
               variants={cardVariants}
               whileHover={{ scale: 1.02 }}
               transition={hoverTransition}
             >
-              <div className="mount">
               {imgSrc ? (
                 <>
                   <img
@@ -136,7 +135,6 @@ export default function SubCategoryPage() {
                 <p className="mt-0.5 text-xs leading-tight text-[#C9A84C] drop-shadow">
                   {entryCount} entr{entryCount === 1 ? "y" : "ies"}
                 </p>
-              </div>
               </div>
             </MotionLink>
           );
