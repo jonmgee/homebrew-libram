@@ -1,13 +1,69 @@
 import { supabase } from "./supabase";
 
 /**
+ * The entry page shows an image at 300px tall at most, so anything much
+ * beyond this is storage spent on pixels nobody sees. Phone screenshots
+ * were arriving as 1–7 MB PNGs; at this size as WebP they're ~50 KB.
+ */
+const MAX_STORED_DIMENSION = 1200;
+
+/**
+ * Shrink and re-encode an image for storage: longest side 1200px, WebP
+ * where the browser can write it (Chrome, Firefox, recent Safari), JPEG
+ * otherwise. Anything undecodable, or not a raster we know, goes up as-is
+ * rather than blocking the save.
+ */
+export async function compressForStorage(file: File): Promise<File> {
+  if (!/^image\/(png|jpeg|webp|avif|heic|heif)$/i.test(file.type)) return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_STORED_DIMENSION / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * scale));
+    const h = Math.max(1, Math.round(bmp.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bmp, 0, 0, w, h);
+    bmp.close();
+
+    const toBlob = (type: string, q: number) =>
+      new Promise<Blob | null>((r) => canvas.toBlob(r, type, q));
+
+    let blob = await toBlob("image/webp", 0.8);
+    if (!blob || blob.type !== "image/webp") {
+      // No WebP encoder here. JPEG has no alpha: flatten onto white first.
+      const flat = document.createElement("canvas");
+      flat.width = w;
+      flat.height = h;
+      const fctx = flat.getContext("2d");
+      if (!fctx) return file;
+      fctx.fillStyle = "#fff";
+      fctx.fillRect(0, 0, w, h);
+      fctx.drawImage(canvas, 0, 0);
+      blob = await new Promise<Blob | null>((r) => flat.toBlob(r, "image/jpeg", 0.85));
+      if (!blob) return file;
+    }
+    // Never make a file bigger: a tiny original stays as it was.
+    if (blob.size >= file.size) return file;
+    const ext = blob.type === "image/webp" ? "webp" : "jpg";
+    const stem = file.name.replace(/\.[^.]+$/, "") || "image";
+    return new File([blob], `${stem}.${ext}`, { type: blob.type });
+  } catch {
+    return file;
+  }
+}
+
+/**
  * Upload an image to the entry-images bucket with a traceable filename.
  * Returns the public URL or null if upload failed.
  */
 export async function uploadEntryImage(
   entryId: string,
-  file: File,
+  original: File,
 ): Promise<string | null> {
+  const file = await compressForStorage(original);
   const ext = file.name.split(".").pop() ?? "png";
   const filename = `${entryId}_${Date.now()}.${ext}`;
 
@@ -16,6 +72,7 @@ export async function uploadEntryImage(
     .upload(filename, file, {
       cacheControl: "3600",
       upsert: false,
+      contentType: file.type || undefined,
     });
 
   if (error) {
