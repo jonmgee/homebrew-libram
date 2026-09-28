@@ -70,9 +70,15 @@ async function deleteMyUploads(userId: string): Promise<boolean> {
 
   // Plot and Weave's beat pictures live at <user>/<file>. The owner-scoped
   // list policy (Plot and Weave migration 0009) lets the listing see them.
-  const { data: listedBeatImages } = await supabase.storage
+  // This listing is the only source for these, so a failed listing stops
+  // the deletion rather than quietly leaving the pictures behind.
+  const { data: listedBeatImages, error: beatListError } = await supabase.storage
     .from("pw-beat-images")
     .list(userId, { limit: 1000 });
+  if (beatListError) {
+    console.error("[account] failed listing pw-beat-images:", beatListError);
+    return false;
+  }
   for (const file of listedBeatImages ?? []) if (file?.name) beatImages.add(`${userId}/${file.name}`);
 
   // Reliable source: read the filenames back out of the user's own rows, in
