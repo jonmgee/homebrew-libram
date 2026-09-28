@@ -1,3 +1,5 @@
+import { TERMS_URL, PRIVACY_URL } from "../lib/legal";
+
 export default function Footer() {
   return (
     <footer className="mx-auto max-w-5xl px-4 pb-6 pt-2 text-center">
@@ -15,6 +17,11 @@ export default function Footer() {
         >
           hello@appwrightsguild.com
         </a>
+      </p>
+      <p className="phb-description mt-2 text-xs italic">
+        <a href={TERMS_URL} className="underline underline-offset-2">Terms</a>
+        {" · "}
+        <a href={PRIVACY_URL} className="underline underline-offset-2">Privacy</a>
       </p>
     </footer>
   );

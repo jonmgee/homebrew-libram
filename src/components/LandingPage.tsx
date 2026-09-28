@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { PRIVACY_URL } from "../lib/legal";
 
 /**
  * Public landing page — the only page a signed-out visitor sees at "/".
@@ -273,7 +274,7 @@ function StartCard() {
       </p>
       <p className="phb-description mt-5 text-xs italic">
         An Appwright&rsquo;s Guild tool.{" "}
-        <a href="/privacy.html" className="underline underline-offset-2">
+        <a href={PRIVACY_URL} className="underline underline-offset-2">
           What we store, and who else sees it
         </a>
       </p>

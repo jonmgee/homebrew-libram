@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { TERMS_URL, PRIVACY_URL } from "../lib/legal";
 
 type Mode = "signin" | "signup" | "forgot";
 
@@ -32,10 +33,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [confirmMsg, setConfirmMsg] = useState<string | null>(null);
-  /** Ticked = happy to hear from us. Pre-ticked, but shown at the moment
-   *  the address is collected — which is what makes emailing later
-   *  defensible. Changeable any time on either app's account page. */
-  const [wantsEmail, setWantsEmail] = useState(true);
+  /** Ticked = happy to hear from us. Starts unticked: UK rules don't
+   *  count a pre-ticked box as consent to marketing email. Changeable any
+   *  time on the Libram's or PC on Parchment's account page. */
+  const [wantsEmail, setWantsEmail] = useState(false);
 
   const handleSignIn = async (e: FormEvent) => {
     e.preventDefault();
@@ -248,6 +249,20 @@ export default function LoginPage() {
           >
             {buttonLabel}
           </button>
+
+          {mode === "signup" && (
+            <p className="phb-body text-center text-xs leading-snug text-white/70">
+              By creating an account you agree to the{" "}
+              <a href={TERMS_URL} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-[#C9A84C]">
+                Terms
+              </a>{" "}
+              and{" "}
+              <a href={PRIVACY_URL} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-[#C9A84C]">
+                Privacy Policy
+              </a>
+              .
+            </p>
+          )}
         </form>
 
         {/* Toggle between modes */}
@@ -290,10 +305,17 @@ export default function LoginPage() {
 
         {/* Linked from the login screen, not just the account page: someone
             should be able to read what we store before handing over an email. */}
-        <p className="mt-4 text-center">
+        <p className="mt-4 text-center text-xs italic text-[#b5a98e]">
           <a
-            href="/privacy.html"
-            className="text-xs italic text-[#b5a98e] underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
+            href={TERMS_URL}
+            className="underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
+          >
+            Terms
+          </a>
+          {" · "}
+          <a
+            href={PRIVACY_URL}
+            className="underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
           >
             Privacy
           </a>
