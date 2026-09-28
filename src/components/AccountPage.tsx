@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import { PRIVACY_URL } from "../lib/legal";
 
 /**
  * Account settings — password change and account deletion.
@@ -233,10 +234,10 @@ export default function AccountPage() {
         <h2 className="phb-h1 !text-xl">Signed in as</h2>
         <p className="phb-body mt-2 text-sm">{user?.email}</p>
         <p className="phb-body mt-3 text-xs italic text-[var(--color-caption)]">
-          One account covers both Homebrew Libram and PC on Parchment.
+          One account covers Homebrew Libram, PC on Parchment and Plot and Weave.
         </p>
         <p className="phb-body mt-2 text-xs">
-          <a href="/privacy.html" className="underline underline-offset-2">
+          <a href={PRIVACY_URL} className="underline underline-offset-2">
             What we store, and who else sees it
           </a>
         </p>
