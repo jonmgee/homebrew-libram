@@ -21,7 +21,7 @@ function fileNameFromUrl(url: unknown): string | null {
 }
 
 /**
- * Remove every file this user has uploaded, across both apps' buckets.
+ * Remove every file this user has uploaded, across all three apps' buckets.
  *
  * Two sources on purpose. Listing storage is the thorough one — RLS scopes it
  * to the caller's own files, so it catches uploads that never got attached to
@@ -36,6 +36,10 @@ function fileNameFromUrl(url: unknown): string | null {
 async function deleteMyUploads(userId: string): Promise<boolean> {
   const entryImages = new Set<string>();
   const portraits = new Set<string>();
+  // PC on Parchment's note pictures are keyed <user>/<character>/<file>, and
+  // Plot and Weave's beat pictures <user>/<file>, so these hold full paths.
+  const noteImages = new Set<string>();
+  const beatImages = new Set<string>();
 
   // Thorough source: RLS scopes a listing to the caller's own files, so this
   // also catches uploads that never got attached to anything.
@@ -48,6 +52,28 @@ async function deleteMyUploads(userId: string): Promise<boolean> {
     .from("character-portraits")
     .list("", { limit: 1000 });
   for (const file of listedPortraits ?? []) if (file?.name) portraits.add(file.name);
+
+  // Nested, so it takes two passes: the user's folder holds one folder per
+  // character, and those hold the files.
+  const { data: noteFolders } = await supabase.storage
+    .from("note-images")
+    .list(userId, { limit: 1000 });
+  for (const folder of noteFolders ?? []) {
+    if (!folder?.name) continue;
+    const { data: files } = await supabase.storage
+      .from("note-images")
+      .list(`${userId}/${folder.name}`, { limit: 1000 });
+    for (const file of files ?? []) {
+      if (file?.name) noteImages.add(`${userId}/${folder.name}/${file.name}`);
+    }
+  }
+
+  // Plot and Weave's beat pictures live at <user>/<file>. The owner-scoped
+  // list policy (Plot and Weave migration 0009) lets the listing see them.
+  const { data: listedBeatImages } = await supabase.storage
+    .from("pw-beat-images")
+    .list(userId, { limit: 1000 });
+  for (const file of listedBeatImages ?? []) if (file?.name) beatImages.add(`${userId}/${file.name}`);
 
   // Reliable source: read the filenames back out of the user's own rows, in
   // case a listing comes back empty for any reason.
@@ -65,13 +91,20 @@ async function deleteMyUploads(userId: string): Promise<boolean> {
     .select("data")
     .eq("user_id", userId);
   for (const row of characters ?? []) {
-    const name = fileNameFromUrl((row as { data?: { portraitUrl?: string } })?.data?.portraitUrl);
+    const data = (row as { data?: { portraitUrl?: string; noteEntries?: { images?: string[] }[] } })?.data;
+    const name = fileNameFromUrl(data?.portraitUrl);
     if (name) portraits.add(name);
+    // Note pictures are stored as paths, not URLs: their bucket is private.
+    for (const entry of data?.noteEntries ?? []) {
+      for (const path of entry?.images ?? []) if (path) noteImages.add(path);
+    }
   }
 
   for (const [bucket, names] of [
     ["entry-images", entryImages],
     ["character-portraits", portraits],
+    ["note-images", noteImages],
+    ["pw-beat-images", beatImages],
   ] as const) {
     const list = [...names];
     if (!list.length) continue;
@@ -302,7 +335,7 @@ export default function AccountPage() {
       <div className="parchment-card gilded-border mb-6 p-6">
         <h2 className="phb-h1 !text-xl">Change password</h2>
         <p className="phb-body mt-2 text-xs italic text-[var(--color-caption)]">
-          This changes your password for both sites.
+          This changes your password for all three apps.
         </p>
 
         <form onSubmit={handlePasswordChange} className="mt-4 space-y-4">
@@ -365,9 +398,9 @@ export default function AccountPage() {
         <h2 className="phb-h1 !text-xl !text-[var(--color-crimson)]">Delete account</h2>
 
         <p className="phb-body mt-3 text-sm">
-          This removes <strong>everything, on both sites</strong> — your homebrew on Homebrew
-          Libram and your characters on PC on Parchment. One account covers both, so it cannot
-          be undone or done for just one of them.
+          This removes <strong>everything, in all three apps</strong> — your homebrew on
+          Homebrew Libram, your characters on PC on Parchment and your campaigns on Plot and
+          Weave. One account covers all three, so it cannot be undone or done for just one of them.
         </p>
         <p className="phb-body mt-3 text-sm">
           Any share links you've handed out will stop working immediately. Entries other people
