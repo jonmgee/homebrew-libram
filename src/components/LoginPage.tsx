@@ -5,9 +5,11 @@ import { TERMS_URL, PRIVACY_URL } from "../lib/legal";
 
 type Mode = "signin" | "signup" | "forgot";
 
+/** A parchment leaf with the app's double ink rule, so the card belongs to
+ *  the illuminated background rather than floating over it as dark glass. */
 function SignInCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative z-10 w-full max-w-sm rounded-lg bg-white/15 p-6 shadow-2xl backdrop-blur-xl border border-white/10">
+    <div className="gilded-border relative z-10 w-full max-w-sm bg-[#f3e9d2]/95 p-6 shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-sm">
       {children}
     </div>
   );
@@ -139,48 +141,36 @@ export default function LoginPage() {
   const buttonLabel = sending ? "Please wait…" : coolingOff ? `Sent · try again in ${cooldown}s` : mode === "forgot" ? "Send reset link" : title;
 
   return (
-    <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden">
-      {/* ── Two-image background ── */}
-      <div className="absolute inset-0 z-0 flex">
-        <div className="relative h-full w-1/2 overflow-hidden">
-          <img src="/assets/loginpic2.png" alt="" className="h-full w-full object-cover" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/60" />
-        </div>
-        <div className="relative h-full w-1/2 overflow-hidden">
-          <img src="/assets/loginpagepic.png" alt="" className="h-full w-full object-cover" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-black/60" />
-        </div>
-      </div>
+    <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden px-4">
+      {/* ── Illuminated background ── */}
+      <img src="/assets/login-wide.webp" alt="" className="absolute inset-0 z-0 h-full w-full object-cover" />
 
-      {/* ── Light overlay ── */}
-      <div className="absolute inset-0 z-[1] bg-black/20" />
+      {/* ── Soft vignette so the card reads as the focus ── */}
+      <div className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,rgba(46,33,20,0.15),rgba(46,33,20,0.55))]" />
 
       {/* ── Centred card ── */}
       <SignInCard>
-        <p className="mb-1 text-center font-[var(--font-phb)] text-2xl uppercase tracking-[0.08em] text-[#EEE5CE] drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]">
+        <p className="mb-1 text-center font-[var(--font-phb)] text-2xl uppercase tracking-[0.08em] text-[#2e2114]">
           Homebrew Libram
         </p>
-        <p className="mb-1 text-center font-[var(--font-sans)] text-xs italic leading-relaxed text-[#C9A84C] drop-shadow-sm">
+        <p className="mb-1 text-center font-[var(--font-sans)] text-xs italic leading-relaxed text-[#58180d]">
           The digital tome for all your D&D homebrew content
         </p>
-        <p className="mb-4 text-center font-[var(--font-phb)] text-[10px] uppercase tracking-widest text-[#b5a98e]">
+        <p className="mb-4 text-center font-[var(--font-phb)] text-[10px] uppercase tracking-widest text-[#766649]">
           An Appwright&rsquo;s Guild tool
         </p>
 
         <div className="mb-5 flex flex-wrap items-baseline justify-center gap-x-1.5">
-          {/* phb-h1 sets PHB maroon, which is right on parchment but unreadable
-              on this dark card. The utility was already here and losing the
-              cascade — the `!` makes the intended cream actually apply. */}
-          <h1 className="phb-h1 text-2xl text-[#EEE5CE]! drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
+          <h1 className="phb-h1 text-2xl">
             {title}
           </h1>
-          <span className="font-[var(--font-sans)] text-xs italic text-[#b5a98e]">
+          <span className="font-[var(--font-sans)] text-xs italic text-[#766649]">
             — {subtext}
           </span>
         </div>
 
         {confirmMsg && (
-          <div className="mb-4 rounded-lg border border-green-500/30 bg-green-900/20 px-3 py-2 text-center text-xs text-green-300">
+          <div className="mb-4 rounded-lg border border-green-800/30 bg-green-800/10 px-3 py-2 text-center text-xs text-green-900">
             {confirmMsg}
           </div>
         )}
@@ -188,7 +178,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
           <div>
-            <label htmlFor="email" className="phb-small-sc mb-1 block text-xs uppercase tracking-wider text-[#C9A84C]">
+            <label htmlFor="email" className="phb-small-sc mb-1 block text-xs uppercase tracking-wider text-[#58180d]">
               Email address
             </label>
             <input
@@ -199,14 +189,14 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="phb-body w-full rounded-lg border border-white/30 bg-white/30 px-4 py-2.5 text-sm text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:outline-none"
+              className="phb-body w-full rounded-lg border border-[#2e2114]/30 bg-white/60 px-4 py-2.5 text-sm text-[#2e2114] placeholder:text-[#2e2114]/40 focus:border-[#58180d] focus:outline-none"
             />
           </div>
 
           {/* Password fields (not shown in forgot mode) */}
           {mode !== "forgot" && (
             <div>
-              <label htmlFor="password" className="phb-small-sc mb-1 block text-xs uppercase tracking-wider text-[#C9A84C]">
+              <label htmlFor="password" className="phb-small-sc mb-1 block text-xs uppercase tracking-wider text-[#58180d]">
                 Password
               </label>
               <input
@@ -216,7 +206,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={mode === "signup" ? "At least 8 characters" : "Enter your password"}
-                className="phb-body w-full rounded-lg border border-white/30 bg-white/30 px-4 py-2.5 text-sm text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:outline-none"
+                className="phb-body w-full rounded-lg border border-[#2e2114]/30 bg-white/60 px-4 py-2.5 text-sm text-[#2e2114] placeholder:text-[#2e2114]/40 focus:border-[#58180d] focus:outline-none"
               />
             </div>
           )}
@@ -224,7 +214,7 @@ export default function LoginPage() {
           {/* Confirm password (sign up only) */}
           {mode === "signup" && (
             <div>
-              <label htmlFor="confirmPassword" className="phb-small-sc mb-1 block text-xs uppercase tracking-wider text-[#C9A84C]">
+              <label htmlFor="confirmPassword" className="phb-small-sc mb-1 block text-xs uppercase tracking-wider text-[#58180d]">
                 Confirm password
               </label>
               <input
@@ -234,7 +224,7 @@ export default function LoginPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repeat your password"
-                className="phb-body w-full rounded-lg border border-white/30 bg-white/30 px-4 py-2.5 text-sm text-white placeholder:text-white/60 focus:border-[#C9A84C] focus:outline-none"
+                className="phb-body w-full rounded-lg border border-[#2e2114]/30 bg-white/60 px-4 py-2.5 text-sm text-[#2e2114] placeholder:text-[#2e2114]/40 focus:border-[#58180d] focus:outline-none"
               />
             </div>
           )}
@@ -247,9 +237,9 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={wantsEmail}
                 onChange={(e) => setWantsEmail(e.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-[#C9A84C]"
+                className="mt-0.5 h-4 w-4 accent-[#58180d]"
               />
-              <span className="phb-body text-xs leading-snug text-white/80">
+              <span className="phb-body text-xs leading-snug text-[#2e2114]/80">
                 Email me about new features and other Appwrights Guild apps.
                 Occasional, changeable any time in your account — and we will
                 never sell your details, to anyone, ever.
@@ -263,7 +253,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => { setMode("forgot"); setOfferReset(false); setError(null); setConfirmMsg(null); }}
-                className="text-xs italic text-[#C9A84C] underline underline-offset-2 hover:text-[#dbb85c] transition-colors"
+                className="text-xs italic text-[#58180d] underline underline-offset-2 hover:text-[#7a2212] transition-colors"
               >
                 Forgot password?
               </button>
@@ -271,11 +261,10 @@ export default function LoginPage() {
           )}
 
           {/* Error */}
-          {/* phb-description sets a parchment-page brown that beats a plain
-              colour utility and all but vanishes on this dark card — the `!`
+          {/* phb-description's brown beats a plain colour utility; the `!`
               makes the red actually apply. */}
           {error && (
-            <p className="phb-description text-xs text-red-300!">{error}</p>
+            <p className="phb-description text-xs text-red-800!">{error}</p>
           )}
 
           {/* Reset offer, straight under a failed sign-in. Sign In below
@@ -285,7 +274,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => void sendReset()}
               disabled={sending || cooldown > 0 || !email.trim()}
-              className="w-full rounded-lg border border-[#C9A84C]/70 px-6 py-2 font-[var(--font-title)] text-xs uppercase tracking-wider text-[#C9A84C] transition-colors hover:bg-[#C9A84C]/10 disabled:opacity-50 disabled:hover:bg-transparent"
+              className="w-full rounded-lg border border-[#58180d]/70 px-6 py-2 font-[var(--font-title)] text-xs uppercase tracking-wider text-[#58180d] transition-colors hover:bg-[#58180d]/10 disabled:opacity-50 disabled:hover:bg-transparent"
             >
               {cooldown > 0 ? `Sent · try again in ${cooldown}s` : "Send me a reset link"}
             </button>
@@ -301,13 +290,13 @@ export default function LoginPage() {
           </button>
 
           {mode === "signup" && (
-            <p className="phb-body text-center text-xs leading-snug text-white/70">
+            <p className="phb-body text-center text-xs leading-snug text-[#2e2114]/75">
               By creating an account you agree to the{" "}
-              <a href={TERMS_URL} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-[#C9A84C]">
+              <a href={TERMS_URL} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-[#58180d]">
                 Terms
               </a>{" "}
               and{" "}
-              <a href={PRIVACY_URL} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-[#C9A84C]">
+              <a href={PRIVACY_URL} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-[#58180d]">
                 Privacy Policy
               </a>
               .
@@ -321,7 +310,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => { setMode("signup"); setOfferReset(false); setError(null); setConfirmMsg(null); setPassword(""); setConfirmPassword(""); }}
-              className="text-xs italic text-[#b5a98e] hover:text-[#C9A84C] transition-colors"
+              className="text-xs italic text-[#766649] hover:text-[#58180d] transition-colors"
             >
               Don't have an account? <span className="underline underline-offset-2">Create one</span>
             </button>
@@ -329,7 +318,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => { setMode("signin"); setError(null); setConfirmMsg(null); setPassword(""); setConfirmPassword(""); }}
-              className="text-xs italic text-[#b5a98e] hover:text-[#C9A84C] transition-colors"
+              className="text-xs italic text-[#766649] hover:text-[#58180d] transition-colors"
             >
               Already have an account? <span className="underline underline-offset-2">Sign in</span>
             </button>
@@ -337,7 +326,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => { setMode("signin"); setError(null); setConfirmMsg(null); }}
-              className="text-xs italic text-[#b5a98e] hover:text-[#C9A84C] transition-colors"
+              className="text-xs italic text-[#766649] hover:text-[#58180d] transition-colors"
             >
               <span className="underline underline-offset-2">Back to sign in</span>
             </button>
@@ -347,7 +336,7 @@ export default function LoginPage() {
         {/* The landing page says this too, but this is where the wasted
             action happens: the three Guild apps share one Supabase project,
             so a second account here would just be a second account. */}
-        <p className="mt-4 border-t border-[#C9A84C]/25 pt-4 text-center text-xs italic leading-relaxed text-[#b5a98e]">
+        <p className="mt-4 border-t border-[#2e2114]/20 pt-4 text-center text-xs italic leading-relaxed text-[#766649]">
           One login covers Homebrew Libram, PC on Parchment and Plot and Weave.
           If you have an account for any of them, sign in with it &mdash; there
           is no need to create another.
@@ -355,17 +344,17 @@ export default function LoginPage() {
 
         {/* Linked from the login screen, not just the account page: someone
             should be able to read what we store before handing over an email. */}
-        <p className="mt-4 text-center text-xs italic text-[#b5a98e]">
+        <p className="mt-4 text-center text-xs italic text-[#766649]">
           <a
             href={TERMS_URL}
-            className="underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
+            className="underline underline-offset-2 transition-colors hover:text-[#58180d]"
           >
             Terms
           </a>
           {" · "}
           <a
             href={PRIVACY_URL}
-            className="underline underline-offset-2 transition-colors hover:text-[#C9A84C]"
+            className="underline underline-offset-2 transition-colors hover:text-[#58180d]"
           >
             Privacy
           </a>
