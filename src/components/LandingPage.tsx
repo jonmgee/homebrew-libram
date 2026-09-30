@@ -42,7 +42,7 @@ const PANELS: Panel[] = [
     title: "Five wings of the library",
     body:
       "Treasure, arcana, creatures, character options and tables. Pick a wing, pick a type, and you're on the form — nothing gets lost in a folder somewhere.",
-    shot: { src: "/assets/shots/shot-create.webp", alt: "The create screen, showing the five categories" },
+    shot: { src: "/assets/shots/shot-create.webp", alt: "The home page: the Create New Entry banner above the six shelves" },
   },
 ];
 
