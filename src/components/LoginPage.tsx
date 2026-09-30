@@ -37,6 +37,19 @@ export default function LoginPage() {
    *  count a pre-ticked box as consent to marketing email. Changeable any
    *  time on the Libram's or PC on Parchment's account page. */
   const [wantsEmail, setWantsEmail] = useState(false);
+  /** Shown after a failed sign-in: the reset link, right under the error.
+   *  Auth logs showed wrong passwords matching successful sign-ins day after
+   *  day while hardly anyone pressed "Forgot password?" — people kept
+   *  guessing because the error pointed nowhere. */
+  const [offerReset, setOfferReset] = useState(false);
+  /** Seconds before another reset email can be asked for. Supabase allows
+   *  one auth email per address per minute. */
+  const [cooldown, setCooldown] = useState(0);
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
 
   const handleSignIn = async (e: FormEvent) => {
     e.preventDefault();
@@ -44,9 +57,15 @@ export default function LoginPage() {
     setSending(true);
     setError(null);
     setConfirmMsg(null);
-    const { error: err } = await signIn(email.trim(), password);
+    setOfferReset(false);
+    const { error: err, code } = await signIn(email.trim(), password);
     setSending(false);
-    if (err) {
+    if (code === "invalid_credentials" || (err && /invalid login credentials/i.test(err))) {
+      // Supabase answers the same for a wrong password and for an address
+      // with no account, on purpose — so this can't say "wrong password".
+      setError("That email and password don't match. Forgotten it? We can send a link to set a new one.");
+      setOfferReset(true);
+    } else if (err) {
       setError(err);
     } else {
       navigate("/");
@@ -78,19 +97,33 @@ export default function LoginPage() {
     }
   };
 
-  const handleForgot = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) return;
+  /** One send path for the Forgot password form and the button offered
+   *  under a failed sign-in. Same words, same one-minute countdown. */
+  const sendReset = async () => {
+    if (!email.trim() || cooldown > 0) return;
     setSending(true);
     setError(null);
     setConfirmMsg(null);
     const { error: err } = await resetPassword(email.trim());
     setSending(false);
-    if (err) {
+    // Supabase refuses a second email inside a minute with "you can only
+    // request this after 42 seconds". Count down from its number instead
+    // of showing that.
+    const wait = err ? /only request this after (\d+) seconds/i.exec(err) : null;
+    if (wait) {
+      setCooldown(Number(wait[1]));
+      setError("A reset email went to that address less than a minute ago. Give it a moment, and check your spam folder.");
+    } else if (err) {
       setError(err);
     } else {
-      setConfirmMsg("Check your email for a password reset link.");
+      setCooldown(60);
+      setConfirmMsg(`Reset link sent to ${email.trim()}. Open it and follow the link. Nothing after a minute? Check your spam folder.`);
     }
+  };
+
+  const handleForgot = (e: FormEvent) => {
+    e.preventDefault();
+    void sendReset();
   };
 
   const handleSubmit = mode === "signin" ? handleSignIn : mode === "signup" ? handleSignUp : handleForgot;
@@ -102,7 +135,8 @@ export default function LoginPage() {
   // Named two of the three apps, having been written before Plot and Weave
   // joined the same Supabase project. The full list lives in the note below.
   const subtext = mode === "signin" ? "Use your Appwrights Guild account, or create one" : mode === "signup" ? "One account for every Appwrights Guild app" : "Enter your email to receive a reset link";
-  const buttonLabel = sending ? "Please wait…" : mode === "forgot" ? "Send reset link" : title;
+  const coolingOff = mode === "forgot" && cooldown > 0;
+  const buttonLabel = sending ? "Please wait…" : coolingOff ? `Sent · try again in ${cooldown}s` : mode === "forgot" ? "Send reset link" : title;
 
   return (
     <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden">
@@ -228,7 +262,7 @@ export default function LoginPage() {
             <div className="text-right">
               <button
                 type="button"
-                onClick={() => { setMode("forgot"); setError(null); setConfirmMsg(null); }}
+                onClick={() => { setMode("forgot"); setOfferReset(false); setError(null); setConfirmMsg(null); }}
                 className="text-xs italic text-[#C9A84C] underline underline-offset-2 hover:text-[#dbb85c] transition-colors"
               >
                 Forgot password?
@@ -237,14 +271,30 @@ export default function LoginPage() {
           )}
 
           {/* Error */}
+          {/* phb-description sets a parchment-page brown that beats a plain
+              colour utility and all but vanishes on this dark card — the `!`
+              makes the red actually apply. */}
           {error && (
-            <p className="phb-description text-xs text-red-300">{error}</p>
+            <p className="phb-description text-xs text-red-300!">{error}</p>
+          )}
+
+          {/* Reset offer, straight under a failed sign-in. Sign In below
+              stays usable for someone who remembers a moment later. */}
+          {mode === "signin" && offerReset && (
+            <button
+              type="button"
+              onClick={() => void sendReset()}
+              disabled={sending || cooldown > 0 || !email.trim()}
+              className="w-full rounded-lg border border-[#C9A84C]/70 px-6 py-2 font-[var(--font-title)] text-xs uppercase tracking-wider text-[#C9A84C] transition-colors hover:bg-[#C9A84C]/10 disabled:opacity-50 disabled:hover:bg-transparent"
+            >
+              {cooldown > 0 ? `Sent · try again in ${cooldown}s` : "Send me a reset link"}
+            </button>
           )}
 
           {/* Submit */}
           <button
             type="submit"
-            disabled={sending || (mode !== "forgot" && !email.trim() && !password)}
+            disabled={sending || coolingOff || (mode !== "forgot" && !email.trim() && !password)}
             className="phb-btn w-full rounded-lg bg-[#58180d]/90 px-6 py-2.5 font-[var(--font-title)] text-sm uppercase tracking-wider text-[#EEE5CE] transition-opacity hover:bg-[#7a2212] disabled:opacity-50"
           >
             {buttonLabel}
@@ -270,7 +320,7 @@ export default function LoginPage() {
           {mode === "signin" ? (
             <button
               type="button"
-              onClick={() => { setMode("signup"); setError(null); setConfirmMsg(null); setPassword(""); setConfirmPassword(""); }}
+              onClick={() => { setMode("signup"); setOfferReset(false); setError(null); setConfirmMsg(null); setPassword(""); setConfirmPassword(""); }}
               className="text-xs italic text-[#b5a98e] hover:text-[#C9A84C] transition-colors"
             >
               Don't have an account? <span className="underline underline-offset-2">Create one</span>
