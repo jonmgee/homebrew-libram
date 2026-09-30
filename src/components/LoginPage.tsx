@@ -26,7 +26,6 @@ export default function LoginPage() {
   /** The landing page's "Create a free account" links here with ?mode=signup,
    *  so that CTA opens the sign-up form rather than the sign-in one. */
   const [searchParams] = useSearchParams();
-  const splitBg = searchParams.get("bg") === "split";
   const [mode, setMode] = useState<Mode>(
     searchParams.get("mode") === "signup" ? "signup" : "signin",
   );
@@ -142,20 +141,9 @@ export default function LoginPage() {
   const buttonLabel = sending ? "Please wait…" : coolingOff ? `Sent · try again in ${cooldown}s` : mode === "forgot" ? "Send reset link" : title;
 
   return (
-    <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden">
+    <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden px-4">
       {/* ── Illuminated background ── */}
-      {splitBg ? (
-        <div className="absolute inset-0 z-0 flex">
-          <div className="relative h-full w-1/2 overflow-hidden">
-            <img src="/assets/login-left.webp" alt="" className="h-full w-full object-cover" />
-          </div>
-          <div className="relative h-full w-1/2 overflow-hidden">
-            <img src="/assets/login-right.webp" alt="" className="h-full w-full object-cover" />
-          </div>
-        </div>
-      ) : (
-        <img src="/assets/login-wide.webp" alt="" className="absolute inset-0 z-0 h-full w-full object-cover" />
-      )}
+      <img src="/assets/login-wide.webp" alt="" className="absolute inset-0 z-0 h-full w-full object-cover" />
 
       {/* ── Soft vignette so the card reads as the focus ── */}
       <div className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,rgba(46,33,20,0.15),rgba(46,33,20,0.55))]" />
