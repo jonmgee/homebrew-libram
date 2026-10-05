@@ -287,11 +287,25 @@ const ALLOWED_ORIGINS = [
 /** Vision calls bill per image, so cap how many one request can trigger. */
 const MAX_IMAGES = 6;
 
-/** AI imports per user per rolling 24h. Deliberately generous — a limit that
- *  trips on legitimate enthusiasm gets removed rather than respected, and 23
- *  entries in one sitting has already happened. Copying from a shared libram
- *  is a plain database insert, costs nothing, and is not counted. */
+/** AI imports per user per day, resetting at midnight UTC. Deliberately
+ *  generous — a limit that trips on legitimate enthusiasm gets removed rather
+ *  than respected, and 23 entries in one sitting has already happened.
+ *  Copying from a shared libram is a plain database insert, costs nothing,
+ *  and is not counted.
+ *
+ *  Was a rolling 24 hours until October 2026. That freed imports up one at a
+ *  time, a day after each was made, which read as the counter being broken
+ *  ("I got 4 more, then 1 more a few hours later") when the message said
+ *  "per day". A fixed reset is what "per day" means to everyone. */
 const DAILY_AI_LIMIT = 25;
+
+/** "6 hours", "1 hour", "40 minutes" — rough is right for a message. */
+function hoursUntil(when: Date): string {
+  const mins = Math.max(1, Math.round((when.getTime() - Date.now()) / 60000));
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"}`;
+  const h = Math.round(mins / 60);
+  return `${h} hour${h === 1 ? "" : "s"}`;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const origin = typeof req.headers.origin === "string" ? req.headers.origin : "";
@@ -351,7 +365,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Rate limit. Counted with the caller's own token, so RLS restricts it to
   // their rows. They cannot clear the log to reset it — ai_usage grants
   // select and insert only, no delete.
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const now = new Date();
+  const since = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
+  const resetAt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
   try {
     const usage = await fetch(
       `${supabaseUrl}/rest/v1/ai_usage?select=id&user_id=eq.${userId}&created_at=gte.${since}`,
@@ -366,8 +382,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
     const used = Number(usage.headers.get("content-range")?.split("/")[1] ?? 0);
     if (used >= DAILY_AI_LIMIT) {
+      // The reset is a fixed moment, so say when it is. UTC is a known quantity
+      // for anyone, whereas "midnight" means fourteen different things.
       return res.status(429).json({
-        error: `Daily limit reached — ${DAILY_AI_LIMIT} AI imports per day. Copying from a shared libram is unlimited.`,
+        error: `Daily limit reached — ${DAILY_AI_LIMIT} AI imports per day. The count resets at midnight UTC (00:00 GMT), in ${hoursUntil(resetAt)}. Copying from a shared libram is unlimited.`,
+        resetAt: resetAt.toISOString(),
       });
     }
   } catch (e) {
