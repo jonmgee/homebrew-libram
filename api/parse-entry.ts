@@ -385,7 +385,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // The reset is a fixed moment, so say when it is. UTC is a known quantity
       // for anyone, whereas "midnight" means fourteen different things.
       return res.status(429).json({
-        error: `Daily limit reached — ${DAILY_AI_LIMIT} AI imports per day. The count resets at midnight UTC (00:00 GMT), in ${hoursUntil(resetAt)}. Copying from a shared libram is unlimited.`,
+        error: `Daily limit reached — ${DAILY_AI_LIMIT} auto-transcriptions per day. The count resets at midnight UTC (00:00 GMT), in ${hoursUntil(resetAt)}. Copying from a shared libram is unlimited.`,
         resetAt: resetAt.toISOString(),
       });
     }
@@ -471,12 +471,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!response.ok) {
       const errBody = await response.text();
       console.error("OpenRouter error:", response.status, errBody);
-      return res.status(502).json({ error: `AI service returned ${response.status}. Please try again.` });
+      return res.status(502).json({ error: `The transcription service returned ${response.status}. Please try again.` });
     }
 
     const data = await response.json();
     const rawContent: string = data.choices?.[0]?.message?.content ?? "";
-    if (!rawContent) return res.status(502).json({ error: "AI returned empty response." });
+    if (!rawContent) return res.status(502).json({ error: "The transcription came back empty. Please try again." });
 
     const cleaned = stripMarkdownFence(rawContent);
     let parsed: Record<string, unknown>;
