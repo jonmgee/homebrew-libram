@@ -190,7 +190,7 @@ export default function HomePage() {
       {/* The tip jar, same words as PC on Parchment's roster footer (Jon,
           15 Oct 2026). Home page only, above the shared footer. */}
       <div className="mx-auto mt-10 max-w-xl px-4">
-        <p className="gilded-border flex flex-col items-center gap-2 bg-[var(--color-parchment-light)]/90 px-4 py-3 text-center text-xs italic leading-relaxed text-[var(--color-caption)]">
+        <p className="gilded-border flex flex-col items-center gap-2 px-4 py-3 text-center text-xs italic leading-relaxed text-[var(--color-caption)]">
           <span>
             If I ever find a way to cast <em className="not-italic">Continual Server</em>, I will.
             Until then, a coffee keeps the lights on and goes a long way towards the next feature
