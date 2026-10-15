@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
 import { CATEGORIES } from "../types";
+import { COFFEE_URL } from "../lib/legal";
 
 const MotionLink = motion.create(Link);
 
@@ -185,6 +186,27 @@ export default function HomePage() {
           </div>
         </MotionLink>
       </motion.nav>
+
+      {/* The tip jar, same words as PC on Parchment's roster footer (Jon,
+          15 Oct 2026). Home page only, above the shared footer. */}
+      <div className="mx-auto mt-10 max-w-xl px-4">
+        <p className="gilded-border flex flex-col items-center gap-2 bg-[var(--color-parchment-light)]/90 px-4 py-3 text-center text-xs italic leading-relaxed text-[var(--color-caption)]">
+          <span>
+            If I ever find a way to cast <em className="not-italic">Continual Server</em>, I will.
+            Until then, a coffee keeps the lights on and goes a long way towards the next feature
+            someone&rsquo;s asked for.
+          </span>
+          <a
+            href={COFFEE_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="phb-small-sc inline-flex items-center gap-1.5 rounded-full border border-[var(--color-gilding-dark)] bg-[var(--color-parchment-light)] px-3.5 py-1 text-[11px] not-italic uppercase tracking-wider text-[var(--color-header)] transition-colors hover:border-[var(--color-header)] hover:bg-[var(--color-accent)]/40"
+          >
+            <span aria-hidden="true" className="text-sm leading-none">☕</span>
+            Buy me a coffee
+          </a>
+        </p>
+      </div>
     </>
   );
 }
