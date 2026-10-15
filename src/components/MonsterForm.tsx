@@ -1,3 +1,4 @@
+import { crToProf, fmtBonus, parseSaveBonuses, parseSkillBonuses, SKILL_LIST, SKILL_ABIL } from "../lib/monsterStats";
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -20,26 +21,12 @@ const numberCls = "w-full rounded-lg border border-[var(--color-gilding-dark)] b
 export function abilMod(s: number) { return Math.floor((s - 10) / 2); }
 export function modStr(s: number) { const m = abilMod(s); return m >= 0 ? `+${m}` : `${m}`; }
 
-export function crToProf(cr: string): number {
-  const t: Record<string, number> = {
-    "0":2,"1/8":2,"1/4":2,"1/2":2,"1":2,"2":2,"3":2,"4":2,
-    "5":3,"6":3,"7":3,"8":3,"9":4,"10":4,"11":4,"12":4,
-    "13":5,"14":5,"15":5,"16":5,"17":6,"18":6,"19":6,"20":6,
-    "21":7,"22":7,"23":7,"24":7,"25":8,"26":8,"27":8,"28":8,"29":9,"30":9,
-  };
-  return t[cr] ?? 2;
-}
+export { crToProf };
 
 export const CR_LIST = ["0","1/8","1/4","1/2","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30"];
 export const SIZE_LIST = ["Tiny","Small","Medium","Large","Huge","Gargantuan"];
 export const ABILITIES = ["STR","DEX","CON","INT","WIS","CHA"] as const;
-export const SKILL_LIST = ["Acrobatics","Animal Handling","Arcana","Athletics","Deception","History","Insight","Intimidation","Investigation","Medicine","Nature","Perception","Performance","Persuasion","Religion","Sleight of Hand","Stealth","Survival"];
-export const SKILL_ABIL: Record<string,string> = {
-  Acrobatics:"DEX","Animal Handling":"WIS",Arcana:"INT",Athletics:"STR",Deception:"CHA",
-  History:"INT",Insight:"WIS",Intimidation:"CHA",Investigation:"INT",Medicine:"WIS",
-  Nature:"INT",Perception:"WIS",Performance:"CHA",Persuasion:"CHA",Religion:"INT",
-  "Sleight of Hand":"DEX",Stealth:"DEX",Survival:"WIS",
-};
+export { SKILL_LIST, SKILL_ABIL };
 
 /* ───── Custom select (parchment/gold/maroon) ───── */
 export function CustomSelect({ value, onChange, options, getLabel, placeholder }: {
@@ -155,9 +142,14 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
 
   /* Saves */
   const [saveProfs, setSaveProfs] = useState<Record<string,boolean>>({ STR:false, DEX:false, CON:false, INT:false, WIS:false, CHA:false });
+  /** Bonuses as the stat block printed them. Used instead of mod + PB while
+   *  the proficiency stays ticked; unticking it drops the printed number, so
+   *  ticking it again recomputes. */
+  const [printedSaves, setPrintedSaves] = useState<Record<string, number>>({});
 
   /* Skills */
   const [skillProfs, setSkillProfs] = useState<string[]>([]);
+  const [printedSkills, setPrintedSkills] = useState<Record<string, number>>({});
 
   /* Damage mods */
   const vuln = useTags(); const resist = useTags(); const immune = useTags(); const condImm = useTags();
@@ -241,10 +233,12 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
       // Parse save proficiencies from comma-separated string
       const savesStr = typeof parsedData!.saving_throws === 'string' ? parsedData!.saving_throws.toLowerCase() : '';
       setSaveProfs(prev => ({ ...prev, ...Object.fromEntries(ABILITIES.map(a => [a, savesStr.includes(a.toLowerCase())])) }));
+      setPrintedSaves(parseSaveBonuses(parsedData.saving_throws));
     }
     if (typeof parsedData.skills === "string") {
       // Parse skill proficiencies
       setSkillProfs(parsedData.skills.split(",").map(s => s.trim().split(" ").slice(0, -1).join(" ")).filter(s => SKILL_LIST.includes(s)));
+      setPrintedSkills(parseSkillBonuses(parsedData.skills));
     }
     if (typeof parsedData.damage_vulnerabilities === "string") vuln.tags.forEach(() => {}); // tag handling below
     if (typeof parsedData.damage_resistances === "string") resist.tags.forEach(() => {});
@@ -296,9 +290,11 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
     if (typeof p.saving_throws === "string") {
       const savesStr = p.saving_throws.toLowerCase();
       setSaveProfs(prev => ({ ...prev, ...Object.fromEntries(ABILITIES.map(a => [a, savesStr.includes(a.toLowerCase())])) }));
+      setPrintedSaves(parseSaveBonuses(p.saving_throws));
     }
     if (typeof p.skills === "string") {
       setSkillProfs(p.skills.split(",").map((s: string) => s.trim().split(" ").slice(0, -1).join(" ")).filter((s: string) => SKILL_LIST.includes(s)));
+      setPrintedSkills(parseSkillBonuses(p.skills));
     }
     if (typeof p.damage_vulnerabilities === "string") p.damage_vulnerabilities.split(",").forEach((t: string) => vuln.add(t.trim()));
     if (typeof p.damage_resistances === "string") p.damage_resistances.split(",").forEach((t: string) => resist.add(t.trim()));
@@ -329,8 +325,16 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
 
   const existingImageUrl = imgPrev?.startsWith("http") ? imgPrev : undefined;
 
-  const getSave = (a: string): number => { const m = abilMod(abilScores[a]??10); return saveProfs[a] ? m+profBonus : m; };
-  const getSkill = (s: string): number => { const abb = SKILL_ABIL[s]!; return skillProfs.includes(s) ? abilMod(abilScores[abb]??10)+profBonus : abilMod(abilScores[abb]??10); };
+  const getSave = (a: string): number => { const m = abilMod(abilScores[a]??10); return saveProfs[a] ? (printedSaves[a] ?? m+profBonus) : m; };
+  const getSkill = (s: string): number => { const abb = SKILL_ABIL[s]!; const m = abilMod(abilScores[abb]??10); return skillProfs.includes(s) ? (printedSkills[s] ?? m+profBonus) : m; };
+  const toggleSave = (a: string) => {
+    setPrintedSaves(p => { const { [a]: _, ...rest } = p; return rest; });
+    setSaveProfs(p => ({ ...p, [a]: !p[a] }));
+  };
+  const toggleSkill = (s: string) => {
+    setPrintedSkills(p => { const { [s]: _, ...rest } = p; return rest; });
+    setSkillProfs(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s]);
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault(); setSaving(true); setError(null); setSuccess(false);
@@ -345,9 +349,9 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
     props.ability_str = str; props.ability_dex = dex; props.ability_con = con;
     props.ability_int = intel; props.ability_wis = wis; props.ability_cha = cha;
 
-    const sv = ABILITIES.filter(a => saveProfs[a]).map(a => `${a.toLowerCase()} +${getSave(a)}`).join(", ");
+    const sv = ABILITIES.filter(a => saveProfs[a]).map(a => `${a.toLowerCase()} ${fmtBonus(getSave(a))}`).join(", ");
     if (sv) props.saving_throws = sv;
-    const sk = skillProfs.map(s => `${s} +${getSkill(s)}`).join(", ");
+    const sk = skillProfs.map(s => `${s} ${fmtBonus(getSkill(s))}`).join(", ");
     if (sk) props.skills = sk;
     if (vuln.tags.length) props.damage_vulnerabilities = vuln.tags.join(", ");
     if (resist.tags.length) props.damage_resistances = resist.tags.join(", ");
@@ -434,14 +438,14 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
       <h3 className={sectionHeadingCls}>Saving Throws</h3>
       <div className="flex flex-wrap gap-2">
         {ABILITIES.map(a => (
-          <button key={a} type="button" onClick={()=>setSaveProfs(p=>({...p,[a]:!p[a]}))} className={saveToggleCls(saveProfs[a]!)}>{a} +{getSave(a)}</button>
+          <button key={a} type="button" onClick={()=>toggleSave(a)} className={saveToggleCls(saveProfs[a]!)}>{a} {fmtBonus(getSave(a))}</button>
         ))}
       </div>
 
       <h3 className={sectionHeadingCls}>Skills</h3>
       <div className="flex flex-wrap gap-2">
         {SKILL_LIST.map(s => (
-          <button key={s} type="button" onClick={()=>setSkillProfs(p=>p.includes(s)?p.filter(x=>x!==s):[...p,s])} className={saveToggleCls(skillProfs.includes(s))}>{s} +{getSkill(s)}</button>
+          <button key={s} type="button" onClick={()=>toggleSkill(s)} className={saveToggleCls(skillProfs.includes(s))}>{s} {fmtBonus(getSkill(s))}</button>
         ))}
       </div>
 
