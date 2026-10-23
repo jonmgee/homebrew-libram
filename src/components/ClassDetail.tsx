@@ -63,7 +63,6 @@ export default function ClassDetail({ entry }: { entry: DbEntry }) {
     <>
       <h1 className="phb-h1 !text-2xl">
         {entry.name}
-        {entry.dm_only && <span className="dm-stamp ml-3 align-middle">DM</span>}
       </h1>
       <p className="phb-description mt-0.5 text-sm">Class</p>
 
