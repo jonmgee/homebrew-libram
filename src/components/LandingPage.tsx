@@ -48,10 +48,10 @@ const PANELS: Panel[] = [
 
 const FEATURES: [string, string][] = [
   ["Share a link", "One entry to a player, or the whole tome to another DM. No account needed to read it."],
-  ["DM-only entries", "Stamp the twist and the cursed item. They never appear in anything you share."],
   ["Print it", "Every entry prints properly, in full or compact, for a folder at the table."],
   ["Onto a character sheet", "Pull your own items straight into PC on Parchment. Same login, no extra cost."],
   ["Rate and bookmark", "Stars for how good it is, a ribbon for what you need this Saturday."],
+  ["Classes and species", "Write up your own, and PC on Parchment reads them straight off the shelf."],
   ["Install it", "Add it to your home screen and it opens like an app, no browser bar."],
 ];
 

@@ -75,7 +75,6 @@ export default function BrowsePage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const [search, setSearch] = useState("");
-  const [hideDmOnly, setHideDmOnly] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("name");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -168,10 +167,6 @@ export default function BrowsePage() {
       });
     }
 
-    if (hideDmOnly) {
-      result = result.filter((e) => !e.dm_only);
-    }
-
     if (sortMode === "rating") {
       result = [...result].sort(
         (a, b) => (b.rating ?? 0) - (a.rating ?? 0) || a.name.localeCompare(b.name),
@@ -187,7 +182,7 @@ export default function BrowsePage() {
     }
 
     return result;
-  }, [entries, search, hideDmOnly, sortMode]);
+  }, [entries, search, sortMode]);
 
   const randomCandidates = useMemo(
     () => filtered.filter((e) => RANDOM_PICK_TYPES.has(e.type)),
@@ -229,16 +224,6 @@ export default function BrowsePage() {
           placeholder="Search by name or description…"
           className="parchment-input min-w-0 flex-1 rounded-lg px-4 py-2 text-sm"
         />
-
-        <label className="flex cursor-pointer items-center gap-2 phb-description text-sm text-ink-light">
-          <input
-            type="checkbox"
-            checked={hideDmOnly}
-            onChange={(e) => setHideDmOnly(e.target.checked)}
-            className="size-4 rounded border-parchment-dark bg-parchment-light text-crimson accent-crimson focus:ring-1 focus:ring-gilding focus:ring-offset-0"
-          />
-          Hide DM-only
-        </label>
       </div>
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -317,9 +302,7 @@ export default function BrowsePage() {
                 return (
                   <div
                     key={entry.id}
-                    className={`parchment-card px-4 py-3 ${
-                      entry.dm_only ? "border-l-4 border-l-crimson" : ""
-                    }`}
+                    className="parchment-card px-4 py-3"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <Link
@@ -338,9 +321,6 @@ export default function BrowsePage() {
                             {entry.name}
                           </h3>
                           <StarRating value={entry.rating} size="sm" />
-                          {entry.dm_only && (
-                            <span className="dm-stamp shrink-0">DM</span>
-                          )}
                           {(isAll || isBookmarks) && (
                             <span className="wax-seal shrink-0">
                               {formatEntryType(entry.type)}

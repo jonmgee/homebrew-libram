@@ -26,9 +26,6 @@ function renderMeta(entry: DbEntry) {
   return <div className="mt-8 flex flex-wrap gap-x-6 gap-y-1 border-t border-parchment-dark pt-4">{p}</div>;
 }
 
-function renderDmBadge(dmOnly: boolean) {
-  return dmOnly ? <span className="dm-stamp ml-3 align-middle">DM</span> : null;
-}
 
 /* ─── Treasure renderers (inline, unchanged from original) ─── */
 
@@ -39,7 +36,7 @@ function MagicItemDetail({ entry }: { entry: DbEntry }) {
   const att = p.requires_attunement as boolean | undefined;
   const ch = p.charges as number | undefined;
   return (
-    <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
+    <><h1 className="phb-h1 !text-2xl">{entry.name}</h1>
       <p className="phb-description mt-1 text-base">{[r, sub].filter(Boolean).join(", ")}{att && <span className="ml-1 not-italic">(requires attunement)</span>}</p>
       {ch !== undefined && ch > 0 && <p className="phb-description mt-1 text-sm">Charges: {ch}</p>}
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
@@ -62,7 +59,7 @@ function WeaponDetail({ entry }: { entry: DbEntry }) {
   const rarity = (p.rarity as string) ?? "";
   const att = p.requires_attunement as boolean | undefined;
   return (
-    <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
+    <><h1 className="phb-h1 !text-2xl">{entry.name}</h1>
       {(dd || dt) && (
         <p className="phb-body mt-1 text-base"><span className="font-semibold">{dd}</span>{dt && <span className="text-ink-light"> {dt}</span>}{bonus !== "+0" && <span className="text-ink-light"> ({bonus})</span>}</p>
       )}
@@ -90,7 +87,7 @@ function ArmourDetail({ entry }: { entry: DbEntry }) {
   const rarity = (p.rarity as string) ?? "";
   const att = p.requires_attunement as boolean | undefined;
   return (
-    <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
+    <><h1 className="phb-h1 !text-2xl">{entry.name}</h1>
       {(at || stealth) && (
         <p className="phb-body mt-1 text-base"><span className="font-semibold capitalize">{at}</span>{bonus !== "+0" && <span className="text-ink-light"> ({bonus})</span>}{stealth && <span className="ml-2 phb-description text-sm">&mdash; Disadvantage on Stealth</span>}</p>
       )}
@@ -110,7 +107,7 @@ function PotionDetail({ entry }: { entry: DbEntry }) {
   const eff = (p.effect as string) ?? "";
   const dur = (p.duration as string) ?? "";
   return (
-    <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
+    <><h1 className="phb-h1 !text-2xl">{entry.name}</h1>
       {r && <p className="phb-description mt-1 text-base">{r}</p>}
       {eff && <div className="phb-body mt-4"><span className={SH}>Effect</span><p className="mt-1 text-base leading-relaxed">{eff}</p></div>}
       {dur && <p className="phb-description mt-2 text-sm">Duration: {dur}</p>}
@@ -128,7 +125,7 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
   const w = p.weight as number | undefined;
   const props = (p.properties as string) ?? "";
   return (
-    <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
+    <><h1 className="phb-h1 !text-2xl">{entry.name}</h1>
       {gc && <p className="phb-description mt-1 text-base capitalize">{gc}</p>}
       {(cost || w !== undefined || qty > 1) && <div className="phb-description mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">{cost && <span>Cost: {cost}</span>}{w !== undefined && <span>Weight: {w} lb</span>}{qty > 1 && <span>Quantity: {qty}</span>}</div>}
       {props && <p className="phb-description mt-2 text-sm">{props}</p>}
@@ -140,7 +137,7 @@ function AdventuringGearDetail({ entry }: { entry: DbEntry }) {
 
 function TrinketDetail({ entry }: { entry: DbEntry }) {
   return (
-    <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
+    <><h1 className="phb-h1 !text-2xl">{entry.name}</h1>
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
       {renderMeta(entry)}
     </>
@@ -149,7 +146,7 @@ function TrinketDetail({ entry }: { entry: DbEntry }) {
 
 function SimpleDetail({ entry }: { entry: DbEntry }) {
   return (
-    <><h1 className="phb-h1 !text-2xl">{entry.name}{renderDmBadge(entry.dm_only)}</h1>
+    <><h1 className="phb-h1 !text-2xl">{entry.name}</h1>
       <p className="phb-description mt-1 text-sm">{formatEntryType(entry.type)}</p>
       <div className="phb-body mt-4 leading-relaxed"><MarkdownDescription text={entry.description} dropCap /></div>
       {renderMeta(entry)}
@@ -430,11 +427,6 @@ export default function EntryDetailPage() {
                 Anyone with this link can view this entry (read-only):
               </p>
               <CopyLinkField url={`${window.location.origin}/share/${entry.share_token}`} />
-              {entry.dm_only && (
-                <p className="text-xs italic">
-                  Heads up: this is a DM-only entry — sharing the link reveals it to whoever holds it.
-                </p>
-              )}
               <button
                 type="button"
                 disabled={shareBusy}

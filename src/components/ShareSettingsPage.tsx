@@ -91,8 +91,7 @@ export default function ShareSettingsPage() {
       <div className="parchment-card gilded-border p-6">
         <p className="phb-body text-sm leading-relaxed">
           Anyone with your libram link can browse a <strong>read-only</strong> copy of your
-          collection — perfect for players or fellow DMs. Entries marked{" "}
-          <span className="dm-stamp align-middle">DM</span> are <strong>never</strong> included.
+          collection — perfect for players or fellow DMs.
           Visitors with their own account can copy entries into their own libram.
         </p>
 

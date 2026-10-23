@@ -297,9 +297,8 @@ export default function AccountPage() {
       <div className="parchment-card gilded-border mb-6 p-6">
         <h2 className="phb-h1 !text-xl">Share your libram</h2>
         <p className="phb-body mt-2 text-xs italic text-[var(--color-caption)]">
-          Creates one public link to your whole collection. DM-only entries are
-          never included. Sharing a single entry is done from that entry's own
-          page.
+          Creates one public link to your whole collection. Sharing a single
+          entry is done from that entry's own page.
         </p>
         <Link
           to="/share-libram"
