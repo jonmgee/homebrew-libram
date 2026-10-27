@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSave } from "@fortawesome/free-solid-svg-icons";
+import { touchScreen, pasteKeys } from "../lib/device";
 
 /*
  * The field styles, image picker and save button every entry form shares.
@@ -60,7 +61,7 @@ export function ImageUpload({ fileRef, imageFile: _imageFile, imagePreview, setI
           <textarea
             readOnly
             onPaste={handlePaste}
-            placeholder="Paste a screenshot (Cmd+V or right-click &rarr; Paste)"
+            placeholder={touchScreen ? "Add a picture for this entry" : `Paste a screenshot (${pasteKeys} or right-click → Paste)`}
             className="w-full resize-none rounded-lg border-2 border-dashed border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] px-4 pb-10 pt-6 text-center font-[var(--font-phb)] text-sm text-[#766649] placeholder:text-[#766649] transition-colors hover:border-amber-600 hover:bg-[var(--color-parchment-light)] cursor-default"
             rows={3}
           />
@@ -69,7 +70,7 @@ export function ImageUpload({ fileRef, imageFile: _imageFile, imagePreview, setI
             onClick={() => fileRef.current?.click()}
             className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-[#766649] underline underline-offset-2 hover:text-amber-700"
           >
-            or choose a file
+            {touchScreen ? "choose a photo or file" : "or choose a file"}
           </button>
         </div>
       )}

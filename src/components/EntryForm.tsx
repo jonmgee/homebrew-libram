@@ -11,6 +11,7 @@ import {
 import { formatEntryType, SPELL_LEVEL_OPTIONS, SCHOOL_OPTIONS, COMPONENT_OPTIONS, npcHasStatBlock } from "../types";
 import type { EntryType, DbEntry } from "../types";
 import { saveEntryWithImage } from "../lib/uploadImage";
+import { touchScreen, pasteKeys } from "../lib/device";
 import { supabase } from "../lib/supabase";
 import { useDuplicateNameCheck } from "../lib/useDuplicateNameCheck";
 import { DuplicateNameWarning } from "./DuplicateNameWarning";
@@ -1421,7 +1422,9 @@ function ImportTab({
         Import Content
       </h2>
       <p className="mb-4 mt-1 text-xs italic text-[#766649]">
-        Paste text, paste screenshots (Cmd+V), or drag one or more files here — multiple screenshots of the same source are stitched into one entry
+        {touchScreen
+          ? "Paste text, or choose photos, screenshots or files below — several screenshots of the same source are stitched into one entry"
+          : `Paste text, paste screenshots (${pasteKeys}), or drag one or more files here — multiple screenshots of the same source are stitched into one entry`}
       </p>
 
       {/* ───── unified paste / text area ───── */}
