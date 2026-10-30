@@ -64,6 +64,21 @@ export default function CreatorOfTheWeek({ className = "" }: { className?: strin
   const chip =
     "relative inline-flex min-h-9 items-center gap-1 rounded-full border border-[var(--color-header)]/50 px-3 font-title text-sm text-[var(--color-header)] after:absolute after:-inset-1 after:content-[''] hover:bg-[var(--color-header)] hover:text-[var(--color-parchment)]";
 
+  const links = (
+    <>
+      {creator.tiktok && (
+        <a href={tiktokUrl(creator.tiktok)} target="_blank" rel="noopener noreferrer" className={chip}>
+          TikTok <OutIcon />
+        </a>
+      )}
+      {creator.instagram && (
+        <a href={instagramUrl(creator.instagram)} target="_blank" rel="noopener noreferrer" className={chip}>
+          Instagram <OutIcon />
+        </a>
+      )}
+    </>
+  );
+
   return (
     <section
       aria-label="D&D Creator of the Week"
@@ -79,6 +94,14 @@ export default function CreatorOfTheWeek({ className = "" }: { className?: strin
             Highlighting the best creators in our community. Share the love!
           </p>
         </div>
+        <a
+          href={PAST_CREATORS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden whitespace-nowrap py-2 pl-2 text-sm text-[var(--color-parchment)]/80 underline hover:text-[var(--color-parchment)] sm:inline"
+        >
+          Past creators
+        </a>
         <button
           type="button"
           onClick={close}
@@ -89,38 +112,34 @@ export default function CreatorOfTheWeek({ className = "" }: { className?: strin
         </button>
       </div>
 
-      <div className="flex items-start gap-3 p-4 md:gap-4">
-        {creator.photo && (
-          <img
-            src={guildFile(creator.photo)}
-            alt=""
-            className="h-16 w-16 flex-none rounded-lg border-2 border-[var(--color-gilding)] object-cover md:h-20 md:w-20"
-          />
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="font-title text-xl leading-tight text-[var(--color-header)] md:text-2xl">{creator.name}</p>
-          {handle && <p className="text-sm text-[var(--color-ink-light)]">@{handle}</p>}
-          {creator.line && <p className="phb-body mt-1 text-sm italic leading-snug md:text-base">{creator.line}</p>}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {creator.tiktok && (
-              <a href={tiktokUrl(creator.tiktok)} target="_blank" rel="noopener noreferrer" className={chip}>
-                TikTok <OutIcon />
-              </a>
-            )}
-            {creator.instagram && (
-              <a href={instagramUrl(creator.instagram)} target="_blank" rel="noopener noreferrer" className={chip}>
-                Instagram <OutIcon />
-              </a>
-            )}
-            <a
-              href={PAST_CREATORS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-auto py-2 text-xs text-[var(--color-ink-light)] underline hover:text-[var(--color-header)]"
-            >
-              Past creators
-            </a>
+      {/* Name, handle and links on one line, the line about them beneath. On a
+          phone the links get their own full-width row, with Past creators. */}
+      <div className="px-4 py-3">
+        <div className="flex items-center gap-3 md:gap-4">
+          {creator.photo && (
+            <img
+              src={guildFile(creator.photo)}
+              alt=""
+              className="h-14 w-14 flex-none rounded-lg border-2 border-[var(--color-gilding)] object-cover md:h-16 md:w-16"
+            />
+          )}
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+            <p className="font-title text-xl leading-tight text-[var(--color-header)] md:text-2xl">{creator.name}</p>
+            {handle && <p className="text-sm text-[var(--color-ink-light)]">@{handle}</p>}
+            <div className="ml-auto hidden items-center gap-2 sm:flex">{links}</div>
+            {creator.line && <p className="phb-body basis-full text-sm italic leading-snug md:text-base">{creator.line}</p>}
           </div>
+        </div>
+        <div className="mt-2 flex items-center gap-2 sm:hidden">
+          <a
+            href={PAST_CREATORS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mr-auto py-2 text-xs text-[var(--color-ink-light)] underline hover:text-[var(--color-header)]"
+          >
+            Past creators
+          </a>
+          {links}
         </div>
       </div>
     </section>
