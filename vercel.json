@@ -6,6 +6,7 @@
     { "source": "/privacy.html", "destination": "https://www.appwrightsguild.com/small-print.html#privacy", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/api/guild/:path*", "destination": "https://www.appwrightsguild.com/:path*" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],

@@ -1,4 +1,5 @@
 import WhatsNew from "./WhatsNew";
+import CreatorOfTheWeek from "./CreatorOfTheWeek";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -89,6 +90,7 @@ export default function HomePage() {
             The digital tome for all your D&D homebrew content. Import photos and screenshots or create from scratch
           </p>
         </header>
+        <CreatorOfTheWeek className="mx-auto mb-6" />
       </div>
 
       <div className="mx-auto max-w-5xl px-4">
