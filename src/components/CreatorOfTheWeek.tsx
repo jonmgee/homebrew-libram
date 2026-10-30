@@ -91,7 +91,7 @@ export default function CreatorOfTheWeek({ className = "" }: { className?: strin
             D&amp;D Creator of the Week
           </h2>
           <p className="m-0 text-xs italic leading-snug text-[var(--color-parchment)]/80 sm:text-sm">
-            Highlighting the best creators in our community. Share the love!
+            Highlighting the best creators in our community. Check them out, enjoy what they do and share the love!
           </p>
         </div>
         <a
