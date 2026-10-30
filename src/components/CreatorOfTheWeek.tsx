@@ -30,12 +30,12 @@ function OutIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      width="14"
-      height="14"
+      width="12"
+      height="12"
       aria-hidden="true"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2.2"
+      strokeWidth="2.4"
       strokeLinecap="round"
       strokeLinejoin="round"
       className="flex-none"
@@ -53,82 +53,76 @@ function OutIcon() {
  * next showing (8am Sunday, a new creator; 8am Thursday, the same one again).
  *
  * Kept unlike the library's tiles on purpose: a dark band with the medal, and a
- * frosted body the backdrop shows through. On a phone it stacks; from tablet
- * width up it runs in a row, buttons to the right.
+ * frosted body the backdrop shows through. The links are small chips, not
+ * buttons: the creator is the point, not the click.
  */
 export default function CreatorOfTheWeek({ className = "" }: { className?: string }) {
   const [creator, close] = useCreatorOfTheWeek();
   if (!creator) return null;
   const handle = creator.tiktok ?? creator.instagram;
-  const button =
-    "flex min-h-11 min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-lg px-2 font-title text-base md:flex-none md:gap-1.5 md:px-4 md:tracking-wide";
+  // A 36px chip with an invisible 4px margin of tap all round: 44px to a thumb.
+  const chip =
+    "relative inline-flex min-h-9 items-center gap-1 rounded-full border border-[var(--color-header)]/50 px-3 font-title text-sm text-[var(--color-header)] after:absolute after:-inset-1 after:content-[''] hover:bg-[var(--color-header)] hover:text-[var(--color-parchment)]";
 
   return (
     <section
       aria-label="D&D Creator of the Week"
       className={`overflow-hidden rounded-xl border border-[var(--color-gilding)] bg-[var(--color-parchment-light)]/60 shadow-lg backdrop-blur-md ${className}`}
     >
-      <div className="flex items-center gap-2.5 bg-[var(--color-header)] py-1 pl-3 pr-1">
+      <div className="flex items-center gap-2.5 bg-[var(--color-header)] py-1.5 pl-3 pr-1">
         <Medal />
-        <h2 className="m-0 flex-1 font-title text-lg leading-tight text-[var(--color-gilding-light)] sm:text-xl">
-          D&amp;D Creator of the Week
-        </h2>
+        <div className="min-w-0 flex-1">
+          <h2 className="m-0 font-title text-lg leading-tight text-[var(--color-gilding-light)] sm:text-xl">
+            D&amp;D Creator of the Week
+          </h2>
+          <p className="m-0 text-xs italic leading-snug text-[var(--color-parchment)]/80 sm:text-sm">
+            Highlighting the best creators in our community. Share the love!
+          </p>
+        </div>
         <button
           type="button"
           onClick={close}
           aria-label="Hide until the next showing"
-          className="flex h-11 w-11 items-center justify-center text-xl text-[var(--color-parchment)]/75 hover:text-[var(--color-parchment)]"
+          className="flex h-11 w-11 flex-none items-center justify-center text-xl text-[var(--color-parchment)]/75 hover:text-[var(--color-parchment)]"
         >
           ✕
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:gap-6">
-        <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
-          {creator.photo && (
-            <img
-              src={guildFile(creator.photo)}
-              alt=""
-              className="h-16 w-16 flex-none rounded-lg border-2 border-[var(--color-gilding)] object-cover md:h-20 md:w-20"
-            />
-          )}
-          <div className="min-w-0">
-            <p className="font-title text-xl leading-tight text-[var(--color-header)] md:text-2xl">{creator.name}</p>
-            {handle && <p className="text-sm text-[var(--color-ink-light)]">@{handle}</p>}
-            {creator.line && <p className="phb-body mt-1 text-sm italic leading-snug md:text-base">{creator.line}</p>}
+      <div className="flex items-start gap-3 p-4 md:gap-4">
+        {creator.photo && (
+          <img
+            src={guildFile(creator.photo)}
+            alt=""
+            className="h-16 w-16 flex-none rounded-lg border-2 border-[var(--color-gilding)] object-cover md:h-20 md:w-20"
+          />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="font-title text-xl leading-tight text-[var(--color-header)] md:text-2xl">{creator.name}</p>
+          {handle && <p className="text-sm text-[var(--color-ink-light)]">@{handle}</p>}
+          {creator.line && <p className="phb-body mt-1 text-sm italic leading-snug md:text-base">{creator.line}</p>}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {creator.tiktok && (
+              <a href={tiktokUrl(creator.tiktok)} target="_blank" rel="noopener noreferrer" className={chip}>
+                TikTok <OutIcon />
+              </a>
+            )}
+            {creator.instagram && (
+              <a href={instagramUrl(creator.instagram)} target="_blank" rel="noopener noreferrer" className={chip}>
+                Instagram <OutIcon />
+              </a>
+            )}
+            <a
+              href={PAST_CREATORS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto py-2 text-xs text-[var(--color-ink-light)] underline hover:text-[var(--color-header)]"
+            >
+              Past creators
+            </a>
           </div>
         </div>
-
-        <div className="flex gap-2 md:w-52 md:flex-none md:flex-col">
-          {creator.tiktok && (
-            <a
-              href={tiktokUrl(creator.tiktok)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`${button} bg-[var(--color-header)] text-[var(--color-parchment)] hover:bg-[#7a2212]`}
-            >
-              Watch on TikTok <OutIcon />
-            </a>
-          )}
-          {creator.instagram && (
-            <a
-              href={instagramUrl(creator.instagram)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`${button} border-[1.5px] border-[var(--color-header)] text-[var(--color-header)] hover:bg-[var(--color-parchment)]`}
-            >
-              Instagram <OutIcon />
-            </a>
-          )}
-        </div>
       </div>
-
-      <p className="m-0 flex justify-between border-t border-[var(--color-gilding)]/40 px-4 py-2 text-xs text-[var(--color-ink-light)]">
-        <span>Picked by the Appwrights Guild</span>
-        <a href={PAST_CREATORS_URL} target="_blank" rel="noopener noreferrer" className="text-[var(--color-header)] underline">
-          Past creators
-        </a>
-      </p>
     </section>
   );
 }
