@@ -4,8 +4,25 @@ import {
   PAST_CREATORS_URL,
   tiktokUrl,
   useCreatorOfTheWeek,
-  weekLabel,
 } from "../lib/creatorOfTheWeek";
+
+/** A small gilt medal: marks the card as the guild's pick at a glance. */
+function Medal() {
+  return (
+    <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true" className="flex-none">
+      <defs>
+        <linearGradient id="cotw-gilt" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f7e6a6" />
+          <stop offset="0.5" stopColor="#c69a3e" />
+          <stop offset="1" stopColor="#9c7120" />
+        </linearGradient>
+      </defs>
+      <circle cx="16" cy="16" r="15" fill="url(#cotw-gilt)" />
+      <circle cx="16" cy="16" r="12" fill="none" stroke="#5a3d0c" strokeOpacity="0.45" />
+      <path d="M16 8.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" fill="var(--color-header)" />
+    </svg>
+  );
+}
 
 /**
  * The guild's D&D Creator of the Week, on the library's front page.
@@ -24,11 +41,11 @@ export default function CreatorOfTheWeek({ className = "" }: { className?: strin
       aria-label="D&D Creator of the Week"
       className={`relative flex max-w-2xl flex-col gap-3 rounded-xl border-[1.5px] border-[var(--color-gilding)] bg-[var(--color-parchment-light)]/95 p-4 shadow-sm ${className}`}
     >
-      <div className="flex items-center gap-2">
-        <span className="flex-1 font-title text-sm uppercase tracking-wider text-[var(--color-header)]">
+      <div className="flex items-center gap-2.5 border-b-2 border-[var(--color-gilding)] pb-2">
+        <Medal />
+        <h2 className="m-0 flex-1 font-title text-lg leading-tight text-[var(--color-header)] sm:text-xl">
           D&amp;D Creator of the Week
-        </span>
-        <span className="text-xs text-[var(--color-caption)]">{weekLabel(creator.start)}</span>
+        </h2>
         <button
           type="button"
           onClick={close}
