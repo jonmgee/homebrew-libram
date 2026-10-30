@@ -84,7 +84,7 @@ export default function CreatorOfTheWeek({ className = "" }: { className?: strin
       aria-label="D&D Creator of the Week"
       className={`overflow-hidden rounded-xl border border-[var(--color-gilding)] bg-[var(--color-parchment-light)]/60 shadow-lg backdrop-blur-md ${className}`}
     >
-      <div className="flex items-center gap-2.5 bg-[var(--color-header)] py-1.5 pl-3 pr-1">
+      <div className="flex items-center gap-2.5 bg-[var(--color-header)]/80 py-1.5 pl-3 pr-1">
         <Medal />
         <div className="min-w-0 flex-1">
           <h2 className="m-0 font-title text-lg leading-tight text-[var(--color-gilding-light)] sm:text-xl">
