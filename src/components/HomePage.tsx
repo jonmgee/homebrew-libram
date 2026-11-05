@@ -189,25 +189,6 @@ export default function HomePage() {
         </MotionLink>
       </motion.nav>
 
-      {/* Sharing the whole Libram lived only on the account page, where few
-          found it (Jon, 5 Nov 2026). */}
-      <div className="mx-auto mt-8 max-w-xl px-4">
-        <Link
-          to="/share-libram"
-          className="parchment-card gilded-border flex items-center justify-between gap-4 px-5 py-3 transition-colors hover:border-[var(--color-header)]"
-        >
-          <span>
-            <span className="phb-small-sc block text-sm font-bold uppercase tracking-wider text-[var(--color-header)]">
-              Share your Libram
-            </span>
-            <span className="phb-body block text-xs italic text-[var(--color-caption)]">
-              One read-only link to your whole collection
-            </span>
-          </span>
-          <span aria-hidden="true" className="text-[var(--color-gilding-dark)]">&rarr;</span>
-        </Link>
-      </div>
-
       {/* The tip jar, same words as PC on Parchment's roster footer (Jon,
           15 Oct 2026). Home page only, above the shared footer. */}
       <div className="mx-auto mt-10 max-w-xl px-4">

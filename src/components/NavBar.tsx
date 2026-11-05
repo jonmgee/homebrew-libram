@@ -18,6 +18,11 @@ export default function NavBar() {
 
   if (!user) return null;
 
+  // The app hides the Account link below (its own Guild page has an account
+  // button), which leaves room here on a phone. On the website there isn't
+  // any: Account, which links to Share, stays and this waits for a wider bar.
+  const inApp = navigator.userAgent.includes("PCOnParchmentApp");
+
   // Same footprint for every non-primary control.
   const secondary =
     "phb-small-sc cursor-pointer whitespace-nowrap rounded-md border border-[var(--color-gilding-dark)]/60 px-3 py-1 text-xs uppercase tracking-wider text-[var(--color-footnotes)]/85 transition-colors hover:border-[var(--color-gilding)] hover:text-[var(--color-gilding-light)]";
@@ -44,8 +49,7 @@ export default function NavBar() {
             <span className="hidden sm:inline">+ New Entry</span>
           </Link>
           {/* Bookmarks sit here because they're reached constantly at the
-              table. Sharing the whole libram — a rare, one-off action —
-              moved to the Account page to make room. */}
+              table. */}
           <Link
             to="/browse/bookmarks"
             className={`${secondary} inline-flex items-center gap-1.5 !px-2.5`}
@@ -62,6 +66,20 @@ export default function NavBar() {
             </svg>
             <span className="hidden md:inline">Bookmarks</span>
             <span className="sr-only md:hidden">Bookmarks</span>
+          </Link>
+          {/* Sharing the whole Libram. It was only on the Account page, where
+              few found it (Jon, 5 Nov 2026). */}
+          <Link
+            to="/share-libram"
+            className={`${secondary} ${inApp ? "inline-flex" : "hidden sm:inline-flex"} items-center gap-1.5 !px-2.5`}
+            title="Share your Libram"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 15V4m0 0L8 8m4-4 4 4" />
+              <path d="M7 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1" />
+            </svg>
+            <span className="hidden lg:inline">Share</span>
+            <span className="sr-only lg:hidden">Share your Libram</span>
           </Link>
           {/* Both secondary controls stay icon-only below md. At 375px the
               full labels overflowed the bar and scrolled the whole page
