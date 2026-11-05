@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
+import ReportLink from "./ReportLink";
 import { supabase } from "../lib/supabase";
 import { copyAllToMyLibram } from "../lib/copyEntry";
 import { useMyEntryNames, nameKey } from "../lib/useMyEntryNames";
@@ -244,6 +245,9 @@ export default function SharedLibramPage() {
                 <p className="phb-description py-8 text-center">No entries match your search.</p>
               )}
             </div>
+            <p className="mt-6 text-center">
+              <ReportLink what="shared Libram" />
+            </p>
           </>
         )}
       </div>

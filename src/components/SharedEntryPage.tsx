@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import ReportLink from "./ReportLink";
 import { supabase } from "../lib/supabase";
 import { copyEntryToMyLibram } from "../lib/copyEntry";
 import { useMyEntryNames, nameKey } from "../lib/useMyEntryNames";
@@ -124,6 +125,7 @@ export default function SharedEntryPage() {
               <p className="phb-description text-xs">
                 Shared read-only from the owner's Homebrew Libram.
               </p>
+              <ReportLink what="shared entry" />
             </div>
           </>
         )}
