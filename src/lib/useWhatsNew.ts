@@ -38,6 +38,8 @@ export function useWhatsNew(): { entries: ChangelogEntry[]; dismiss: () => void 
   const lastSeen = user?.user_metadata?.[SEEN_KEY] as string | undefined;
 
   useEffect(() => {
+    // The app has one What's New for every tool, on its Guild page.
+    if (navigator.userAgent.includes("PCOnParchmentApp")) return;
     if (loading || !user || done) return;
 
     const missed = unseenFor(lastSeen, user.created_at);

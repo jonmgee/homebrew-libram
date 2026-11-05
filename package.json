@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/app-manifest.mjs",
+    "build": "tsc -b && vite build && node scripts/whats-new.mjs && node scripts/app-manifest.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
