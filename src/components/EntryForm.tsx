@@ -19,6 +19,7 @@ import { labelCls, inputCls, textareaCls, ImageUpload, SaveButton } from "./Form
 import SpeciesForm from "./SpeciesForm";
 import ClassForm from "./ClassForm";
 import MonsterForm, { abilMod, modStr, crToProf, CR_LIST, SIZE_LIST, ABILITIES, SKILL_LIST, SKILL_ABIL, useTags as useMonsterTags, TagRow, RepeatBlock } from "./MonsterForm";
+import { askAiConsent } from "../lib/aiConsent";
 
 /* ──────────── Props ──────────── */
 interface EntryFormProps {
@@ -1160,6 +1161,9 @@ async function callParseApi(payload: {
   // user. Pass this session's access token for it to verify.
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error("Please sign in to use this feature.");
+  if (!(await askAiConsent())) {
+    throw new Error("Nothing was sent. Importing needs your OK to use AI, or switch to Manual Entry.");
+  }
 
   const res = await fetch("/api/parse-entry", {
     method: "POST",
