@@ -8,6 +8,7 @@ import {
 import { saveEntryWithImage } from "../lib/uploadImage";
 import { useDuplicateNameCheck } from "../lib/useDuplicateNameCheck";
 import { DuplicateNameWarning } from "./DuplicateNameWarning";
+import { MonsterTemplatePicker } from "./MonsterTemplatePicker";
 import type { DbEntry } from "../types";
 
 /* ───── Shared styles ───── */
@@ -68,11 +69,12 @@ export function useTags(initial: string[] = []) {
   const add = (raw: string) => { const t = raw.trim(); if (t && !tags.includes(t)) setTags(p => [...p, t]); setInput(""); };
   const remove = (tag: string) => setTags(p => p.filter(x => x !== tag));
   const reset = () => setTags([]);
+  const replace = (list: string[]) => { setTags([...new Set(list)]); setInput(""); };
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(input); }
     if (e.key === "Backspace" && !input && tags.length > 0) remove(tags[tags.length - 1]!);
   };
-  return { tags, input, setInput, add, remove, reset, handleKey };
+  return { tags, input, setInput, add, remove, reset, replace, handleKey };
 }
 
 export function TagRow({ hook }: { hook: ReturnType<typeof useTags> }) {
@@ -208,116 +210,70 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string|null>(null);
   const [success, setSuccess] = useState(false);
-  const [prepopNotice, setPrepopNotice] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Pre-populate from parsed data
+  /** Flash a note above the form for a few seconds. */
+  const flash = (msg: string) => {
+    setNotice(msg);
+    setTimeout(() => setNotice(null), 8000);
+  };
+
+  /** Load a full property set into the form: an import, the entry being
+   *  edited, or a stock monster picked as a starting point. Every field is
+   *  set, so a template chosen after another leaves nothing behind. */
+  const fillFromProps = (p: Record<string, unknown>) => {
+    const str = (k: string) => (typeof p[k] === "string" ? (p[k] as string) : "");
+    const num = (k: string) => (typeof p[k] === "number" ? (p[k] as number) : 10);
+    const list = (k: string) => (Array.isArray(p[k]) ? (p[k] as {name:string;desc:string}[]) : []);
+    const csv = (k: string) => str(k).split(",").map(t => t.trim()).filter(Boolean);
+
+    setName(str("name"));
+    setSize(str("size")); setCreatureType(str("creature_type")); setAlignment(str("alignment")); setCr(str("cr"));
+    setAc(str("ac")); setHp(str("hp")); setSpeed(str("speed"));
+    setStr(num("ability_str")); setDex(num("ability_dex")); setCon(num("ability_con"));
+    setIntel(num("ability_int")); setWis(num("ability_wis")); setCha(num("ability_cha"));
+
+    const savesStr = str("saving_throws").toLowerCase();
+    setSaveProfs(Object.fromEntries(ABILITIES.map(a => [a, savesStr.includes(a.toLowerCase())])));
+    setPrintedSaves(parseSaveBonuses(savesStr));
+    const skillsStr = str("skills");
+    setSkillProfs(skillsStr.split(",").map(s => s.trim().split(" ").slice(0, -1).join(" ")).filter(s => SKILL_LIST.includes(s)));
+    setPrintedSkills(parseSkillBonuses(skillsStr));
+
+    vuln.replace(csv("damage_vulnerabilities"));
+    resist.replace(csv("damage_resistances"));
+    immune.replace(csv("damage_immunities"));
+    condImm.replace(csv("condition_immunities"));
+    setSenses(str("senses")); setLanguages(str("languages"));
+
+    setTraits(list("traits")); setActions(list("actions"));
+    setBonusActions(list("bonus_actions")); setReactions(list("reactions"));
+
+    const lair = list("lair_actions");
+    setLairActs(lair); setHasLair(lair.length > 0);
+    const la = (typeof p.legendary_actions === "object" && p.legendary_actions !== null)
+      ? (p.legendary_actions as {per_round?: number; actions?: {name:string;desc:string}[]}) : {};
+    const legs = Array.isArray(la.actions) ? la.actions : [];
+    setLegPer(typeof la.per_round === "number" ? la.per_round : 3);
+    setLegActs(legs); setHasLeg(legs.length > 0);
+
+    setDescription(str("description"));
+  };
+
+  // Pre-populate from parsed data (photo/text import)
   useEffect(() => {
     if (!parsedData) return;
-    if (typeof parsedData.name === "string") setName(parsedData.name);
-    if (typeof parsedData.size === "string") setSize(parsedData.size);
-    if (typeof parsedData.creature_type === "string") setCreatureType(parsedData.creature_type);
-    if (typeof parsedData.alignment === "string") setAlignment(parsedData.alignment);
-    if (typeof parsedData.cr === "string") setCr(parsedData.cr);
-    if (typeof parsedData.ac === "string") setAc(parsedData.ac);
-    if (typeof parsedData.hp === "string") setHp(parsedData.hp);
-    if (typeof parsedData.speed === "string") setSpeed(parsedData.speed);
-    if (typeof parsedData.ability_str === "number") setStr(parsedData.ability_str);
-    if (typeof parsedData.ability_dex === "number") setDex(parsedData.ability_dex);
-    if (typeof parsedData.ability_con === "number") setCon(parsedData.ability_con);
-    if (typeof parsedData.ability_int === "number") setIntel(parsedData.ability_int);
-    if (typeof parsedData.ability_wis === "number") setWis(parsedData.ability_wis);
-    if (typeof parsedData.ability_cha === "number") setCha(parsedData.ability_cha);
-    if (typeof parsedData.saving_throws === "string") {
-      // Parse save proficiencies from comma-separated string
-      const savesStr = typeof parsedData!.saving_throws === 'string' ? parsedData!.saving_throws.toLowerCase() : '';
-      setSaveProfs(prev => ({ ...prev, ...Object.fromEntries(ABILITIES.map(a => [a, savesStr.includes(a.toLowerCase())])) }));
-      setPrintedSaves(parseSaveBonuses(parsedData.saving_throws));
-    }
-    if (typeof parsedData.skills === "string") {
-      // Parse skill proficiencies
-      setSkillProfs(parsedData.skills.split(",").map(s => s.trim().split(" ").slice(0, -1).join(" ")).filter(s => SKILL_LIST.includes(s)));
-      setPrintedSkills(parseSkillBonuses(parsedData.skills));
-    }
-    if (typeof parsedData.damage_vulnerabilities === "string") vuln.tags.forEach(() => {}); // tag handling below
-    if (typeof parsedData.damage_resistances === "string") resist.tags.forEach(() => {});
-    if (typeof parsedData.damage_immunities === "string") immune.tags.forEach(() => {});
-    if (typeof parsedData.condition_immunities === "string") condImm.tags.forEach(() => {});
-    if (typeof parsedData.damage_vulnerabilities === "string") parsedData.damage_vulnerabilities.split(",").forEach((t: string) => vuln.add(t.trim()));
-    if (typeof parsedData.damage_resistances === "string") parsedData.damage_resistances.split(",").forEach((t: string) => resist.add(t.trim()));
-    if (typeof parsedData.damage_immunities === "string") parsedData.damage_immunities.split(",").forEach((t: string) => immune.add(t.trim()));
-    if (typeof parsedData.condition_immunities === "string") parsedData.condition_immunities.split(",").forEach((t: string) => condImm.add(t.trim()));
-    if (typeof parsedData.senses === "string") setSenses(parsedData.senses);
-    if (typeof parsedData.languages === "string") setLanguages(parsedData.languages);
-    if (Array.isArray(parsedData.traits)) setTraits(parsedData.traits as {name:string;desc:string}[]);
-    if (Array.isArray(parsedData.actions)) setActions(parsedData.actions as {name:string;desc:string}[]);
-    if (Array.isArray(parsedData.bonus_actions)) setBonusActions(parsedData.bonus_actions as {name:string;desc:string}[]);
-    if (Array.isArray(parsedData.reactions)) setReactions(parsedData.reactions as {name:string;desc:string}[]);
-    if (typeof parsedData.legendary_actions === "object" && parsedData.legendary_actions !== null) {
-      const la = parsedData.legendary_actions as {per_round?: number; actions?: {name:string;desc:string}[]};
-      if (typeof la.per_round === "number") setLegPer(la.per_round);
-      if (Array.isArray(la.actions) && la.actions.length > 0) {
-        setLegActs(la.actions as {name:string;desc:string}[]);
-        setHasLeg(true);
-      }
-    }
-    if (typeof parsedData.description === "string") setDescription(parsedData.description);
-    setPrepopNotice(true);
-    setTimeout(() => setPrepopNotice(false), 6000);
+    fillFromProps(parsedData);
+    flash("✨ Fields pre-populated from import. Please review and correct before saving.");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parsedData]);
 
   // Pre-populate from initial data (edit mode)
   useEffect(() => {
     if (!initialData) return;
-    setName(initialData.name);
-    setDescription(initialData.description);
-    const p = initialData.properties ?? {};
-    if (typeof p.size === "string") setSize(p.size);
-    if (typeof p.creature_type === "string") setCreatureType(p.creature_type);
-    if (typeof p.alignment === "string") setAlignment(p.alignment);
-    if (typeof p.cr === "string") setCr(p.cr);
-    if (typeof p.ac === "string") setAc(p.ac);
-    if (typeof p.hp === "string") setHp(p.hp);
-    if (typeof p.speed === "string") setSpeed(p.speed);
-    if (typeof p.ability_str === "number") setStr(p.ability_str);
-    if (typeof p.ability_dex === "number") setDex(p.ability_dex);
-    if (typeof p.ability_con === "number") setCon(p.ability_con);
-    if (typeof p.ability_int === "number") setIntel(p.ability_int);
-    if (typeof p.ability_wis === "number") setWis(p.ability_wis);
-    if (typeof p.ability_cha === "number") setCha(p.ability_cha);
-    if (typeof p.saving_throws === "string") {
-      const savesStr = p.saving_throws.toLowerCase();
-      setSaveProfs(prev => ({ ...prev, ...Object.fromEntries(ABILITIES.map(a => [a, savesStr.includes(a.toLowerCase())])) }));
-      setPrintedSaves(parseSaveBonuses(p.saving_throws));
-    }
-    if (typeof p.skills === "string") {
-      setSkillProfs(p.skills.split(",").map((s: string) => s.trim().split(" ").slice(0, -1).join(" ")).filter((s: string) => SKILL_LIST.includes(s)));
-      setPrintedSkills(parseSkillBonuses(p.skills));
-    }
-    if (typeof p.damage_vulnerabilities === "string") p.damage_vulnerabilities.split(",").forEach((t: string) => vuln.add(t.trim()));
-    if (typeof p.damage_resistances === "string") p.damage_resistances.split(",").forEach((t: string) => resist.add(t.trim()));
-    if (typeof p.damage_immunities === "string") p.damage_immunities.split(",").forEach((t: string) => immune.add(t.trim()));
-    if (typeof p.condition_immunities === "string") p.condition_immunities.split(",").forEach((t: string) => condImm.add(t.trim()));
-    if (typeof p.senses === "string") setSenses(p.senses);
-    if (typeof p.languages === "string") setLanguages(p.languages);
-    if (Array.isArray(p.traits)) setTraits(p.traits as {name:string;desc:string}[]);
-    if (Array.isArray(p.actions)) setActions(p.actions as {name:string;desc:string}[]);
-    if (Array.isArray(p.bonus_actions)) setBonusActions(p.bonus_actions as {name:string;desc:string}[]);
-    if (Array.isArray(p.reactions)) setReactions(p.reactions as {name:string;desc:string}[]);
-    if (typeof p.lair_actions === "object" && p.lair_actions !== null) {
-      setLairActs(p.lair_actions as {name:string;desc:string}[]);
-      if ((p.lair_actions as {name:string;desc:string}[]).length > 0) setHasLair(true);
-    }
-    if (typeof p.legendary_actions === "object" && p.legendary_actions !== null) {
-      const la = p.legendary_actions as {per_round?: number; actions?: {name:string;desc:string}[]};
-      if (typeof la.per_round === "number") setLegPer(la.per_round);
-      if (Array.isArray(la.actions) && la.actions.length > 0) {
-        setLegActs(la.actions as {name:string;desc:string}[]);
-        setHasLeg(true);
-      }
-    }
+    fillFromProps({ ...(initialData.properties ?? {}), name: initialData.name, description: initialData.description });
     const imgUrl = initialData.properties?.image_url as string | undefined;
     if (imgUrl) setImgPrev(imgUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -397,9 +353,21 @@ export default function MonsterForm({ parsedData, capturedImage, initialData }: 
     <form onSubmit={handleSubmit} className="space-y-1">
       {success && <div className="rounded-lg border border-green-700/30 bg-green-50 px-4 py-2 text-sm text-green-800">Entry saved successfully!</div>}
       {error && <div className="rounded-lg border border-red-700/30 bg-red-50 px-4 py-2 text-sm text-red-800">{error}</div>}
-      {prepopNotice && (
-        <div className="rounded-lg border border-amber-600/30 bg-amber-50 px-4 py-2 text-sm text-amber-800">
-          ✨ Fields pre-populated from import. Please review and correct before saving.
+      {notice && (
+        <div className="rounded-lg border border-amber-600/30 bg-amber-50 px-4 py-2 text-sm text-amber-800">{notice}</div>
+      )}
+
+      {!initialData && (
+        <div className="rounded-lg border border-[var(--color-gilding-dark)] bg-[var(--color-parchment)] p-3">
+          <label className={labelCls}>Start from a stock monster <span className="font-normal text-[#766649]">(optional)</span></label>
+          <MonsterTemplatePicker onPick={m => {
+            fillFromProps(m);
+            flash(`Filled in from the ${m.edition} SRD ${m.name}. Everything below is yours to change — a new name is a good start.`);
+          }} />
+          <p className="mt-1.5 text-xs italic leading-snug text-[#766649]">
+            Every creature in the free System Reference Document, 2014 and 2024 rules. Pick one, then make it your own.
+            Stat blocks © Wizards of the Coast, used under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#58180d]">CC BY 4.0</a>.
+          </p>
         </div>
       )}
 
