@@ -31,6 +31,18 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: "2026-11-08-stock-monsters",
+    date: "2026-11-08",
+    title: "Start a monster from a stock one",
+    body:
+      "Homebrew monsters are usually a familiar beast with a twist, so the monster form now has a search box at the top. Pick a goblin, an owlbear or an adult red dragon and the whole stat block fills in. Then rename it, give it a crown and a fire breath, and save.",
+    bullets: [
+      "Every creature in the free System Reference Document, 2014 and 2024 rules — 675 in all.",
+      "Everything stays editable. Pick a different one and the form starts over from that.",
+      "Asked for by Dark_Superman19 on TikTok. Keep the ideas coming.",
+    ],
+  },
+  {
     id: "2026-09-13-classes-species",
     date: "2026-09-13",
     title: "An extension to the Character Options wing - Classes and Species",
