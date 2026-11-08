@@ -102,7 +102,10 @@ export default function MonsterDetail({ entry }: { entry: DbEntry }) {
 
   return (
     <>
-      {/* Flavour text above the stat block, PHB style */}
+      {/* Flavour text above the stat block, PHB style. The name heads the
+          page first, as a monster book does: otherwise a creature with a long
+          description opened with no name in sight (sweep, 8 Nov 2026). */}
+      {entry.description && <h1 className="phb-h1 !text-2xl">{entry.name}</h1>}
       {entry.description && (
         <div className="phb-body mb-5 leading-relaxed">
           <MarkdownDescription text={entry.description} dropCap />

@@ -157,7 +157,7 @@ export default function LoginPage() {
           The digital tome for all your D&D homebrew content
         </p>
         <p className="mb-4 text-center font-[var(--font-phb)] text-[10px] uppercase tracking-widest text-[#766649]">
-          An Appwright&rsquo;s Guild tool
+          An Appwrights Guild tool
         </p>
 
         <div className="mb-5 flex flex-wrap items-baseline justify-center gap-x-1.5">

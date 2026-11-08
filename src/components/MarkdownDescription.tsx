@@ -1,5 +1,13 @@
 import ReactMarkdown from "react-markdown";
 
+/** Markdown joins lines typed with a single Return into one, so a creature's
+ *  "Gear: …" / "Senses: …" lines ran together (sweep, 8 Nov 2026). A single
+ *  line break is kept as a break; a blank line still starts a new paragraph,
+ *  and lists and headings read as before. */
+function keepLineBreaks(text: string): string {
+  return text.replace(/\r\n?/g, "\n").replace(/([^\n])\n(?=[^\n])/g, "$1  \n");
+}
+
 /**
  * Shared markdown renderer for entry descriptions, used by all
  * detail renderers so **bold**, *italics* and lists work everywhere.
@@ -34,7 +42,7 @@ export default function MarkdownDescription({
           h3: ({ children }) => <h3 className="phb-h3 mt-3">{children}</h3>,
         }}
       >
-        {text}
+        {keepLineBreaks(text)}
       </ReactMarkdown>
     </div>
   );

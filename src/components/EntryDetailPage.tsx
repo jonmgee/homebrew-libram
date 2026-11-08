@@ -338,7 +338,7 @@ export default function EntryDetailPage() {
     }
   }, [showSaved, showUpdated]);
 
-  if (loadState === "loading") return <div className="mx-auto max-w-4xl px-4 py-12"><p className="phb-description text-center">Loading entry\u2026</p></div>;
+  if (loadState === "loading") return <div className="mx-auto max-w-4xl px-4 py-12"><p className="phb-description text-center">Loading entry…</p></div>;
 
   if (loadState === "error") return (
     <div className="mx-auto max-w-4xl px-4 py-12">
@@ -367,8 +367,8 @@ export default function EntryDetailPage() {
         </div>
       )}
       <div className="parchment-card gilded-border page-enter print-entry mt-4 p-6 sm:p-8">
-        {/* Wraps because there are now six controls here: at 375px the row
-            used to run off the edge of the card. */}
+        {/* Wraps if it must. With Delete moved to the foot, the four
+            everyday buttons fit one row at 375px. */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-y-2 gap-x-1.5 print:hidden">
           <div className="flex items-center gap-3">
             <StarRating
@@ -412,12 +412,6 @@ export default function EntryDetailPage() {
           >
             Edit
           </Link>
-          <button
-            onClick={() => setDeleteConfirm(true)}
-            className="phb-small-sc cursor-pointer rounded-md border border-parchment-dark px-3 py-1 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:border-crimson hover:bg-crimson/5 hover:text-crimson"
-          >
-            Delete
-          </button>
           </div>
         </div>
         {sharePanel && entry.share_token && (
@@ -447,29 +441,42 @@ export default function EntryDetailPage() {
             onCancel={() => { setMovePanel(false); setMoveError(null); }}
           />
         )}
-        {deleteConfirm && (
-          <div className="mb-4 rounded-lg border border-crimson bg-crimson/10 px-4 py-3 text-sm print:hidden">
-            <p className="phb-body text-crimson">Are you sure? This cannot be undone.</p>
-            {deleteError && <p className="mt-1 text-xs text-crimson">{deleteError}</p>}
-            <div className="mt-2 flex gap-2">
-              <button
-                onClick={handleDelete}
-                className="rounded-lg border border-crimson bg-crimson px-3 py-1 text-xs font-bold text-parchment-light transition-colors hover:bg-crimson-light"
-              >
-                Yes, Delete
-              </button>
-              <button
-                onClick={() => { setDeleteConfirm(false); setDeleteError(null); }}
-                className="rounded-lg border border-[var(--color-gilding-dark)] bg-parchment-dark px-3 py-1 text-xs font-bold text-ink transition-colors hover:bg-parchment"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
         <div className="overflow-hidden">
           <EntryImage entry={entry} />
           <C entry={entry} />
+        </div>
+        {/* Delete sits at the foot, apart from the everyday buttons: with it
+            in the top row there were five, and at 375px it wrapped onto a
+            line of its own (sweep, 8 Nov 2026). */}
+        <div className="mt-8 border-t border-parchment-dark pt-3 text-right print:hidden">
+          {!deleteConfirm && (
+            <button
+              onClick={() => setDeleteConfirm(true)}
+              className="phb-small-sc cursor-pointer rounded-md border border-parchment-dark px-3 py-1 text-xs font-bold uppercase tracking-wider text-caption transition-colors hover:border-crimson hover:bg-crimson/5 hover:text-crimson"
+            >
+              Delete entry
+            </button>
+          )}
+          {deleteConfirm && (
+            <div className="rounded-lg border border-crimson bg-crimson/10 px-4 py-3 text-left text-sm print:hidden">
+              <p className="phb-body text-crimson">Are you sure? This cannot be undone.</p>
+              {deleteError && <p className="mt-1 text-xs text-crimson">{deleteError}</p>}
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={handleDelete}
+                  className="rounded-lg border border-crimson bg-crimson px-3 py-1 text-xs font-bold text-parchment-light transition-colors hover:bg-crimson-light"
+                >
+                  Yes, Delete
+                </button>
+                <button
+                  onClick={() => { setDeleteConfirm(false); setDeleteError(null); }}
+                  className="rounded-lg border border-[var(--color-gilding-dark)] bg-parchment-dark px-3 py-1 text-xs font-bold text-ink transition-colors hover:bg-parchment"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

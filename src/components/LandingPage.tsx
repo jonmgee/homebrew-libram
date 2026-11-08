@@ -173,11 +173,13 @@ export default function LandingPage() {
 
       {/* ── Hero ── */}
       <section className="pt-4 text-center">
+        {/* Sized to the screen below sm: at a fixed 30px the title ran wider
+            than a 375 phone and the page wobbled sideways (sweep, 8 Nov 2026). */}
         <h1 className="whitespace-nowrap">
-          <span className="font-[var(--font-dropcap)] inline-block align-middle text-4xl leading-[0.8] text-[#58180d] drop-shadow-[0_2px_3px_rgba(88,24,13,0.35)] sm:text-5xl md:text-8xl">
+          <span className="font-[var(--font-dropcap)] inline-block align-middle text-[clamp(1.6rem,9vw,2.25rem)] leading-[0.8] text-[#58180d] drop-shadow-[0_2px_3px_rgba(88,24,13,0.35)] sm:text-5xl md:text-8xl">
             H
           </span>
-          <span className="font-[var(--font-title)] inline-block align-middle text-3xl uppercase tracking-[0.08em] text-[#58180d] drop-shadow-[0_2px_3px_rgba(88,24,13,0.35)] sm:text-4xl md:text-6xl">
+          <span className="font-[var(--font-title)] inline-block align-middle text-[clamp(1.2rem,7vw,1.875rem)] uppercase tracking-[0.08em] text-[#58180d] drop-shadow-[0_2px_3px_rgba(88,24,13,0.35)] sm:text-4xl md:text-6xl">
             OMEBREW LIBRAM
           </span>
         </h1>
@@ -200,7 +202,7 @@ export default function LandingPage() {
 
       {/* Chapter II — the live-rendered entry */}
       <section className="pt-16">
-        <div className="grid items-center gap-8 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
           <div className="lg:order-2">
             <p className="phb-small-sc text-xs font-bold uppercase tracking-[0.15em] text-[var(--color-crimson)]">
               Chapter II
@@ -273,7 +275,7 @@ function StartCard() {
         here &mdash; no need to sign up again.
       </p>
       <p className="phb-description mt-5 text-xs italic">
-        An Appwright&rsquo;s Guild tool.{" "}
+        An Appwrights Guild tool.{" "}
         <a href={PRIVACY_URL} className="underline underline-offset-2">
           What we store, and who else sees it
         </a>
@@ -285,7 +287,7 @@ function StartCard() {
 function ChapterPanel({ panel }: { panel: Panel }) {
   return (
     <section className="pt-16">
-      <div className="grid items-center gap-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
         <div className={panel.flip ? "lg:order-2" : ""}>
           <p className="phb-small-sc text-xs font-bold uppercase tracking-[0.15em] text-[var(--color-crimson)]">
             {panel.eyebrow}

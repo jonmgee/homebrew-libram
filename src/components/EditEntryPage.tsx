@@ -36,7 +36,7 @@ export default function EditEntryPage() {
 
   if (loadState === "loading") return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <p className="phb-description text-center">Loading entry\u2026</p>
+      <p className="phb-description text-center">Loading entry…</p>
     </div>
   );
 
